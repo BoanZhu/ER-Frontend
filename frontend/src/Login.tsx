@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import $ from 'jquery';
 
 export const Login = () => {
 
@@ -18,7 +19,34 @@ export const Login = () => {
   }
 
   function onSubmit(username: string, password: string) {
-    alert(`You entered: ${username} and password ${password}`);
+    // alert(`You entered: ${username} and password ${password}`);
+    // 10.187.204.209
+
+    let is_success = true;
+    const request ={
+        "username": "test",
+        "password": "test"
+    }
+    // info = JSON.stringify(info);
+    $.ajax({
+        async: false,
+        type: "POST",
+        url: "http://10.187.204.209:8080/er/login/check_account",
+        headers: { "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+        traditional : true,
+        data: JSON.stringify(request),
+        dataType: "json",
+        contentType: "application/json",
+        success: function(result) {
+            alert("success!");
+        },
+        error: function(result) {
+            is_success = false;
+            alert(JSON.parse(result.responseText).data);
+        }
+    });
+
     if (username === 'test' && password === 'test') {
         navigate('drawing');
     }
