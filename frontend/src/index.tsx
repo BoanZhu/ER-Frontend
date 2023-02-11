@@ -4,13 +4,15 @@ import ReactDOM from 'react-dom/client';
 // import '@clientio/rappid/rappid.css';
 import App from './App';
 // import reportWebVitals from './scripts/reportWebVitals';
+import RouteConfig from './RouteConfig';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <React.StrictMode>
-    <App />
+    <RouteConfig />
+    {/* <App /> */}
   </React.StrictMode>
 );
 

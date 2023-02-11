@@ -1,14 +1,16 @@
 import * as React from 'react';
 
-import {StencilService} from './services/stencil-service';
-import {ToolbarService} from './services/toolbar-service';
-import {InspectorService} from './services/inspector-service';
-import {HaloService} from './services/halo-service';
-import {KeyboardService} from './services/keyboard-service';
-import RappidService from './services/kitchensink-service';
+import {StencilService} from './DrawingPage/services/stencil-service';
+import {ToolbarService} from './DrawingPage/services/toolbar-service';
+import {InspectorService} from './DrawingPage/services/inspector-service';
+import {HaloService} from './DrawingPage/services/halo-service';
+import {KeyboardService} from './DrawingPage/services/keyboard-service';
+import RappidService from './DrawingPage/services/kitchensink-service';
 
-import {ThemePicker} from './components/theme-picker';
-import {sampleGraphs} from './config/sample-graphs';
+import {ThemePicker} from './DrawingPage/components/theme-picker';
+import {sampleGraphs} from './DrawingPage/config/sample-graphs';
+
+import './css/style.css';
 
 interface Props {
 }

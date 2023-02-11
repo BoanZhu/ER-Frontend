@@ -3,6 +3,8 @@ import React from 'react';
 import Rappid from './rappid';
 // import { dia, shapes, ui } from '@clientio/rappid';
 // import './styles/App.css'; 
+import {BrowserRouter, Route } from 'react-router-dom';
+import {Login} from './Login';
 
 // function App() {
 //     const canvas: any = useRef(null);
@@ -79,12 +81,25 @@ import Rappid from './rappid';
 //   );
 // }
 
-class App extends React.Component {
-    public render() {
-        return (
-            <Rappid/>
-        );
-    }
-}
+// class App extends React.Component {
+//     public render() {
+//         return (
+//             <Rappid/>
+//         );
+//     }
+// }
+
+// Firstly, we will go to a Login Page
+
+export const App = () => {
+  return (
+    <div>
+      <div style={{ minWidth: 400 }}>
+        {/* <Login onSubmit={onSubmitUsername} /> */}
+        <Login />
+      </div>
+    </div>
+  );
+};
 
 export default App;
