@@ -10,7 +10,11 @@ import RappidService from './DrawingPage/services/kitchensink-service';
 import {ThemePicker} from './DrawingPage/components/theme-picker';
 import {sampleGraphs} from './DrawingPage/config/sample-graphs';
 
-import './css/style.css';
+import './css/style.css'; 
+// import './css/theme-picker.css'
+// import './css/style.dark.css'
+// import './css/style.materail.css'
+// import './css/style.modern.css'
 
 interface Props {
 }
@@ -39,7 +43,7 @@ class Rappid extends React.Component<Props, State> {
         );
 
         this.rappid.startRappid();
-
+            
         // new ThemePicker({ mainView: this.rappid }).render().$el.appendTo(document.body);
         // themePicker.render().$el.appendTo(document.body);
 
@@ -49,7 +53,7 @@ class Rappid extends React.Component<Props, State> {
     render() {
 
         return (
-            <div ref={this.elementRef} className="joint-app joint-theme-modern">
+            <div id="app" ref={this.elementRef} className="joint-app joint-theme-modern">
                 <div className="app-header">
                     <div className="app-title">
                         <h1>ER ToolKit</h1>

@@ -65,7 +65,7 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
     font-weight: Bold;
 } */
 
-/* html, body, .joint-app {
+html, body, .joint-app {
     position: relative;
     width: 100%;
     height: 100%;
@@ -80,9 +80,9 @@ body {
     user-select: none;
     font-family: sans-serif, Arial;
     overflow: hidden;
-} */
+}
 
-/* .app-header {
+.app-header {
     position: relative;
     width: 100%;
 }
@@ -92,9 +92,9 @@ body {
     height: -moz-calc(100% - 60px);
     height: -webkit-calc(100% - 60px);
     height: calc(100% - 60px);
-} */
+} 
 
-/* .app-title {
+.app-title {
     display: inline-block;
     width: 240px;
     height: 100%;
@@ -109,7 +109,7 @@ body {
     text-transform: uppercase;
     margin: 0;
     padding: 0 0 0 30px;
-} */
+}
 
 /*  Paper  */
 .paper-container {
@@ -131,7 +131,7 @@ body {
     width: 240px;
     box-sizing: border-box;
 }
-/* .object-property[data-property$="/fill"],
+.object-property[data-property$="/fill"],
 .object-property[data-property$="/stroke"],
 .field[data-field$="/fill"],
 .field[data-field$="/stroke"] {
@@ -147,7 +147,7 @@ body {
 
 .joint-inspector-select-box-options {
     width: 190px;
-} */
+}
 
 /*  Navigator  */
 .navigator-container {
@@ -168,7 +168,7 @@ body {
     /* color: #4a4d6e; */
 }
 
-/* .joint-stencil .joint-element[data-type="standard.Image"] text,
+.joint-stencil .joint-element[data-type="standard.Image"] text,
 .joint-stencil .joint-element[data-type="standard.Cylinder"] text,
 .joint-stencil .joint-element[data-type="standard.InscribedImage"] text,
 .joint-stencil .joint-element[data-type="devs.Atomic"] .inPorts text,
@@ -181,7 +181,7 @@ body {
 .joint-stencil .joint-element.joint-type-uml rect,
 .joint-stencil .joint-element.joint-type-uml path {
     stroke: #4a4d6e;
-} */
+}
 
 /*  Toolbar  */
 .toolbar-container {
@@ -198,7 +198,7 @@ body {
     height: 100%;
 }
 
-/* .toolbar-container label {
+.toolbar-container label {
     white-space: nowrap;
 }
 
@@ -213,4 +213,4 @@ body {
 
 .joint-dialog.joint-lightbox .fg {
     background-color: #F6F6F6 !important;
-} */
+}
