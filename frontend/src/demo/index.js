@@ -672,6 +672,8 @@ const options = {
         { value: 'M 0 -3 -6 0 0 3 z', content: 'Small' },
         { value: 'M 0 -5 -10 0 0 5 z', content: 'Medium' },
         { value: 'M 0 -10 -15 0 0 10 z', content: 'Large' },
+        { value: 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0', content: 'Attribute' },
+        // { value: util.svg` <rect @selector="body" />`, content: 'Attribute' },
         
     ],
     colorPaletteReset: [
@@ -1293,7 +1295,23 @@ const myLink = new shapes.standard.Link({
 });
 graph.addCell(myLink);
 
-
+// React on changes in the graph.
+graph.on('change add remove', (cell) => {
+    // const diagramJSONString = JSON.stringify(graph.toJSON());
+    // console.log('Diagram JSON', diagramJSONString);
+    console.log(cell);
+    if (cell.attributes.type == 'standard.Link') {
+        if (cell.attributes.target.id == undefined) {
+            console.log("points");
+            cell.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
+            // let new_strong_entity_name = window.prompt("Please enter the name of the new strong entity:", "");
+        } else {
+            console.log("element");
+            // cell.attributes.attrs.line.targetMarker.d = 'M 10 -5 0 0 10 5 Z';
+            cell.attributes.attrs.line.targetMarker.d = 'M 0 0 0 0';
+        }
+    }
+});
 
 // paper.on('link:connect', (cell, evt) => {
 //     console.log("new cell: ", cell);
