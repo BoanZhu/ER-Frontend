@@ -35,7 +35,7 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
     background-color: transparent;
     background-position: 0 0;
     background-repeat: no-repeat;
-    background-image: url(/assets/toolbar-icons-modern.png);
+    /* background-image: url(/assets/toolbar-icons-modern.png); */
 }
 
 .joint-widget.joint-theme-modern[data-name="clear"]:after {

@@ -11,7 +11,7 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
  or from the JointJS+ archive as was distributed by client IO. See the LICENSE file.*/
 
 
-/* @font-face {
+ /* @font-face {
     font-family: 'Roboto Condensed';
     src: url('/assets/fonts/Roboto_Condensed/RobotoCondensed-Light.ttf');
     font-weight: 300;
@@ -92,7 +92,7 @@ body {
     height: -moz-calc(100% - 60px);
     height: -webkit-calc(100% - 60px);
     height: calc(100% - 60px);
-} 
+}
 
 .app-title {
     display: inline-block;
@@ -120,6 +120,7 @@ body {
     box-sizing: border-box;
     left: 240px;
     right: 240px;
+    background-color: red;
 }
 
 /*  Inspector  */
@@ -130,6 +131,7 @@ body {
     bottom: 120px; /* navigator height */
     width: 240px;
     box-sizing: border-box;
+    background-color: red;
 }
 .object-property[data-property$="/fill"],
 .object-property[data-property$="/stroke"],
@@ -156,6 +158,7 @@ body {
     bottom: 0;
     width: 240px;
     height: 120px;
+    background-color: red;
 }
 
 /*  Stencil  */
@@ -165,7 +168,7 @@ body {
     top: 0;
     width: 240px;
     height: 100%;
-    /* color: #4a4d6e; */
+    background-color: red;
 }
 
 .joint-stencil .joint-element[data-type="standard.Image"] text,
@@ -191,6 +194,7 @@ body {
     left: 240px;
     right: 0;
     box-sizing: border-box;
+    background-color: green;
 }
 
 .toolbar-container .joint-toolbar {
@@ -214,3 +218,5 @@ body {
 .joint-dialog.joint-lightbox .fg {
     background-color: #F6F6F6 !important;
 }
+
+

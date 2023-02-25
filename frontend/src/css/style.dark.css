@@ -37,7 +37,7 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
 
 @font-face {
     font-family: 'toolbar-icons-dark-kitchen-sink';
-    src: url('/assets/toolbar-icons-dark.woff') format('woff');
+    /* src: url('/assets/toolbar-icons-dark.woff') format('woff'); */
 }
 
 .joint-widget.joint-theme-dark[data-name="clear"]:after,
