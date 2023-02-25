@@ -188,7 +188,7 @@ const StrongEntity = dia.Element.define('myApp.StrongEntity', {
             stroke: '#000000',
             fill: '#FFFFFF',
             level: 2,
-            event: 'StrongEntity:delete', // can add event inside the body
+            // event: 'StrongEntity:delete', // can add event inside the body
         },
         label: {
             x: '50',
@@ -200,7 +200,7 @@ const StrongEntity = dia.Element.define('myApp.StrongEntity', {
             level: 1,
             event: 'StrongEntity:delete',
         },
-        event: 'StrongEntity:delete',
+        // event: 'StrongEntity:delete',
     }
 
 }, {
@@ -347,13 +347,23 @@ paper.on('cell:pointerdblclick', function(elementView, evt) {
     // }
     console.log(elementView.model.attributes.type === 'myApp.WeakEntity');
     if (elementView.model.attributes.type === 'myApp.WeakEntity') {
-        elementView.model.remove();
+        // elementView.model.remove();
+        let new_weak_entity_name = window.prompt("Please enter the new name of the weak entity:", "");
+        elementView.model.attributes.attrs.label.text = new_weak_entity_name;
+        elementView.render();
+        // console.log("aaa", elementView);
     } else if (elementView.model.attributes.type === 'myApp.StrongEntity') {
-        elementView.model.remove();
+        let new_weak_strong_name = window.prompt("Please enter the new name of the strong entity:", "");
+        elementView.model.attributes.attrs.label.text = new_weak_strong_name;
+        elementView.render();
+        // elementView.model.remove();
     } else if (elementView.model.attributes.type === 'myApp.Relationship') {
-        elementView.model.remove();
+        let new_relationship_name = window.prompt("Please enter the new name of the relationship entity:", "");
+        elementView.model.attributes.attrs.label.text = new_relationship_name;
+        elementView.render();
+        // elementView.model.remove();
     } else {
-        elementView.model.remove();
+        // elementView.model.remove();
     }
     // elementView.model.remove();
 })
@@ -438,7 +448,8 @@ const WeakEntity = dia.Element.define('myApp.WeakEntity', {
                 textAnchor: 'middle',
                 textVerticalAnchor: 'middle',
                 fontSize: 14,
-                fill: '#00879b'
+                fill: '#00879b',
+                event: 'WeakEntity:changeLabel',
             },
             
             // root: {
@@ -486,6 +497,23 @@ const WeakEntity = dia.Element.define('myApp.WeakEntity', {
     //     <text @selector="label" />
     // `
 });
+
+
+// paper.on('WeakEntity:changeLabel', function(elementView, evt) {
+//     // evt.stopPropagation();
+//     let new_weak_entity_name = window.prompt("Please enter the name of the new strong entity:", "");
+//     elementView.model.attributes.attrs.label.text = new_weak_entity_name;
+//     elementView.render();
+// });
+
+paper.on('myApp.WeakEntity:pointerclick', function(elementView, evt) {
+    evt.stopPropagation();
+    console.log("clicked");
+});
+
+// StrongEntity.on('change:position', function(StrongEntity, position) {
+//     alert('element1 moved to ' + position.x + ',' + position.y);
+//   });
 
 const relationship = dia.Element.define('myApp.Relationship', {
     attrs: {
@@ -627,39 +655,39 @@ stencil.on('myApp.StrongEntity:pointerclick', () => {
 })
 
 
-stencil.on('EntityEntity:pointerclick', () => {
-    new_entity = {
-        "schemaID": "1123",
-        "weakEntityName": "new-weak-entity",
-        "weakEntityCardinality": "",
-        "strongEntityID": "",
-        "strongEntityCardinality": "",
-        "relationshipName": "",
-        "weakEntityLayoutInfo": "",
-        "layoutInfo": {
-            "layoutX": 123,
-            "layoutY": 456
-        }
-    }
-    $.ajax({
-        async: false,
-        type: "POST",
-        url: "http://10.187.204.209:8080/er/schema/create_weak_entity",
-        headers: { "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-        traditional : true,
-        data: JSON.stringify(new_entity),
-        dataType: "json",
-        contentType: "application/json",
-        success: function(result) {
-            alert("success!");
-        },
-        error: function(result) {
-            is_success = false;
-            alert(JSON.parse(result.responseText).data);
-        },
-    }, setTimeout(this, 2000))
-})
+// stencil.on('EntityEntity:pointerclick', () => {
+//     new_entity = {
+//         "schemaID": "1123",
+//         "weakEntityName": "new-weak-entity",
+//         "weakEntityCardinality": "",
+//         "strongEntityID": "",
+//         "strongEntityCardinality": "",
+//         "relationshipName": "",
+//         "weakEntityLayoutInfo": "",
+//         "layoutInfo": {
+//             "layoutX": 123,
+//             "layoutY": 456
+//         }
+//     }
+//     $.ajax({
+//         async: false,
+//         type: "POST",
+//         url: "http://10.187.204.209:8080/er/schema/create_weak_entity",
+//         headers: { "Access-Control-Allow-Origin": "*",
+//             "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+//         traditional : true,
+//         data: JSON.stringify(new_entity),
+//         dataType: "json",
+//         contentType: "application/json",
+//         success: function(result) {
+//             alert("success!");
+//         },
+//         error: function(result) {
+//             is_success = false;
+//             alert(JSON.parse(result.responseText).data);
+//         },
+//     }, setTimeout(this, 2000))
+// })
 
 
 
@@ -1300,6 +1328,7 @@ graph.on('change add remove', (cell) => {
     // const diagramJSONString = JSON.stringify(graph.toJSON());
     // console.log('Diagram JSON', diagramJSONString);
     console.log(cell);
+    console.log("wo shi sha bi");
     if (cell.attributes.type == 'standard.Link') {
         if (cell.attributes.target.id == undefined) {
             console.log("points");
