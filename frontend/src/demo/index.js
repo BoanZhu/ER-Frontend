@@ -86,17 +86,6 @@ const paper = new dia.Paper({
     defaultConnectionPoint: { name: 'boundary' }
 });
 
-// const newShape = new MyShape({
-//     size: { width: 100, height: 100 },
-//     position: { x: 50, y: 50 },
-//     attrs: {
-//         label: { text: 'My Shape' }
-//     },
-//     level: 3,
-//     ports: { items: [{ id: 'in1', group: 'in' }, { group: 'out', id: 'out1' }] }
-// });
-// graph.addCell(newShape);
-
 const paperScroller = new ui.PaperScroller({
     paper,
     autoResizePaper: true,
@@ -186,8 +175,6 @@ const MyShape = dia.Element.define('myApp.MyShape', {
 
 const StrongEntity = dia.Element.define('myApp.StrongEntity', {
         
-    // type: 'erd.WeakEntity',
-    // size: { width: 90, height: 360 },
     attrs: {
         body: {
             width: '100',
@@ -220,10 +207,6 @@ const StrongEntity = dia.Element.define('myApp.StrongEntity', {
         selector: 'label',
     }]
 });
-
-// StrongEntity.on('change:position', function(StrongEntity, position) {
-//     alert('element1 moved to ' + position.x + ',' + position.y);
-//   });
 
 // paper.on('StrongEntity:delete', function(elementView, evt) {
 //     // Stop any further actions with the element view e.g. dragging
@@ -336,11 +319,11 @@ graph.on('add', function(cell) {
         //     },
         // }, setTimeout(this, 1000))
     } else if (cell.attributes.type == 'standard.Link') {
-        console.log("gggggggggggg", cell);
-        console.log(cell.attributes.target);
+        // console.log("gggggggggggg", cell);
+        // console.log(cell.attributes.target);
         console.log("Link");
         if (cell.attributes.target.id == undefined) {
-            console.log("trueeeeee");
+            console.log("This shoud be an attribute");
         } else {
             console.log("The target is an element");
         }
@@ -508,22 +491,10 @@ const WeakEntity = dia.Element.define('myApp.WeakEntity', {
     // `
 });
 
-
-// paper.on('WeakEntity:changeLabel', function(elementView, evt) {
-//     // evt.stopPropagation();
-//     let new_weak_entity_name = window.prompt("Please enter the name of the new strong entity:", "");
-//     elementView.model.attributes.attrs.label.text = new_weak_entity_name;
-//     elementView.render();
-// });
-
 paper.on('myApp.WeakEntity:pointerclick', function(elementView, evt) {
     evt.stopPropagation();
     console.log("clicked");
 });
-
-// StrongEntity.on('change:position', function(StrongEntity, position) {
-//     alert('element1 moved to ' + position.x + ',' + position.y);
-//   });
 
 const relationship = dia.Element.define('myApp.Relationship', {
     attrs: {
@@ -557,32 +528,6 @@ const relationship = dia.Element.define('myApp.Relationship', {
         <text @selector="label" x="0" y="15" fill="red" />
     `
 })
-
-// StrongEntity.attrs({width: 100, height: 50});
-
-// const weakEntity = dia.Element.define('myApp.StrongEntity', {
-//     attrs: {
-//         body: {
-//             width: 'calc(w)',
-//             height: 'calc(h)',
-//             strokeWidth: 2,
-//             stroke: '#000000',
-//             fill: '#FFFFFF'
-//         },
-//         label: {
-//             x: 'calc(w/2)',
-//             y: 'calc(h/2)',
-//             textAnchor: 'middle',
-//             textVerticalAnchor: 'middle',
-//             fontSize: 14,
-//             fill: '#333333'
-//         },
-//         root: {
-//             magnet: false // Disable the possibility to connect the body of our shape. Only ports can be connected.
-//         }
-//     },
-// });
-
 
 // Stencil
 // -------
@@ -817,11 +762,11 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                             'data-tooltip-position-selector': '.joint-inspector'
                                         }
                                     },
-                                    distance: 0.66,
-                                    offset: {
-                                        x: -40,
-                                        y: 80
-                                    }
+                                    // distance: 0.66,
+                                    // offset: {
+                                    //     x: -40,
+                                    //     y: 80
+                                    // }
                                 },
     
                             }
@@ -972,6 +917,7 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                         type: 'color-palette',
                                         options: options.colorPaletteReset,
                                         label: 'Fill',
+                                        defaultValue: '#f6f6f6',
                                         index: 3
                                     },
                                     stroke: {
@@ -1350,9 +1296,6 @@ graph.on('change add remove', (cell) => {
     if (cell.attributes.type == 'standard.Link') {
         if (cell.attributes.target.id == undefined) {
 
-            
-            console.log("kkkkkkkkkkkkk", cell);
-
             if (cell.attributes.labels) {
 
                 // Need to check the relative position of the new attribute
@@ -1429,11 +1372,17 @@ graph.on('change add remove', (cell) => {
                 };
             }
             console.log("points");
-            cells = graph.getCells();
-            console.log("cells: ", cells);
+            // cells = graph.getCells();
+            // console.log("cells: ", cells);
             cell.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
             // let new_strong_entity_name = window.prompt("Please enter the name of the new strong entity:", "");
         } else {
+
+            if (cell.attributes.labels) {
+                cell.attributes.labels[0].position = {
+                    offset: -10
+                };
+            }
             console.log("element");
             // cell.attributes.attrs.line.targetMarker.d = 'M 10 -5 0 0 10 5 Z';
             cell.attributes.attrs.line.targetMarker.d = 'M 0 0 0 0';
