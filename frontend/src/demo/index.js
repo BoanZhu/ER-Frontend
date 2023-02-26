@@ -97,7 +97,7 @@ paperScroller.render().center();
 
 paper.on('blank:pointerdown', (evt) => {
     // Start panning the paper on mousedown
-    evt.stopPropagation();
+    // evt.stopPropagation();
     paperScroller.startPanning(evt);
 });
 
@@ -355,7 +355,7 @@ paper.on('cell:pointerdblclick', function(elementView, evt) {
         elementView.render();
         // elementView.model.remove();
     } else {
-        console.log("hhhhhhhhhhhhhhh", elementView);
+        console.log("other elements", elementView);
         // elementView.model.remove();
     }
     // elementView.model.remove();
@@ -491,10 +491,10 @@ const WeakEntity = dia.Element.define('myApp.WeakEntity', {
     // `
 });
 
-paper.on('myApp.WeakEntity:pointerclick', function(elementView, evt) {
-    evt.stopPropagation();
-    console.log("clicked");
-});
+// paper.on('myApp.WeakEntity:pointerclick', function(elementView, evt) {
+//     evt.stopPropagation();
+//     console.log("clicked");
+// });
 
 const relationship = dia.Element.define('myApp.Relationship', {
     attrs: {
@@ -660,7 +660,7 @@ const options = {
         
     ],
     colorPaletteReset: [
-        { content: 'string', icon: '/assets/no-color-icon.svg' },
+        { content: 'string', icon: '../assets/no-color-icon.svg' },
         { content: '#f6f6f6' },
         { content: '#dcd7d7' },
         { content: '#8f8f8f' },
@@ -685,10 +685,7 @@ const options = {
 }
 
 paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
-    evt.stopPropagation();
-    // console.log(elementView.model.attributes.type);
-    // console.log(elementView);
-    // console.log("1111111");
+    // evt.stopPropagation();
     if (elementView.model.attributes.type == "standard.Link") {
         if (elementView.model.attributes.target.id == undefined) {
             ui.Inspector.create('.inspector-container', {
@@ -1292,95 +1289,93 @@ graph.on('change add remove', (cell) => {
     // const diagramJSONString = JSON.stringify(graph.toJSON());
     // console.log('Diagram JSON', diagramJSONString);
     console.log(cell);
-    console.log("wo shi sha bi");
     if (cell.attributes.type == 'standard.Link') {
         if (cell.attributes.target.id == undefined) {
-
+            console.log("why im here?");
             if (cell.attributes.labels) {
 
-                // Need to check the relative position of the new attribute
-                // There are four cases: 1. top; 2. right; 3. bottom; 4. left
-                // So we need to fetch the source element to get the original position
+                // // Need to check the relative position of the new attribute
+                // // There are four cases: 1. top; 2. right; 3. bottom; 4. left
+                // // So we need to fetch the source element to get the original position
 
-                let source_id = cell.attributes.source.id;
-                let all_elements = graph.getCells();
-                let source_x = 0;
-                let source_y = 0;
-                for (idx in all_elements) {
-                    // console.log(all_elements[idx]);
-                    if (all_elements[idx].id == source_id) {
-                        // console.log("position: ", all_elements[idx].attributes.position);
-                        if (all_elements[idx].attributes.type == "myApp.WeakEntity") {
-                            source_x = all_elements[idx].attributes.position.x + all_elements[idx].attributes.attrs.outer.width / 2;
-                            source_y = all_elements[idx].attributes.position.y + all_elements[idx].attributes.attrs.outer.height / 2;
-                        } else if (all_elements[idx].attributes.type == "myApp.StrongEntity") {
-                            source_x = all_elements[idx].attributes.position.x + all_elements[idx].attributes.attrs.body.width / 2;
-                            source_y = all_elements[idx].attributes.position.y + all_elements[idx].attributes.attrs.body.height / 2;
-                        } else if (all_elements[idx].attributes.type == "myApp.Relationship") {
-                            source_x = all_elements[idx].attributes.position.x + 35;
-                            source_y = all_elements[idx].attributes.position.y + 35;
-                        }
-                        // source_x = all_elements[idx].attributes.position.x;
-                        // source_y = all_elements[idx].attributes.position.y;
-                    }
-                }
+                // let source_id = cell.attributes.source.id;
+                // let all_elements = graph.getCells();
+                // let source_x = 0;
+                // let source_y = 0;
+                // for (idx in all_elements) {
+                //     if (all_elements[idx].id == source_id) {
 
-                let target_x = cell.attributes.target.x;
-                let target_y = cell.attributes.target.y;
+                //         if (all_elements[idx].attributes.type == "myApp.WeakEntity") {
+                //             source_x = all_elements[idx].attributes.position.x + all_elements[idx].attributes.attrs.outer.width / 2;
+                //             source_y = all_elements[idx].attributes.position.y + all_elements[idx].attributes.attrs.outer.height / 2;
+                //         } else if (all_elements[idx].attributes.type == "myApp.StrongEntity") {
+                //             source_x = all_elements[idx].attributes.position.x + all_elements[idx].attributes.attrs.body.width / 2;
+                //             source_y = all_elements[idx].attributes.position.y + all_elements[idx].attributes.attrs.body.height / 2;
+                //         } else if (all_elements[idx].attributes.type == "myApp.Relationship") {
+                //             source_x = all_elements[idx].attributes.position.x + 35;
+                //             source_y = all_elements[idx].attributes.position.y + 35;
+                //         }
 
-                let final_x = 0;
-                let final_y = 0;
-                console.log("target_x: ", target_x);
-                console.log("target_y: ", target_y);
-                console.log("source_x: ", source_x);
-                console.log("source_y: ", source_y);
-                if (target_x >= source_x) {
-                    if (Math.abs(target_x - source_x) >= Math.abs(target_y - source_y)) {
-                        final_x = 30;
-                        final_y = 0;
-                    } else {
-                        if (target_y <= source_y) {
-                            final_x = 0;
-                            final_y = -25;
-                        } else {
-                            final_x = 0;
-                            final_y = 25;
-                        }
-                    }
-                } else {
-                    if (Math.abs(target_x - source_x) >= Math.abs(target_y - source_y)) {
-                        final_x = -30;
-                        final_y = 0;
-                    } else {
-                        if (target_y <= source_y) {
-                            final_x = 0;
-                            final_y = -25;
-                        } else {
-                            final_x = 0;
-                            final_y = 25;
-                        }
+                //     }
+                // }
+
+                // let target_x = cell.attributes.target.x;
+                // let target_y = cell.attributes.target.y;
+
+                // let final_x = 0;
+                // let final_y = 0;
+                // // console.log("target_x: ", target_x);
+                // // console.log("target_y: ", target_y);
+                // // console.log("source_x: ", source_x);
+                // // console.log("source_y: ", source_y);
+
+                // if (target_x >= source_x) {
+                //     if (Math.abs(target_x - source_x) >= Math.abs(target_y - source_y)) {
+                //         final_x = 30;
+                //         final_y = 0;
+                //     } else {
+                //         if (target_y <= source_y) {
+                //             final_x = 0;
+                //             final_y = -25;
+                //         } else {
+                //             final_x = 0;
+                //             final_y = 25;
+                //         }
+                //     }
+                // } else {
+                //     if (Math.abs(target_x - source_x) >= Math.abs(target_y - source_y)) {
+                //         final_x = -30;
+                //         final_y = 0;
+                //     } else {
+                //         if (target_y <= source_y) {
+                //             final_x = 0;
+                //             final_y = -25;
+                //         } else {
+                //             final_x = 0;
+                //             final_y = 25;
+                //         }
                         
-                    }
-                }
+                //     }
+                // }
+                const position = calculateLabelPosition(cell);
+                console.log("position: ", position);
 
                 cell.attributes.labels[0].position = {
                     distance: 1,
                     offset: {
-                        x: final_x,
-                        y: final_y
+                        x: position.final_x,
+                        y: position.final_y
                     }
                 };
             }
             console.log("points");
-            // cells = graph.getCells();
-            // console.log("cells: ", cells);
             cell.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
             // let new_strong_entity_name = window.prompt("Please enter the name of the new strong entity:", "");
         } else {
 
             if (cell.attributes.labels) {
                 cell.attributes.labels[0].position = {
-                    offset: -10
+                    offset: -12
                 };
             }
             console.log("element");
@@ -1401,8 +1396,113 @@ graph.on('change add remove', (cell) => {
 //     console.log("dissssssss");
 // })
 
-// paper.on('pointerup', (cell) => {
-//     evt.stopPropagation();
+// paper.on('link:mouseout', (cell) => {
+//     console.log("wtfff", cell);
+// })
+
+function calculateLabelPosition(cell) {
+    
+    // Need to check the relative position of the new attribute
+    // There are four cases: 1. top; 2. right; 3. bottom; 4. left
+    // So we need to fetch the source element to get the original position
+
+    let source_id = cell.attributes.source.id;
+
+    let all_elements = graph.getCells();
+    let source_x = 0;
+    let source_y = 0;
+    for (idx in all_elements) {
+        if (all_elements[idx].id == source_id) {
+
+            if (all_elements[idx].attributes.type == "myApp.WeakEntity") {
+                source_x = all_elements[idx].attributes.position.x + all_elements[idx].attributes.attrs.outer.width / 2;
+                source_y = all_elements[idx].attributes.position.y + all_elements[idx].attributes.attrs.outer.height / 2;
+            } else if (all_elements[idx].attributes.type == "myApp.StrongEntity") {
+                source_x = all_elements[idx].attributes.position.x + all_elements[idx].attributes.attrs.body.width / 2;
+                source_y = all_elements[idx].attributes.position.y + all_elements[idx].attributes.attrs.body.height / 2;
+            } else if (all_elements[idx].attributes.type == "myApp.Relationship") {
+                source_x = all_elements[idx].attributes.position.x + 35;
+                source_y = all_elements[idx].attributes.position.y + 35;
+            }
+
+        }
+    }
+
+    let target_x = cell.attributes.target.x;
+    let target_y = cell.attributes.target.y;
+
+    let final_x = 0;
+    let final_y = 0;
+    // console.log("target_x: ", target_x);
+    // console.log("target_y: ", target_y);
+    // console.log("source_x: ", source_x);
+    // console.log("source_y: ", source_y);
+
+    if (target_x >= source_x) {
+        if (Math.abs(target_x - source_x) >= Math.abs(target_y - source_y)) {
+            final_x = 30;
+            final_y = 0;
+        } else {
+            if (target_y <= source_y) {
+                final_x = 0;
+                final_y = -25;
+            } else {
+                final_x = 0;
+                final_y = 25;
+            }
+        }
+    } else {
+        if (Math.abs(target_x - source_x) >= Math.abs(target_y - source_y)) {
+            final_x = -30;
+            final_y = 0;
+        } else {
+            if (target_y <= source_y) {
+                final_x = 0;
+                final_y = -25;
+            } else {
+                final_x = 0;
+                final_y = 25;
+            }
+            
+        }
+    }
+
+    const result = {
+        final_x: final_x,
+        final_y: final_y
+    }
+    return result;
+}
+
+paper.on('link:pointerup', (cell, evt) => {
+    console.log("This is link:pointerup:", cell);
+    // evt.stopPropagation();
+    if (!cell.model.attributes.labels) {
+        let new_attribute_name = window.prompt("Please enter the name of the attribute:", "");
+        cell.addLabel({});
+
+        const position = calculateLabelPosition(cell.model);
+
+        cell.model.attributes.labels[0] = {
+            attrs: {
+                text: {
+                    text: new_attribute_name
+                }
+            },
+            position: {
+                distance: 1,
+                offset: {
+                    x: position.final_x,
+                    y: position.final_y
+                }
+            }
+        };
+        console.log("new label: ", cell);
+    }
+})
+
+// paper.on('cell:pointerup', (cell) => {
+//     // evt.stopPropagation();
 //     console.log("This is :", cell);
 // })
 
