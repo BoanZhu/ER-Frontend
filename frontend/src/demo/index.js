@@ -39,6 +39,7 @@ const paper = new dia.Paper({
     gridSize: 10,
     drawGrid: true,
     defaultLink: (elementView, magnet) => {
+        console.log("absssss", elementView, "aaa", magnet);
         return new shapes.standard.Link({
             attrs: { 
                 line: { 
@@ -67,8 +68,15 @@ const paper = new dia.Paper({
                 //     fontSize: 14,
                 //     fill: '#333333',
                 //     text: "111",
+                //     position: {
+                //         distance: 0.66,
+                //         offset: {
+                //             x: -40,
+                //             y: 80
+                //         }
+                //     }
                 // },
-            }
+            },
         });
     },
     async: true,
@@ -328,6 +336,7 @@ graph.on('add', function(cell) {
         //     },
         // }, setTimeout(this, 1000))
     } else if (cell.attributes.type == 'standard.Link') {
+        console.log("gggggggggggg", cell);
         console.log(cell.attributes.target);
         console.log("Link");
         if (cell.attributes.target.id == undefined) {
@@ -363,6 +372,7 @@ paper.on('cell:pointerdblclick', function(elementView, evt) {
         elementView.render();
         // elementView.model.remove();
     } else {
+        console.log("hhhhhhhhhhhhhhh", elementView);
         // elementView.model.remove();
     }
     // elementView.model.remove();
@@ -725,14 +735,14 @@ const options = {
     labelPosition: [
         { value: 1, content: 'attribute' },
         // { value: 0.5, content: 'Cardinality' },
-        // { offset: 0.1, content: 'left' },
+        { offset: 300, content: 'left' },
     ],
 }
 
 paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
     evt.stopPropagation();
-    console.log(elementView.model.attributes.type);
-    console.log(elementView);
+    // console.log(elementView.model.attributes.type);
+    // console.log(elementView);
     // console.log("1111111");
     if (elementView.model.attributes.type == "standard.Link") {
         if (elementView.model.attributes.target.id == undefined) {
@@ -771,6 +781,7 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                         fill: {
                                             type: 'color-palette',
                                             options: options.colorPaletteReset,
+                                            // defaultValue: '#f6f6f6', // white
                                             label: 'Text Color',
                                             index: 5
                                         }
@@ -780,6 +791,7 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                             type: 'color-palette',
                                             options: options.colorPaletteReset,
                                             label: 'Fill',
+                                            defaultValue: '#f6f6f6',
                                             index: 3
                                         },
                                         stroke: {
@@ -793,7 +805,8 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                 position: {
                                     type: 'select-box',
                                     options: options.labelPosition || [],
-                                    defaultValue: 0.5,
+                                    // defaultValue: 1,
+                                    offset: 200,
                                     label: 'Position',
                                     placeholder: 'Custom',
                                     index: 2,
@@ -803,6 +816,11 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                             'data-tooltip-position': 'right',
                                             'data-tooltip-position-selector': '.joint-inspector'
                                         }
+                                    },
+                                    distance: 0.66,
+                                    offset: {
+                                        x: -40,
+                                        y: 80
                                     }
                                 },
     
@@ -1331,7 +1349,88 @@ graph.on('change add remove', (cell) => {
     console.log("wo shi sha bi");
     if (cell.attributes.type == 'standard.Link') {
         if (cell.attributes.target.id == undefined) {
+
+            
+            console.log("kkkkkkkkkkkkk", cell);
+
+            if (cell.attributes.labels) {
+
+                // Need to check the relative position of the new attribute
+                // There are four cases: 1. top; 2. right; 3. bottom; 4. left
+                // So we need to fetch the source element to get the original position
+
+                let source_id = cell.attributes.source.id;
+                let all_elements = graph.getCells();
+                let source_x = 0;
+                let source_y = 0;
+                for (idx in all_elements) {
+                    // console.log(all_elements[idx]);
+                    if (all_elements[idx].id == source_id) {
+                        // console.log("position: ", all_elements[idx].attributes.position);
+                        if (all_elements[idx].attributes.type == "myApp.WeakEntity") {
+                            source_x = all_elements[idx].attributes.position.x + all_elements[idx].attributes.attrs.outer.width / 2;
+                            source_y = all_elements[idx].attributes.position.y + all_elements[idx].attributes.attrs.outer.height / 2;
+                        } else if (all_elements[idx].attributes.type == "myApp.StrongEntity") {
+                            source_x = all_elements[idx].attributes.position.x + all_elements[idx].attributes.attrs.body.width / 2;
+                            source_y = all_elements[idx].attributes.position.y + all_elements[idx].attributes.attrs.body.height / 2;
+                        } else if (all_elements[idx].attributes.type == "myApp.Relationship") {
+                            source_x = all_elements[idx].attributes.position.x + 35;
+                            source_y = all_elements[idx].attributes.position.y + 35;
+                        }
+                        // source_x = all_elements[idx].attributes.position.x;
+                        // source_y = all_elements[idx].attributes.position.y;
+                    }
+                }
+
+                let target_x = cell.attributes.target.x;
+                let target_y = cell.attributes.target.y;
+
+                let final_x = 0;
+                let final_y = 0;
+                console.log("target_x: ", target_x);
+                console.log("target_y: ", target_y);
+                console.log("source_x: ", source_x);
+                console.log("source_y: ", source_y);
+                if (target_x >= source_x) {
+                    if (Math.abs(target_x - source_x) >= Math.abs(target_y - source_y)) {
+                        final_x = 30;
+                        final_y = 0;
+                    } else {
+                        if (target_y <= source_y) {
+                            final_x = 0;
+                            final_y = -25;
+                        } else {
+                            final_x = 0;
+                            final_y = 25;
+                        }
+                    }
+                } else {
+                    if (Math.abs(target_x - source_x) >= Math.abs(target_y - source_y)) {
+                        final_x = -30;
+                        final_y = 0;
+                    } else {
+                        if (target_y <= source_y) {
+                            final_x = 0;
+                            final_y = -25;
+                        } else {
+                            final_x = 0;
+                            final_y = 25;
+                        }
+                        
+                    }
+                }
+
+                cell.attributes.labels[0].position = {
+                    distance: 1,
+                    offset: {
+                        x: final_x,
+                        y: final_y
+                    }
+                };
+            }
             console.log("points");
+            cells = graph.getCells();
+            console.log("cells: ", cells);
             cell.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
             // let new_strong_entity_name = window.prompt("Please enter the name of the new strong entity:", "");
         } else {
