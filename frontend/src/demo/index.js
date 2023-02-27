@@ -39,9 +39,9 @@ const paper = new dia.Paper({
     gridSize: 10,
     drawGrid: true,
     defaultLink: (elementView, magnet) => {
-        console.log("absssss", elementView, "aaa", magnet);
         return new shapes.standard.Link({
             attrs: { 
+                // markup: util.svg`<rect @selector="body" />`,
                 line: { 
                     stroke: '#fbf5d0',
                     // strokeWidth: 1,
@@ -60,22 +60,29 @@ const paper = new dia.Paper({
                         'd': 'M 10 -5 0 0 10 5 Z'
                     }
                 }, 
-                // label: {
-                //     x: '50',
-                //     y: '50',
-                //     textAnchor: 'middle',
-                //     textVerticalAnchor: 'middle',
-                //     fontSize: 14,
-                //     fill: '#333333',
-                //     text: "111",
-                //     position: {
-                //         distance: 0.66,
-                //         offset: {
-                //             x: -40,
-                //             y: 80
-                //         }
-                //     }
+                // body: {
+                //     width: '90',
+                //     height: '40',
+                //     x: 5,
+                //     y: 5,
+                //     strokeWidth: 2,
+                //     stroke: '#000000',
+                //     transparent: true,
+                //     fill: '#FFFFFF',
                 // },
+                // newline: {
+                //     // connection: true,
+                //     stroke: "#fbf5d0",
+                //     strokeLinejoin: "round",
+                //     strokeWidth: 20,
+                //     marker: {
+                //         'type': 'path',
+                //         'stroke': 'red',
+                //         'strokeWidth': 50,
+                //         'fill': 'white',
+                //         'd': 'M 10 -5 0 0 10 5 Z'
+                //     }
+                // }
             },
         });
     },
@@ -288,7 +295,6 @@ graph.on('add', function(cell) {
         //     },
         // }, setTimeout(this, 1000))
     } else if (cell.attributes.type === 'myApp.Relationship') {
-        console.log("new schemaID: ", schemaID);
         console.log('Relationship');
         let new_relationship_name = window.prompt("Please enter the name of the new relationship:", "");
         new_relationship = {
@@ -323,9 +329,9 @@ graph.on('add', function(cell) {
         // console.log(cell.attributes.target);
         console.log("Link");
         if (cell.attributes.target.id == undefined) {
-            console.log("This shoud be an attribute");
+            // console.log("This shoud be an attribute");
         } else {
-            console.log("The target is an element");
+            // console.log("The target is an element");
         }
     } else {
         console.log("Other elements");
@@ -333,11 +339,6 @@ graph.on('add', function(cell) {
 })
 
 paper.on('cell:pointerdblclick', function(elementView, evt) {
-    // evt.stopPropagation();
-    // if (elementView.model.type) {
-
-    // }
-    console.log(elementView.model.attributes.type === 'myApp.WeakEntity');
     if (elementView.model.attributes.type === 'myApp.WeakEntity') {
         // elementView.model.remove();
         let new_weak_entity_name = window.prompt("Please enter the new name of the weak entity:", "");
@@ -433,7 +434,13 @@ const WeakEntity = dia.Element.define('myApp.WeakEntity', {
                 height: '50',
                 strokeWidth: 2,
                 stroke: '#000000',
-                fill: '#FFFFFF'
+                fill: '#FFFFFF',
+
+                // type: 'path',
+                // stroke: '#000000',
+                // strokeWidth: 5,
+                // fill: 'white',
+                // d: 'M 10 -5 0 0 10 5 Z'
             },
             label: {
                 x: '50',
@@ -487,6 +494,7 @@ const WeakEntity = dia.Element.define('myApp.WeakEntity', {
     // markup:
     //     util.svg`
     //     <rect @selector="outer" />
+    //     <path @selector="inner" d='M 10 -5 0 0 10 5 Z' />
     //     <text @selector="label" />
     // `
 });
@@ -580,7 +588,6 @@ stencil.render().load({
 });
 
 stencil.on('myApp.StrongEntity:pointerclick', () => {
-    console.log("111");
     // new_entity = {
     //     "schemaID": "1123",
     //     "name": "new-strong-entity",
@@ -680,8 +687,16 @@ const options = {
     labelPosition: [
         { value: 1, content: 'attribute' },
         // { value: 0.5, content: 'Cardinality' },
-        { offset: 300, content: 'left' },
+        { offset: 300, content: 'left' }
     ],
+    whetherOptional: [
+        { text: "Yes", content: 'Yes' },
+        { text: "No", content: 'No' }
+    ],
+    whetherPrimaryKey: [
+        { text: "Yes", content: 'Yes' },
+        { text: "No", content: 'No' }
+    ]
 }
 
 paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
@@ -705,8 +720,18 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                         item: {
                             type: 'object',
                             properties: {
+                                body: {
+                                    d: {
+                                        'type': 'path',
+                                        'stroke': 'red',
+                                        'strokeWidth': 5,
+                                        'fill': 'white',
+                                        value: 'M 10 -5 0 0 10 5 Z'
+                                    }
+                                },
                                 attrs: {
                                     text: {
+                                        // textDecoration: 'underline',
                                         text: {
                                             type: 'content-editable',
                                             label: 'Attribute Name',
@@ -725,8 +750,22 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                             options: options.colorPaletteReset,
                                             // defaultValue: '#f6f6f6', // white
                                             label: 'Text Color',
-                                            index: 5
-                                        }
+                                            index: 6
+                                        },
+                                        primary: {
+                                            type: 'select-box',
+                                            defaultValue: 'No',
+                                            options: options.whetherPrimaryKey || [],
+                                            label: 'Primary key',
+                                            index: 2,
+                                        },
+                                        optional: {
+                                            type: 'select-box',
+                                            defaultValue: 'No',
+                                            options: options.whetherOptional || [],
+                                            label: 'Optional',
+                                            index: 3,
+                                        },
                                     },
                                     rect: {
                                         fill: {
@@ -734,14 +773,21 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                             options: options.colorPaletteReset,
                                             label: 'Fill',
                                             defaultValue: '#f6f6f6',
-                                            index: 3
+                                            index: 5,
                                         },
                                         stroke: {
                                             type: 'color-palette',
                                             options: options.colorPaletteReset,
                                             label: 'Outline',
-                                            index: 4
-                                        }
+                                            index: 6,
+                                        },
+                                        // d: {
+                                        //     'type': 'path',
+                                        //     'stroke': 'red',
+                                        //     'strokeWidth': 5,
+                                        //     'fill': 'white',
+                                        //     'd': 'M 10 -5 0 0 10 5 Z'
+                                        // }
                                     }
                                 },
                                 position: {
@@ -751,7 +797,7 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                     offset: 200,
                                     label: 'Position',
                                     placeholder: 'Custom',
-                                    index: 2,
+                                    index: 4,
                                     attrs: {
                                         label: {
                                             'data-tooltip': 'Position the label relative to the source of the link',
@@ -769,24 +815,6 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                             }
                         }
                     },
-                    // attrs: { 
-                    //     // line: { stroke: '#fbf5d0' }, 
-                    //     label: {
-                    //         textAnchor: 'middle',
-                    //         textVerticalAnchor: 'middle',
-                    //         fontSize: 14,
-                    //         fill: '#333333',
-                    //         text: "111",
-                    //     },
-                    // },
-                    // 'attrs/label/text': {
-                    //     // type: 'text',
-                    //     // label: 'Cardinality constraint',
-                    //     text: "123",
-                    //     // group: 'basic',
-                    //     // index: 1,
-                    //     // event: 'link:setLabel'
-                    // },
                     'attrs/line/sourceMarker': {
                         d: {
                             type: 'select-box',
@@ -840,15 +868,6 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                         // }
                     // }
                 },
-                // label: {
-                //     'attrs/text': {
-                //         type: 'text',
-                //         label: 'Cardinality constraint',
-                //         group: 'basic',
-                //         index: 1,
-                //         event: 'link:setLabel'
-                //     }
-                // },
                 groups: {
                     basic: {
                         label: 'Basic',
@@ -862,7 +881,6 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                     //     label: 'Target marker',
                     //     index: 4
                     // },
-    
                 }
             });
         
@@ -944,24 +962,6 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                         }
                     }
                 },
-                // attrs: { 
-                //     // line: { stroke: '#fbf5d0' }, 
-                //     label: {
-                //         textAnchor: 'middle',
-                //         textVerticalAnchor: 'middle',
-                //         fontSize: 14,
-                //         fill: '#333333',
-                //         text: "111",
-                //     },
-                // },
-                // 'attrs/label/text': {
-                //     // type: 'text',
-                //     // label: 'Cardinality constraint',
-                //     text: "123",
-                //     // group: 'basic',
-                //     // index: 1,
-                //     // event: 'link:setLabel'
-                // },
                 'attrs/line/sourceMarker': {
                     d: {
                         type: 'select-box',
@@ -979,51 +979,7 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                     //     index: 2
                     // }
                 },
-                // 'attrs/line': {
-                //     targetMarker: {
-                //         d: {
-                //             // type: 'select-box',
-                //             // options: options.arrowheadSize,
-                //             // group: 'marker-target',
-                //             // label: 'Target arrowhead',
-                //             // index: 1,
-                //         },
-                //         stroke: {'black'},
-                //         fill: 'yellow',
-                //     }
-                // }
-
-                // 'attrs/line/targetMarker': {
-                //     d: {
-                //         type: 'select-box',
-                //         options: options.arrowheadSize,
-                //         group: 'marker-target',
-                //         label: 'Target arrowhead',
-                //         index: 1,
-                //         stroke: 'black'
-                //     },
-
-                //     'stroke': 'black',
-                //     'fill': 'yellow',
-                    // fill: {
-                    //     type: 'color-palette',
-                    //     options: options.colorPaletteReset,
-                    //     group: 'marker-target',
-                    //     label: 'Color',
-                    //     when: { ne: { 'attrs/line/targetMarker/d': 'M 0 0 0 0' }},
-                    //     index: 2
-                    // }
-                // }
             },
-            // label: {
-            //     'attrs/text': {
-            //         type: 'text',
-            //         label: 'Cardinality constraint',
-            //         group: 'basic',
-            //         index: 1,
-            //         event: 'link:setLabel'
-            //     }
-            // },
             groups: {
                 basic: {
                     label: 'Basic',
@@ -1037,7 +993,6 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                 //     label: 'Target marker',
                 //     index: 4
                 // },
-
             }
         });
     }
@@ -1078,7 +1033,6 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
 });
 
 paper.on('link:setLabel:pointerclick', function(elementView, evt) {
-    console.log("1111111111111");
     // Stop any further actions with the element view e.g. dragging
     // evt.stopPropagation();
     // if (confirm('Are you sure you want to delete this element?')) {
@@ -1122,10 +1076,10 @@ paper.on('element:pointerclick', (elementView) => {
     });
 
     halo.on('action:link:pointerup', (linkView, evt, evt2) => {
-        console.log("I'm here!");
-        console.log(linkView);
-        console.log(evt);
-        console.log(evt2);
+        console.log("I'm here!!!!!");
+        // console.log(linkView);
+        // console.log(evt);
+        // console.log(evt2);
     });
 });
 
@@ -1177,7 +1131,6 @@ toolbar.on({
     'print:pointerclick': () => console.log("print"),
     'create:pointerclick': () => {
         let new_schema_name = window.prompt("Please enter the name of the new schema:", "");
-        console.log(new_schema_name);
         request = {
             "name": new_schema_name
         }
@@ -1235,8 +1188,6 @@ toolbar.on({
 document.querySelector('.toolbar-container').appendChild(toolbar.el);
 toolbar.render();
 
-console.log("schemaID: ", schemaID);
-
 // Working With Diagrams Programmatically
 // --------------------------------------
 
@@ -1260,7 +1211,7 @@ const newShape = new MyShape({
 graph.addCell(newShape);
 
 // Get element from the graph and change its properties.
-console.log(myShape === graph.getElements()[0]);
+// console.log(myShape === graph.getElements()[0]);
 myShape.prop('attrs/label/text', 'My Updated Shape');
 myShape.prop('size/width', 150);
 myShape.prop('level', 2);
@@ -1288,77 +1239,13 @@ graph.addCell(myLink);
 graph.on('change add remove', (cell) => {
     // const diagramJSONString = JSON.stringify(graph.toJSON());
     // console.log('Diagram JSON', diagramJSONString);
-    console.log(cell);
+    console.log("change: ", cell);
     if (cell.attributes.type == 'standard.Link') {
         if (cell.attributes.target.id == undefined) {
-            console.log("why im here?");
+
             if (cell.attributes.labels) {
 
-                // // Need to check the relative position of the new attribute
-                // // There are four cases: 1. top; 2. right; 3. bottom; 4. left
-                // // So we need to fetch the source element to get the original position
-
-                // let source_id = cell.attributes.source.id;
-                // let all_elements = graph.getCells();
-                // let source_x = 0;
-                // let source_y = 0;
-                // for (idx in all_elements) {
-                //     if (all_elements[idx].id == source_id) {
-
-                //         if (all_elements[idx].attributes.type == "myApp.WeakEntity") {
-                //             source_x = all_elements[idx].attributes.position.x + all_elements[idx].attributes.attrs.outer.width / 2;
-                //             source_y = all_elements[idx].attributes.position.y + all_elements[idx].attributes.attrs.outer.height / 2;
-                //         } else if (all_elements[idx].attributes.type == "myApp.StrongEntity") {
-                //             source_x = all_elements[idx].attributes.position.x + all_elements[idx].attributes.attrs.body.width / 2;
-                //             source_y = all_elements[idx].attributes.position.y + all_elements[idx].attributes.attrs.body.height / 2;
-                //         } else if (all_elements[idx].attributes.type == "myApp.Relationship") {
-                //             source_x = all_elements[idx].attributes.position.x + 35;
-                //             source_y = all_elements[idx].attributes.position.y + 35;
-                //         }
-
-                //     }
-                // }
-
-                // let target_x = cell.attributes.target.x;
-                // let target_y = cell.attributes.target.y;
-
-                // let final_x = 0;
-                // let final_y = 0;
-                // // console.log("target_x: ", target_x);
-                // // console.log("target_y: ", target_y);
-                // // console.log("source_x: ", source_x);
-                // // console.log("source_y: ", source_y);
-
-                // if (target_x >= source_x) {
-                //     if (Math.abs(target_x - source_x) >= Math.abs(target_y - source_y)) {
-                //         final_x = 30;
-                //         final_y = 0;
-                //     } else {
-                //         if (target_y <= source_y) {
-                //             final_x = 0;
-                //             final_y = -25;
-                //         } else {
-                //             final_x = 0;
-                //             final_y = 25;
-                //         }
-                //     }
-                // } else {
-                //     if (Math.abs(target_x - source_x) >= Math.abs(target_y - source_y)) {
-                //         final_x = -30;
-                //         final_y = 0;
-                //     } else {
-                //         if (target_y <= source_y) {
-                //             final_x = 0;
-                //             final_y = -25;
-                //         } else {
-                //             final_x = 0;
-                //             final_y = 25;
-                //         }
-                        
-                //     }
-                // }
                 const position = calculateLabelPosition(cell);
-                console.log("position: ", position);
 
                 cell.attributes.labels[0].position = {
                     distance: 1,
@@ -1367,7 +1254,73 @@ graph.on('change add remove', (cell) => {
                         y: position.final_y
                     }
                 };
+
+                if (cell.attributes.labels[0].attrs) {
+                    const original_text = cell.attributes.labels[0].attrs.text.text;
+                    console.log("first: ", cell.attributes);
+                    if (cell.attributes.labels[0].attrs.text.optional == 'Yes') {
+                        cell.attributes.labels[0].attrs.text.text = original_text.includes('?') ? original_text : original_text + "?";
+                        cell.attributes.labels[0].position.offset.x -= 8;
+                        cell.attributes.labels[0].position.offset.y -= 8;
+                    } else if (cell.attributes.labels[0].attrs.text.optional == 'No') {
+                        cell.attributes.labels[0].attrs.text.text = original_text.includes('?') ? original_text.substring(0, original_text.length - 1) : original_text;
+                        cell.attributes.labels[0].position.offset.x -= 8;
+                        cell.attributes.labels[0].position.offset.y -= 8;
+                    }
+
+                    console.log("second: ", cell.attributes);
+                    const new_attribute_name = cell.attributes.labels[0].attrs.text.text;
+                    console.log("123: ", new_attribute_name);
+                    if (cell.attributes.labels[0].attrs.text.primary == 'Yes') {
+                        let underline_string = "";
+                        let count = 0;
+                        for (char in new_attribute_name) {
+                            console.log(count);
+                            underline_string += "_";
+                            count++;
+                        } 
+                        cell.attributes.labels[0] = {
+                            attrs: {
+                                text: {
+                                    text: new_attribute_name,
+                                    primary: "Yes"
+                                },
+                                outer: {
+                                    stroke: '#FFFFFF',
+                                    fill: '#FFFFFF',
+                                    text: underline_string,
+                                },
+                            },
+                            markup: util.svg`<text @selector="text" fill="#FFFFFF"/> <text @selector="outer" fill="#FFFFFF"/>`,
+                            position: {
+                                distance: 1,
+                                offset: {
+                                    x: position.final_x - 8,
+                                    y: position.final_y - 8
+                                }
+                            }
+                        };
+                    } else if (cell.attributes.labels[0].attrs.text.primary == 'No') {
+                        cell.attributes.labels[0] = {
+                            attrs: {
+                                text: {
+                                    text: new_attribute_name,
+                                    primary: "No"
+                                },
+                            },
+                            markup: util.svg`<text @selector="text" fill="#FFFFFF"/>`,
+                            position: {
+                                distance: 1,
+                                offset: {
+                                    x: position.final_x - 8,
+                                    y: position.final_y - 8
+                                }
+                            }
+                        };
+                    }
+                }
             }
+            
             console.log("points");
             cell.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
             // let new_strong_entity_name = window.prompt("Please enter the name of the new strong entity:", "");
@@ -1401,7 +1354,7 @@ graph.on('change add remove', (cell) => {
 // })
 
 function calculateLabelPosition(cell) {
-    
+
     // Need to check the relative position of the new attribute
     // There are four cases: 1. top; 2. right; 3. bottom; 4. left
     // So we need to fetch the source element to get the original position
@@ -1475,10 +1428,11 @@ function calculateLabelPosition(cell) {
 }
 
 paper.on('link:pointerup', (cell, evt) => {
-    console.log("This is link:pointerup:", cell);
+    // console.log("This is link:pointerup:", cell);
     // evt.stopPropagation();
     if (!cell.model.attributes.labels) {
         let new_attribute_name = window.prompt("Please enter the name of the attribute:", "");
+
         cell.addLabel({});
 
         const position = calculateLabelPosition(cell.model);
@@ -1486,18 +1440,32 @@ paper.on('link:pointerup', (cell, evt) => {
         cell.model.attributes.labels[0] = {
             attrs: {
                 text: {
-                    text: new_attribute_name
-                }
+                    text: new_attribute_name,
+                    optional: "No",
+                    primary: "No",
+                },
+                // outer: {
+                //     // width: '90',
+                //     // height: '40',
+                //     // x: 5,
+                //     // y: 5,
+                //     // strokeWidth: 2,
+                //     stroke: '#FFFFFF',
+                //     fill: '#FFFFFF',
+                //     text: underline_string,
+                // },
+                
             },
+            markup: util.svg`<text @selector="text" fill="#FFFFFF"/> `,
             position: {
                 distance: 1,
                 offset: {
-                    x: position.final_x,
-                    y: position.final_y
+                    x: position.final_x - 8,
+                    y: position.final_y - 8
                 }
             }
         };
-        console.log("new label: ", cell);
+        // console.log("new label: ", cell);
     }
 })
 
