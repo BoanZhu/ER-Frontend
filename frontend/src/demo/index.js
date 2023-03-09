@@ -28,6 +28,10 @@ setTheme('dark');
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 
+let entitiesArray = [];
+let attributesArray = [];
+let relationshipsArray = [];
+
 // Paper & PaperScroller
 // ---------------------
 
@@ -108,7 +112,9 @@ paper.on('blank:pointerdown', (evt) => {
     paperScroller.startPanning(evt);
 });
 
-let schemaID = "";
+// let schemaID = "";
+let schemaID = "1133";
+let schemaName = "Test schema";
 
 // Custom Shape
 // ------------
@@ -270,30 +276,35 @@ graph.on('add', function(cell) {
                 "layoutY": cell.attributes.position.y
             }
         }
+        // entitiesArray.push(new_strong_entity);
+        // console.log(entitiesArray);
         cell.attributes.attrs.label.text = new_strong_entity_name;
         // console.log(cell.attributes.position);
         // console.log(new_strong_entity);
         // cell.attributes.attrs.label.text = new_strong_entity_name;
-        // $.ajax({
-        //     async: false,
-        //     type: "POST",
-        //     url: "http://10.187.204.209:8080/er/entity/create_strong",
-        //     headers: { "Access-Control-Allow-Origin": "*",
-        //         "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-        //     traditional : true,
-        //     data: JSON.stringify(new_strong_entity),
-        //     dataType: "json",
-        //     contentType: "application/json",
-        //     success: function(result) {
-        //         alert("success!");
-        //         console.log(result);
-        //     },
-        //     error: function(result) {
-        //         is_success = false;
-        //         console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-        //         alert(JSON.parse(result.responseText).data);
-        //     },
-        // }, setTimeout(this, 1000))
+        $.ajax({
+            async: false,
+            type: "POST",
+            url: "http://10.187.204.209:8080/er/entity/create_strong",
+            headers: { "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+            traditional : true,
+            data: JSON.stringify(new_strong_entity),
+            dataType: "json",
+            contentType: "application/json",
+            success: function(result) {
+                alert("success!");
+                new_strong_entity.id = result.data.id;
+                // console.log(new_strong_entity);
+                // console.log("api result: ", result);
+                entitiesArray.push(new_strong_entity);
+            },
+            error: function(result) {
+                is_success = false;
+                console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                alert(JSON.parse(result.responseText).data);
+            },
+        }, setTimeout(this, 1000));
     } else if (cell.attributes.type === 'myApp.Relationship') {
         console.log('Relationship');
         let new_relationship_name = window.prompt("Please enter the name of the new relationship:", "");
@@ -1072,7 +1083,7 @@ paper.on('element:pointerclick', (elementView) => {
     }).render();
 
     halo.on('action:myCustomAction:pointerdown', (evt) => {
-        alert('My Control Button Clicked!');
+        alert('Try to create generalisation!');
     });
 
     halo.on('action:link:pointerup', (linkView, evt, evt2) => {
@@ -1112,7 +1123,9 @@ const toolbar = new ui.Toolbar({
         print: { index: 1 },
         clear: { index: 2 },
         zoom: { index: 3 },
-        create: { index: 4 }
+        create: { index: 4 },
+        currentSchema: { index: 5 },
+        undoredo: { index: 6 }
     },
     tools: [
         { type: 'button', name: 'clear', group: 'clear', text: 'Clear Diagram' },
@@ -1120,6 +1133,27 @@ const toolbar = new ui.Toolbar({
         { type: 'zoom-out', name: 'zoom-out', group: 'zoom' },
         { type: 'zoom-in', name: 'zoom-in', group: 'zoom' },
         { type: 'button', name: 'create', group: 'create', text: 'create-new-schema' },
+        // { type: 'button', name: 'create', group: 'currentSchema', text: schemaName }
+        // {
+        //     type: 'undo',
+        //     name: 'undo',
+        //     group: 'undoredo',
+        //     attrs: {
+        //         button: {
+        //             // 'data-tooltip': 'Undo'
+        //         }
+        //     }
+        // },
+        // {
+        //     type: 'redo',
+        //     name: 'redo',
+        //     group: 'undoredo',
+        //     attrs: {
+        //         button: {
+        //             // 'data-tooltip': 'Redo'
+        //         }
+        //     }
+        // }
     ],
     references: {
         paperScroller // built in zoom-in/zoom-out control types require access to paperScroller instance
@@ -1131,6 +1165,7 @@ toolbar.on({
     'print:pointerclick': () => console.log("print"),
     'create:pointerclick': () => {
         let new_schema_name = window.prompt("Please enter the name of the new schema:", "");
+        schemaName = new_schema_name;
         request = {
             "name": new_schema_name
         }
@@ -1154,7 +1189,8 @@ toolbar.on({
         //         alert(JSON.parse(result.responseText).data);
         //     },
         // }, setTimeout(this, 2000))
-        graph.clear()
+        graph.clear();
+        // paper.render();
     }
         // window.prompt("Please enter the name of the new schema:","")
         // // .then(
@@ -1241,6 +1277,7 @@ graph.on('change add remove', (cell) => {
     // console.log('Diagram JSON', diagramJSONString);
     console.log("change: ", cell);
     if (cell.attributes.type == 'standard.Link') {
+        // This is for the attributes setting; target.id == undefined means this is an attribute
         if (cell.attributes.target.id == undefined) {
 
             if (cell.attributes.labels) {
@@ -1257,7 +1294,8 @@ graph.on('change add remove', (cell) => {
 
                 if (cell.attributes.labels[0].attrs) {
                     const original_text = cell.attributes.labels[0].attrs.text.text;
-                    console.log("first: ", cell.attributes);
+
+                    // This is used to set the optional
                     if (cell.attributes.labels[0].attrs.text.optional == 'Yes') {
                         cell.attributes.labels[0].attrs.text.text = original_text.includes('?') ? original_text : original_text + "?";
                         cell.attributes.labels[0].position.offset.x -= 8;
@@ -1268,7 +1306,8 @@ graph.on('change add remove', (cell) => {
                         cell.attributes.labels[0].position.offset.y -= 8;
                     }
 
-                    console.log("second: ", cell.attributes);
+                    // This is used to set primary key
+                    // Here we need to reset the attribute name, because it may contains optional mark "?"
                     const new_attribute_name = cell.attributes.labels[0].attrs.text.text;
                     console.log("123: ", new_attribute_name);
                     if (cell.attributes.labels[0].attrs.text.primary == 'Yes') {
@@ -1334,6 +1373,100 @@ graph.on('change add remove', (cell) => {
             console.log("element");
             // cell.attributes.attrs.line.targetMarker.d = 'M 10 -5 0 0 10 5 Z';
             cell.attributes.attrs.line.targetMarker.d = 'M 0 0 0 0';
+
+            console.log("111", cell);
+            if (cell.attributes.attrs.line.sourceMarker) {
+                if (cell.attributes.attrs.line.sourceMarker.d != "M 0 0 0 0") {
+                    const source_id = cell.attributes.source.id;
+                    const target_id = cell.attributes.target.id;
+                    // let all_elements = graph.getCells();
+                    const source = graph.getCell(source_id);
+                    const target = graph.getCell(target_id);
+                    console.log("source: ", source);
+                    console.log("target: ", target);
+                    
+
+                    const source_name = source.attributes.attrs.label.text;
+                    const target_name = target.attributes.attrs.label.text;
+                    let belongStrongEntityID = "";
+                    let target_entity_id = "";
+                    for (idx in entitiesArray) {
+                        // console.log(entitiesArray[entity]);
+                        if (entitiesArray[idx].name == source_name) {
+                            // console.log("what happened?");
+                            belongStrongEntityID = entitiesArray[idx].id;
+                        }
+                        if (entitiesArray[idx].name == target_name) {
+                            target_entity_id = entitiesArray[idx].id; 
+                        }
+                    }
+                    // console.log(entitiesArray);
+                    console.log("belongStrongEntityID", belongStrongEntityID);
+                    new_subset = {
+                        "schemaID": schemaID,
+                        "subsetName": target_name,
+                        "belongStrongEntityID": belongStrongEntityID,
+                        "aimPort": -1,
+                        "layoutInfo": {
+                            "layoutX": target.attributes.position.x,
+                            "layoutY": target.attributes.position.y
+                        }
+                    };
+
+                    delete_request = {
+                        "id": target_entity_id
+                    };
+
+                    $.ajax({
+                        async: false,
+                        type: "POST",
+                        url: "http://10.187.204.209:8080/er/entity/delete",
+                        headers: { "Access-Control-Allow-Origin": "*",
+                            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                        traditional : true,
+                        data: JSON.stringify(delete_request),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function(result) {
+                            alert("success!");
+                            // new_subset.id = result.data.id;
+                            // console.log(new_subset);
+                            // // console.log("api result: ", result);
+                            // entitiesArray.push(new_subset);
+                        },
+                        error: function(result) {
+                            is_success = false;
+                            console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                            alert(JSON.parse(result.responseText).data);
+                        },
+                    }, setTimeout(this, 1000));
+
+                    $.ajax({
+                        async: false,
+                        type: "POST",
+                        url: "http://10.187.204.209:8080/er/entity/create_subset",
+                        headers: { "Access-Control-Allow-Origin": "*",
+                            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                        traditional : true,
+                        data: JSON.stringify(new_subset),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function(result) {
+                            alert("success!");
+                            new_subset.id = result.data.id;
+                            console.log(new_subset);
+                            // // console.log("api result: ", result);
+                            entitiesArray.push(new_subset);
+                        },
+                        error: function(result) {
+                            is_success = false;
+                            console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                            alert(JSON.parse(result.responseText).data);
+                        },
+                    }, setTimeout(this, 1000));
+                    console.log("latest entitiesarray ", entitiesArray);
+                }
+            }
         }
     }
 });
@@ -1430,7 +1563,7 @@ function calculateLabelPosition(cell) {
 paper.on('link:pointerup', (cell, evt) => {
     // console.log("This is link:pointerup:", cell);
     // evt.stopPropagation();
-    if (!cell.model.attributes.labels) {
+    if (!cell.model.attributes.labels && cell.model.attributes.target.id == undefined) {
         let new_attribute_name = window.prompt("Please enter the name of the attribute:", "");
 
         cell.addLabel({});
