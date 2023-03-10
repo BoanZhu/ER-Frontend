@@ -94,6 +94,7 @@ const paper = new dia.Paper({
     sorting: dia.Paper.sorting.APPROX,
     interactive: { linkMove: false },
     snapLinks: { radius: 70 },
+    magnet: false,
     defaultConnectionPoint: { name: 'boundary' }
 });
 
@@ -196,6 +197,7 @@ const StrongEntity = dia.Element.define('myApp.StrongEntity', {
             stroke: '#000000',
             fill: '#FFFFFF',
             level: 2,
+            magnet: false,
             // event: 'StrongEntity:delete', // can add event inside the body
         },
         label: {
@@ -312,33 +314,38 @@ graph.on('add', function(cell) {
             "schemaID": schemaID,
             "name": new_relationship_name,
             "layoutInfo": {
-                "layoutX": 123,
-                "layoutY": 456
+                "layoutX": cell.attributes.position.x,
+                "layoutY": cell.attributes.position.y
             }
         }
         cell.attributes.attrs.label.text = new_relationship_name;
-        // $.ajax({
-        //     async: false,
-        //     type: "POST",
-        //     url: "http://146.169.160.255:8080/er/entity/create_strong",
-        //     headers: { "Access-Control-Allow-Origin": "*",
-        //         "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-        //     traditional : true,
-        //     data: JSON.stringify(new_entity),
-        //     dataType: "json",
-        //     contentType: "application/json",
-        //     success: function(result) {
-        //         alert("success!");
-        //     },
-        //     error: function(result) {
-        //         is_success = false;
-        //         alert(JSON.parse(result.responseText).data);
-        //     },
-        // }, setTimeout(this, 1000))
+        $.ajax({
+            async: false,
+            type: "POST",
+            url: "http://10.187.204.209:8080/er/relationship/create_nary",
+            headers: { "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+            traditional : true,
+            data: JSON.stringify(new_relationship),
+            dataType: "json",
+            contentType: "application/json",
+            success: function(result) {
+                alert("success!");
+                console.log("relationship result: ", result);
+                new_relationship.id = result.data.id;
+                new_relationship.belongObjWithCardinalityList = [];
+                relationshipsArray.push(new_relationship);
+            },
+            error: function(result) {
+                is_success = false;
+                alert(JSON.parse(result.responseText).data);
+            },
+        }, setTimeout(this, 1000))
+        console.log("relationshipsArray: ", relationshipsArray);
     } else if (cell.attributes.type == 'standard.Link') {
         // console.log("gggggggggggg", cell);
         // console.log(cell.attributes.target);
-        console.log("Link");
+        console.log("Linkkkkkkk");
         if (cell.attributes.target.id == undefined) {
             // console.log("This shoud be an attribute");
         } else {
@@ -414,22 +421,6 @@ variable.on('batch:stop', function (element) {alert(""); toggleEvidence(element.
 
 const WeakEntity = dia.Element.define('myApp.WeakEntity', {
         attrs: {
-            // body: {
-            //     inner: {
-            //         width: '80',
-            //         height: '40',
-            //         strokeWidth: 2,
-            //         stroke: '#000000',
-            //         fill: '#FFFFFF',
-            //     },
-            //     outer: {
-            //         width: '100',
-            //         height: '50',
-            //         strokeWidth: 2,
-            //         stroke: '#000000',
-            //         fill: '#FFFFFF'
-            //     }
-            // },
             inner: {
                 width: '90',
                 height: '40',
@@ -462,34 +453,8 @@ const WeakEntity = dia.Element.define('myApp.WeakEntity', {
                 fill: '#00879b',
                 event: 'WeakEntity:changeLabel',
             },
-            
-            // root: {
-            //     dataTooltip: 'Weak Entity',
-            //     dataTooltipPosition: 'left',
-            //     dataTooltipPositionSelector: '.joint-stencil'
-            // },
-            // '.outer': {
-            //     fill: 'transparent',
-            //     stroke: '#feb663',
-            //     'stroke-width': 2,
-            //     points: '100,0 100,60 0,60 0,0',
-            //     'stroke-dasharray': '0'
-            // },
-            // '.inner': {
-            //     fill: '#feb663',
-            //     stroke: 'transparent',
-            //     points: '97,5 97,55 3,55 3,5',
-            //     'stroke-dasharray': '0'
-            // },
-            // text: {
-            //     text: 'Weak entity',
-            //     'font-size': 11,
-            //     'font-family': 'Roboto Condensed',
-            //     'font-weight': 'Normal',
-            //     fill: '#f6f6f6',
-            //     'stroke-width': 0
-            // }
-        }
+        },
+        magnet: false,
     
 }, {
     markup: [{
@@ -1087,10 +1052,10 @@ paper.on('element:pointerclick', (elementView) => {
     });
 
     halo.on('action:link:pointerup', (linkView, evt, evt2) => {
-        console.log("I'm here!!!!!");
-        // console.log(linkView);
-        // console.log(evt);
-        // console.log(evt2);
+        console.log("I'm here!!!!!!!!!!!!!!!!!!!!!!");
+        console.log(linkView);
+        console.log(evt);
+        console.log(evt2);
     });
 });
 
@@ -1374,7 +1339,7 @@ graph.on('change add remove', (cell) => {
             // cell.attributes.attrs.line.targetMarker.d = 'M 10 -5 0 0 10 5 Z';
             cell.attributes.attrs.line.targetMarker.d = 'M 0 0 0 0';
 
-            console.log("111", cell);
+            // This is for adding a new subset
             if (cell.attributes.attrs.line.sourceMarker) {
                 if (cell.attributes.attrs.line.sourceMarker.d != "M 0 0 0 0") {
                     const source_id = cell.attributes.source.id;
@@ -1467,9 +1432,104 @@ graph.on('change add remove', (cell) => {
                     console.log("latest entitiesarray ", entitiesArray);
                 }
             }
+            
         }
     }
 });
+
+paper.on('link:pointerup', (cell, evt) => {
+    // This is for linking relationship with entities
+    const source = graph.getCell(cell.model.attributes.source.id);
+    const target = graph.getCell(cell.model.attributes.target.id);
+
+    let new_cardinality_name = window.prompt("Please enter the ratio of the new cardinality:", "");
+    let cardinality;
+    if (new_cardinality_name == "0:1") {
+        cardinality = 1;
+    } else if (new_cardinality_name == "0:N") {
+        cardinality = 2;
+    } else if (new_cardinality_name == "1:1") {
+        cardinality = 3;
+    } else if (new_cardinality_name == "1:N") {
+        cardinality = 4;
+    } else {
+        cardinality = 0;
+    }
+
+    // need to wrapper the api invoking function later!
+    if (checkArray(entitiesArray, source) && checkArray(relationshipsArray, target)) {
+        entity = getElement(entitiesArray, source);
+        relation = getElement(relationshipsArray, target);
+        console.log("!!!!!!!!!!!!", entity);
+        console.log("xxxxxxxxxxxx", relation);
+        new_link_obj = {
+            "relationshipID": relation.id,
+            "belongObjID": entity.id, 
+            "belongObjType": 2, // currently do not support relationship as the belongObj!
+            "cardinality": cardinality, 
+            "portAtRelationshi": -1,
+            "portAtEntity": -1,
+        }
+        // setTimeout(this, 1000);
+        $.ajax({
+            async: false,
+            type: "POST",
+            url: "http://10.187.204.209:8080/er/relationship/link_obj",
+            headers: { "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+            traditional : true,
+            data: JSON.stringify(new_link_obj),
+            dataType: "json",
+            contentType: "application/json",
+            success: function(result) {
+                alert("success!");
+                new_link_obj.edgeID = result.data.edgeID;
+                console.log("api result: ", result);
+                relation.belongObjWithCardinalityList.push(new_link_obj);
+            },
+            error: function(result) {
+                is_success = false;
+                console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                alert(JSON.parse(result.responseText).data);
+            },
+        }, setTimeout(this, 1000));
+    } else if (checkArray(entitiesArray, target) && checkArray(relationshipsArray, source)) {
+        entity = getElement(entitiesArray, target);
+        relation = getElement(relationshipsArray, source);
+        new_link_obj = {
+            "relationshipID": relation.id,
+            "belongObjID": entity.id, 
+            "belongObjType": 2, // currently do not support relationship as the belongObj!
+            "cardinality": cardinality,
+            "portAtRelationshi": -1,
+            "portAtEntity": -1,
+        }
+        $.ajax({
+            async: false,
+            type: "POST",
+            url: "http://10.187.204.209:8080/er/relationship/link_obj",
+            headers: { "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+            traditional : true,
+            data: JSON.stringify(new_link_obj),
+            dataType: "json",
+            contentType: "application/json",
+            success: function(result) {
+                alert("success!");
+                new_link_obj.edgeID = result.data.edgeID;
+                console.log("api result: ", result);
+                relation.belongObjWithCardinalityList.push(new_link_obj);
+            },
+            error: function(result) {
+                is_success = false;
+                console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                alert(JSON.parse(result.responseText).data);
+            },
+        }, setTimeout(this, 1000));
+    }
+    
+    console.log("Relationshippppppppp: ", relationshipsArray);
+}) 
 
 // paper.on('link:connect', (cell, evt) => {
 //     console.log("new cell: ", cell);
@@ -1485,6 +1545,27 @@ graph.on('change add remove', (cell) => {
 // paper.on('link:mouseout', (cell) => {
 //     console.log("wtfff", cell);
 // })
+
+function checkArray(arr, cell) {
+    const cell_name = cell.attributes.attrs.label.text;
+    for (idx in arr) {
+        if (arr[idx].name == cell_name) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function getElement(arr, cell) {
+    const cell_name = cell.attributes.attrs.label.text;
+    let result;
+    for (idx in arr) {
+        if (arr[idx].name == cell_name) {
+            result = arr[idx];
+        }
+    }
+    return result;
+}
 
 function calculateLabelPosition(cell) {
 
