@@ -48,14 +48,6 @@ const paper = new dia.Paper({
                 // markup: util.svg`<rect @selector="body" />`,
                 line: { 
                     stroke: '#fbf5d0',
-                    // strokeWidth: 1,
-                    // sourceMarker: {
-                    //     'type': 'path',
-                    //     'stroke': 'red',
-                    //     'strokeWidth': 3,
-                    //     'fill': 'white',
-                    //     'd': 'M 10 -5 0 0 10 5 Z'
-                    // },
                     targetMarker: {
                         'type': 'path',
                         'stroke': 'red',
@@ -64,29 +56,6 @@ const paper = new dia.Paper({
                         'd': 'M 10 -5 0 0 10 5 Z'
                     }
                 }, 
-                // body: {
-                //     width: '90',
-                //     height: '40',
-                //     x: 5,
-                //     y: 5,
-                //     strokeWidth: 2,
-                //     stroke: '#000000',
-                //     transparent: true,
-                //     fill: '#FFFFFF',
-                // },
-                // newline: {
-                //     // connection: true,
-                //     stroke: "#fbf5d0",
-                //     strokeLinejoin: "round",
-                //     strokeWidth: 20,
-                //     marker: {
-                //         'type': 'path',
-                //         'stroke': 'red',
-                //         'strokeWidth': 50,
-                //         'fill': 'white',
-                //         'd': 'M 10 -5 0 0 10 5 Z'
-                //     }
-                // }
             },
         });
     },
@@ -223,17 +192,7 @@ const StrongEntity = dia.Element.define('myApp.StrongEntity', {
     }]
 });
 
-// paper.on('StrongEntity:delete', function(elementView, evt) {
-//     // Stop any further actions with the element view e.g. dragging
-//     evt.stopPropagation();
-//     if (confirm('Are you sure you want to delete this element?')) {
-//         elementView.model.remove();
-//     }
-//   });
-
 graph.on('add', function(cell) { 
-    // alert('New cell with id ' + cell.id + ' added to the graph.') 
-    // console.log(cell);
     if (cell.attributes.type === 'myApp.WeakEntity') {
         console.log("Weak entity");
         let new_weak_entity_name = window.prompt("Please enter the name of the new strong entity:", "");
@@ -280,12 +239,7 @@ graph.on('add', function(cell) {
                 "layoutY": cell.attributes.position.y
             }
         }
-        // entitiesArray.push(new_strong_entity);
-        // console.log(entitiesArray);
         cell.attributes.attrs.label.text = new_strong_entity_name;
-        // console.log(cell.attributes.position);
-        // console.log(new_strong_entity);
-        // cell.attributes.attrs.label.text = new_strong_entity_name;
         $.ajax({
             async: false,
             type: "POST",
@@ -299,8 +253,6 @@ graph.on('add', function(cell) {
             success: function(result) {
                 alert("success!");
                 new_strong_entity.id = result.data.id;
-                // console.log(new_strong_entity);
-                // console.log("api result: ", result);
                 entitiesArray.push(new_strong_entity);
             },
             error: function(result) {
@@ -342,12 +294,9 @@ graph.on('add', function(cell) {
                 is_success = false;
                 alert(JSON.parse(result.responseText).data);
             },
-        }, setTimeout(this, 1000))
+        })
         console.log("relationshipsArray: ", relationshipsArray);
     } else if (cell.attributes.type == 'standard.Link') {
-        // console.log("gggggggggggg", cell);
-        // console.log(cell.attributes.target);
-        console.log("Linkkkkkkk");
         if (cell.attributes.target.id == undefined) {
             // console.log("This shoud be an attribute");
         } else {
@@ -360,49 +309,19 @@ graph.on('add', function(cell) {
 
 paper.on('cell:pointerdblclick', function(elementView, evt) {
     if (elementView.model.attributes.type === 'myApp.WeakEntity') {
-        // elementView.model.remove();
         let new_weak_entity_name = window.prompt("Please enter the new name of the weak entity:", "");
         elementView.model.attributes.attrs.label.text = new_weak_entity_name;
-        elementView.render();
-        // console.log("aaa", elementView);
     } else if (elementView.model.attributes.type === 'myApp.StrongEntity') {
         let new_weak_strong_name = window.prompt("Please enter the new name of the strong entity:", "");
         elementView.model.attributes.attrs.label.text = new_weak_strong_name;
-        elementView.render();
-        // elementView.model.remove();
     } else if (elementView.model.attributes.type === 'myApp.Relationship') {
         let new_relationship_name = window.prompt("Please enter the new name of the relationship entity:", "");
         elementView.model.attributes.attrs.label.text = new_relationship_name;
-        elementView.render();
-        // elementView.model.remove();
     } else {
         console.log("other elements", elementView);
-        // elementView.model.remove();
     }
-    // elementView.model.remove();
+    elementView.render();
 })
-
-// paper.on('cell:pointerclick', function(elementView, evt) {
-//     evt.stopPropagation();
-//     // if (elementView.model.type) {
-//     console.log("123");
-//     // }
-//     console.log(elementView.model.attributes.type === 'myApp.WeakEntity');
-//     if (elementView.model.attributes.type === 'myApp.WeakEntity') {
-//         console.log("weak");
-//         // elementView.model.remove();
-//     } else if (elementView.model.attributes.type === 'myApp.StrongEntity') {
-//         console.log("strong");
-//         // elementView.model.remove();
-//     } else if (elementView.model.attributes.type === 'myApp.Relationship') {
-//         console.log("relationship");
-//         // elementView.model.remove();
-//     } else {
-//         console.log("else");
-//         // elementView.model.remove();
-//     }
-//     // elementView.model.remove();
-// })
 
 var variable =  new joint.shapes.basic.Rect({
     name : "123",
@@ -439,12 +358,6 @@ const WeakEntity = dia.Element.define('myApp.WeakEntity', {
                 strokeWidth: 2,
                 stroke: '#000000',
                 fill: '#FFFFFF',
-
-                // type: 'path',
-                // stroke: '#000000',
-                // strokeWidth: 5,
-                // fill: 'white',
-                // d: 'M 10 -5 0 0 10 5 Z'
             },
             label: {
                 x: '50',
@@ -477,11 +390,6 @@ const WeakEntity = dia.Element.define('myApp.WeakEntity', {
     // `
 });
 
-// paper.on('myApp.WeakEntity:pointerclick', function(elementView, evt) {
-//     evt.stopPropagation();
-//     console.log("clicked");
-// });
-
 const relationship = dia.Element.define('myApp.Relationship', {
     attrs: {
         body: {
@@ -491,8 +399,6 @@ const relationship = dia.Element.define('myApp.Relationship', {
             stroke: '#000000',
             fill: '#FFFFFF',
             level: 2,
-            // rotate: 90,
-            // path: "50,10 55,30 70,30 60,40 65,55 50,45 35,55 40,40 30,30 45,30"
         },
         text: {
             // text: 'Relation',
@@ -542,13 +448,6 @@ stencil.render().load({
     //     type: 'standard.Ellipse'
     // }],
     myShapesGroup2: [
-    // {
-    //     type: 'standard.Cylinder'
-    // }, {
-    //     type: 'myApp.MyShape',
-    //     attrs: { label: { text: 'Shape' }},
-    //     ports: { items: [{ group: 'in' }, { group: 'out' }, { group: 'out' }] }
-    // }, 
     {
         type: 'myApp.StrongEntity',
         attrs: { label: { text: 'Entity' }}
@@ -559,77 +458,8 @@ stencil.render().load({
         type: 'myApp.Relationship',
         attrs: { label: { text: 'Relation' } }
     }, 
-    // {
-        // variable
-    // } 
 ]
 });
-
-stencil.on('myApp.StrongEntity:pointerclick', () => {
-    // new_entity = {
-    //     "schemaID": "1123",
-    //     "name": "new-strong-entity",
-    //     "layoutInfo": {
-    //         "layoutX": 123,
-    //         "layoutY": 456
-    //     }
-    // }
-    // $.ajax({
-    //     async: false,
-    //     type: "POST",
-    //     url: "http://146.169.160.255:8080/er/entity/create_strong",
-    //     headers: { "Access-Control-Allow-Origin": "*",
-    //         "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-    //     traditional : true,
-    //     data: JSON.stringify(new_entity),
-    //     dataType: "json",
-    //     contentType: "application/json",
-    //     success: function(result) {
-    //         alert("success!");
-    //     },
-    //     error: function(result) {
-    //         is_success = false;
-    //         alert(JSON.parse(result.responseText).data);
-    //     },
-    // }, setTimeout(this, 1000))
-})
-
-
-// stencil.on('EntityEntity:pointerclick', () => {
-//     new_entity = {
-//         "schemaID": "1123",
-//         "weakEntityName": "new-weak-entity",
-//         "weakEntityCardinality": "",
-//         "strongEntityID": "",
-//         "strongEntityCardinality": "",
-//         "relationshipName": "",
-//         "weakEntityLayoutInfo": "",
-//         "layoutInfo": {
-//             "layoutX": 123,
-//             "layoutY": 456
-//         }
-//     }
-//     $.ajax({
-//         async: false,
-//         type: "POST",
-//         url: "http://10.187.204.209:8080/er/schema/create_weak_entity",
-//         headers: { "Access-Control-Allow-Origin": "*",
-//             "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-//         traditional : true,
-//         data: JSON.stringify(new_entity),
-//         dataType: "json",
-//         contentType: "application/json",
-//         success: function(result) {
-//             alert("success!");
-//         },
-//         error: function(result) {
-//             is_success = false;
-//             alert(JSON.parse(result.responseText).data);
-//         },
-//     }, setTimeout(this, 2000))
-// })
-
-
 
 // Inspector
 // --------
@@ -678,7 +508,6 @@ const options = {
 }
 
 paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
-    // evt.stopPropagation();
     if (elementView.model.attributes.type == "standard.Link") {
         if (elementView.model.attributes.target.id == undefined) {
             ui.Inspector.create('.inspector-container', {
@@ -709,7 +538,6 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                 },
                                 attrs: {
                                     text: {
-                                        // textDecoration: 'underline',
                                         text: {
                                             type: 'content-editable',
                                             label: 'Attribute Name',
@@ -726,7 +554,6 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                         fill: {
                                             type: 'color-palette',
                                             options: options.colorPaletteReset,
-                                            // defaultValue: '#f6f6f6', // white
                                             label: 'Text Color',
                                             index: 6
                                         },
@@ -759,19 +586,11 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                             label: 'Outline',
                                             index: 6,
                                         },
-                                        // d: {
-                                        //     'type': 'path',
-                                        //     'stroke': 'red',
-                                        //     'strokeWidth': 5,
-                                        //     'fill': 'white',
-                                        //     'd': 'M 10 -5 0 0 10 5 Z'
-                                        // }
                                     }
                                 },
                                 position: {
                                     type: 'select-box',
                                     options: options.labelPosition || [],
-                                    // defaultValue: 1,
                                     offset: 200,
                                     label: 'Position',
                                     placeholder: 'Custom',
@@ -783,11 +602,6 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                             'data-tooltip-position-selector': '.joint-inspector'
                                         }
                                     },
-                                    // distance: 0.66,
-                                    // offset: {
-                                    //     x: -40,
-                                    //     y: 80
-                                    // }
                                 },
     
                             }
@@ -801,50 +615,7 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                             label: 'Source arrowhead',
                             index: 1
                         },
-                        // fill: {
-                        //     type: 'color-palette',
-                        //     options: options.colorPaletteReset,
-                        //     group: 'marker-source',
-                        //     label: 'Color',
-                        //     when: { ne: { 'attrs/line/sourceMarker/d': 'M 0 0 0 0' }},
-                        //     index: 2
-                        // }
                     },
-                    // 'attrs/line': {
-                    //     targetMarker: {
-                    //         d: {
-                    //             // type: 'select-box',
-                    //             // options: options.arrowheadSize,
-                    //             // group: 'marker-target',
-                    //             // label: 'Target arrowhead',
-                    //             // index: 1,
-                    //         },
-                    //         stroke: {'black'},
-                    //         fill: 'yellow',
-                    //     }
-                    // }
-    
-                    // 'attrs/line/targetMarker': {
-                    //     d: {
-                    //         type: 'select-box',
-                    //         options: options.arrowheadSize,
-                    //         group: 'marker-target',
-                    //         label: 'Target arrowhead',
-                    //         index: 1,
-                    //         stroke: 'black'
-                    //     },
-    
-                    //     'stroke': 'black',
-                    //     'fill': 'yellow',
-                        // fill: {
-                        //     type: 'color-palette',
-                        //     options: options.colorPaletteReset,
-                        //     group: 'marker-target',
-                        //     label: 'Color',
-                        //     when: { ne: { 'attrs/line/targetMarker/d': 'M 0 0 0 0' }},
-                        //     index: 2
-                        // }
-                    // }
                 },
                 groups: {
                     basic: {
@@ -855,10 +626,6 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                         label: 'Source marker',
                         index: 3
                     },
-                    // 'marker-target': {
-                    //     label: 'Target marker',
-                    //     index: 4
-                    // },
                 }
             });
         
@@ -875,9 +642,6 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                             'data-tooltip': 'Set (possibly multiple) labels for the link',
                             'data-tooltip-position': 'right',
                             'data-tooltip-position-selector': '.joint-inspector',
-                            // position: {
-                            //     distance: 0.25
-                            // }
                         }
                     },
                     item: {
@@ -921,22 +685,6 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                     }
                                 }
                             },
-                            // position: {
-                            //     type: 'select-box',
-                            //     options: options.labelPosition || [],
-                            //     defaultValue: 0.5,
-                            //     label: 'Position',
-                            //     placeholder: 'Custom',
-                            //     index: 2,
-                            //     attrs: {
-                            //         label: {
-                            //             'data-tooltip': 'Position the label relative to the source of the link',
-                            //             'data-tooltip-position': 'right',
-                            //             'data-tooltip-position-selector': '.joint-inspector'
-                            //         }
-                            //     }
-                            // },
-
                         }
                     }
                 },
@@ -948,14 +696,6 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                         label: 'Source arrowhead',
                         index: 1
                     },
-                    // fill: {
-                    //     type: 'color-palette',
-                    //     options: options.colorPaletteReset,
-                    //     group: 'marker-source',
-                    //     label: 'Color',
-                    //     when: { ne: { 'attrs/line/sourceMarker/d': 'M 0 0 0 0' }},
-                    //     index: 2
-                    // }
                 },
             },
             groups: {
@@ -967,10 +707,6 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                     label: 'Source marker',
                     index: 3
                 },
-                // 'marker-target': {
-                //     label: 'Target marker',
-                //     index: 4
-                // },
             }
         });
     }
@@ -1100,27 +836,6 @@ const toolbar = new ui.Toolbar({
         { type: 'zoom-out', name: 'zoom-out', group: 'zoom' },
         { type: 'zoom-in', name: 'zoom-in', group: 'zoom' },
         { type: 'button', name: 'create', group: 'create', text: 'create-new-schema' },
-        // { type: 'button', name: 'create', group: 'currentSchema', text: schemaName }
-        // {
-        //     type: 'undo',
-        //     name: 'undo',
-        //     group: 'undoredo',
-        //     attrs: {
-        //         button: {
-        //             // 'data-tooltip': 'Undo'
-        //         }
-        //     }
-        // },
-        // {
-        //     type: 'redo',
-        //     name: 'redo',
-        //     group: 'undoredo',
-        //     attrs: {
-        //         button: {
-        //             // 'data-tooltip': 'Redo'
-        //         }
-        //     }
-        // }
     ],
     references: {
         paperScroller // built in zoom-in/zoom-out control types require access to paperScroller instance
@@ -1159,33 +874,6 @@ toolbar.on({
         graph.clear();
         // paper.render();
     }
-        // window.prompt("Please enter the name of the new schema:","")
-        // // .then(
-        // request = {
-        //     "username": "test",
-        //     "password": "test"
-        // },
-        // console.log("123"),
-        // $.ajax({
-        //     async: false,
-        //     type: "POST",
-        //     url: "http://10.187.204.209:8080/er/login/check_account",
-        //     headers: { "Access-Control-Allow-Origin": "*",
-        //         "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-        //     traditional : true,
-        //     data: JSON.stringify(request),
-        //     dataType: "json",
-        //     contentType: "application/json",
-        //     success: function(result) {
-        //         alert("success!");
-        //     },
-        //     error: function(result) {
-        //         is_success = false;
-        //         alert(JSON.parse(result.responseText).data);
-        //     }
-        // })
-    // )
-    // }
 });
 
 document.querySelector('.toolbar-container').appendChild(toolbar.el);
@@ -1214,7 +902,6 @@ const newShape = new MyShape({
 graph.addCell(newShape);
 
 // Get element from the graph and change its properties.
-// console.log(myShape === graph.getElements()[0]);
 myShape.prop('attrs/label/text', 'My Updated Shape');
 myShape.prop('size/width', 150);
 myShape.prop('level', 2);
@@ -1240,8 +927,6 @@ graph.addCell(myLink);
 
 // React on changes in the graph.
 graph.on('change add remove', (cell) => {
-    // const diagramJSONString = JSON.stringify(graph.toJSON());
-    // console.log('Diagram JSON', diagramJSONString);
     console.log("change: ", cell);
     if (cell.attributes.type == 'standard.Link') {
         // This is for the attributes setting; target.id == undefined means this is an attribute
@@ -1329,7 +1014,6 @@ graph.on('change add remove', (cell) => {
             
             console.log("points");
             cell.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
-            // let new_strong_entity_name = window.prompt("Please enter the name of the new strong entity:", "");
         } else {
 
             if (cell.attributes.labels) {
@@ -1338,7 +1022,6 @@ graph.on('change add remove', (cell) => {
                 };
             }
             console.log("element");
-            // cell.attributes.attrs.line.targetMarker.d = 'M 10 -5 0 0 10 5 Z';
             cell.attributes.attrs.line.targetMarker.d = 'M 0 0 0 0';
 
             // This is for adding a new subset
@@ -1346,7 +1029,6 @@ graph.on('change add remove', (cell) => {
                 if (cell.attributes.attrs.line.sourceMarker.d != "M 0 0 0 0") {
                     const source_id = cell.attributes.source.id;
                     const target_id = cell.attributes.target.id;
-                    // let all_elements = graph.getCells();
                     const source = graph.getCell(source_id);
                     const target = graph.getCell(target_id);
                     console.log("source: ", source);
@@ -1358,9 +1040,7 @@ graph.on('change add remove', (cell) => {
                     let belongStrongEntityID = "";
                     let target_entity_id = "";
                     for (idx in entitiesArray) {
-                        // console.log(entitiesArray[entity]);
                         if (entitiesArray[idx].name == source_name) {
-                            // console.log("what happened?");
                             belongStrongEntityID = entitiesArray[idx].id;
                         }
                         if (entitiesArray[idx].name == target_name) {
@@ -1396,10 +1076,6 @@ graph.on('change add remove', (cell) => {
                         contentType: "application/json",
                         success: function(result) {
                             alert("success!");
-                            // new_subset.id = result.data.id;
-                            // console.log(new_subset);
-                            // // console.log("api result: ", result);
-                            // entitiesArray.push(new_subset);
                         },
                         error: function(result) {
                             is_success = false;
@@ -1422,7 +1098,6 @@ graph.on('change add remove', (cell) => {
                             alert("success!");
                             new_subset.id = result.data.id;
                             console.log(new_subset);
-                            // // console.log("api result: ", result);
                             entitiesArray.push(new_subset);
                         },
                         error: function(result) {
@@ -1458,10 +1133,6 @@ paper.on('link:pointerup', (cell, evt) => {
         cardinality = 0;
     }
 
-    // console.log("mouseup: ", cell);
-    // console.log("entitiesArray", entitiesArray, checkArray(entitiesArray, source));
-    // console.log("relationshipsArray", relationshipsArray, checkArray(relationshipsArray, target));
-
     // need to wrapper the api invoking function later!
     if (checkArray(entitiesArray, source) && checkArray(relationshipsArray, target)) {
 
@@ -1476,7 +1147,6 @@ paper.on('link:pointerup', (cell, evt) => {
                 "portAtRelationshi": -1,
                 "portAtEntity": -1,
             }
-            // setTimeout(this, 1000);
             $.ajax({
                 async: false,
                 type: "POST",
@@ -1579,7 +1249,6 @@ paper.on('link:pointerup', (cell, evt) => {
                 contentType: "application/json",
                 success: function(result) {
                     alert("success to delete the relationship!");
-                    // new_link_obj.edgeID = result.data.edgeID;
                     console.log("relete relationship api result: ", result);
                 },
                 error: function(result) {
@@ -1709,24 +1378,8 @@ paper.on('link:pointerup', (cell, evt) => {
     console.log("Relationshippppppppp: ", relationshipsArray);
 }) 
 
-// paper.on('link:connect', (cell, evt) => {
-//     console.log("new cell: ", cell);
-//     console.log("new evt: ", evt);
-//     cell.model.attributes.attrs.line.targetMarker.d = 'M 10 -5 0 0 10 5 Z';
-//     let new_strong_entity_name = window.prompt("Please enter the name of the new strong entity:", "");
-// })
-
-// paper.on('link:disconnect', (cell, evt) => {
-//     console.log("dissssssss");
-// })
-
-// paper.on('link:mouseout', (cell) => {
-//     console.log("wtfff", cell);
-// })
-
 function checkArray(arr, cell) {
     const cell_name = cell.attributes.attrs.label.text;
-    // console.log("cell_name ", cell_name);
     for (idx in arr) {
         if (arr[idx].name == cell_name || arr[idx].weakEntityName) {
             return true;
@@ -1779,10 +1432,6 @@ function calculateLabelPosition(cell) {
 
     let final_x = 0;
     let final_y = 0;
-    // console.log("target_x: ", target_x);
-    // console.log("target_y: ", target_y);
-    // console.log("source_x: ", source_x);
-    // console.log("source_y: ", source_y);
 
     if (target_x >= source_x) {
         if (Math.abs(target_x - source_x) >= Math.abs(target_y - source_y)) {
@@ -1821,8 +1470,6 @@ function calculateLabelPosition(cell) {
 }
 
 paper.on('link:pointerup', (cell, evt) => {
-    // console.log("This is link:pointerup:", cell);
-    // evt.stopPropagation();
     if (!cell.model.attributes.labels && cell.model.attributes.target.id == undefined) {
         let new_attribute_name = window.prompt("Please enter the name of the attribute:", "");
 
@@ -1837,17 +1484,6 @@ paper.on('link:pointerup', (cell, evt) => {
                     optional: "No",
                     primary: "No",
                 },
-                // outer: {
-                //     // width: '90',
-                //     // height: '40',
-                //     // x: 5,
-                //     // y: 5,
-                //     // strokeWidth: 2,
-                //     stroke: '#FFFFFF',
-                //     fill: '#FFFFFF',
-                //     text: underline_string,
-                // },
-                
             },
             markup: util.svg`<text @selector="text" fill="#FFFFFF"/> `,
             position: {
@@ -1858,14 +1494,8 @@ paper.on('link:pointerup', (cell, evt) => {
                 }
             }
         };
-        // console.log("new label: ", cell);
     }
 })
-
-// paper.on('cell:pointerup', (cell) => {
-//     // evt.stopPropagation();
-//     console.log("This is :", cell);
-// })
 
 graph.on('change:level', (cell, level) => {
     const color = (level > 8) ? '#ff9580' : '#ffffff';
