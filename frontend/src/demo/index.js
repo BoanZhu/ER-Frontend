@@ -236,19 +236,21 @@ graph.on('add', function(cell) {
     // console.log(cell);
     if (cell.attributes.type === 'myApp.WeakEntity') {
         console.log("Weak entity");
-        // new_entity = {
-        //     "schemaID": schemaID,
-        //     "weakEntityName": "new-weak-entity",
-        //     "weakEntityCardinality": "",
-        //     "strongEntityID": "",
-        //     "strongEntityCardinality": "",
-        //     "relationshipName": "",
-        //     "weakEntityLayoutInfo": "",
-        //     "layoutInfo": {
-        //         "layoutX": 123,
-        //         "layoutY": 456
-        //     }
-        // }
+        let new_weak_entity_name = window.prompt("Please enter the name of the new strong entity:", "");
+        new_weak_entity = {
+            "schemaID": schemaID,
+            "weakEntityName": new_weak_entity_name,
+            "weakEntityCardinality": "",
+            "strongEntityID": "",
+            "strongEntityCardinality": "",
+            "relationshipName": "",
+            "weakEntityLayoutInfo": {
+                "layoutX": cell.attributes.position.x,
+                "layoutY": cell.attributes.position.y
+            }
+        }
+        cell.attributes.attrs.label.text = new_weak_entity_name;
+        entitiesArray.push(new_weak_entity);
         // $.ajax({
         //     async: false,
         //     type: "POST",
@@ -256,7 +258,7 @@ graph.on('add', function(cell) {
         //     headers: { "Access-Control-Allow-Origin": "*",
         //         "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
         //     traditional : true,
-        //     data: JSON.stringify(new_entity),
+        //     data: JSON.stringify(new_weak_entity),
         //     dataType: "json",
         //     contentType: "application/json",
         //     success: function(result) {
@@ -1274,7 +1276,7 @@ graph.on('change add remove', (cell) => {
                     // This is used to set primary key
                     // Here we need to reset the attribute name, because it may contains optional mark "?"
                     const new_attribute_name = cell.attributes.labels[0].attrs.text.text;
-                    console.log("123: ", new_attribute_name);
+
                     if (cell.attributes.labels[0].attrs.text.primary == 'Yes') {
                         let underline_string = "";
                         let count = 0;
@@ -1456,76 +1458,252 @@ paper.on('link:pointerup', (cell, evt) => {
         cardinality = 0;
     }
 
+    // console.log("mouseup: ", cell);
+    // console.log("entitiesArray", entitiesArray, checkArray(entitiesArray, source));
+    // console.log("relationshipsArray", relationshipsArray, checkArray(relationshipsArray, target));
+
     // need to wrapper the api invoking function later!
+    if (checkArray(entitiesArray, source) && checkArray(relationshipsArray, target)) {
+
+        entity = getElement(entitiesArray, source);
+        relation = getElement(relationshipsArray, target);
+        if (!entity.weakEntityName) {
+            new_link_obj = {
+                "relationshipID": relation.id,
+                "belongObjID": entity.id, 
+                "belongObjType": 2, // currently do not support relationship as the belongObj!
+                "cardinality": cardinality, 
+                "portAtRelationshi": -1,
+                "portAtEntity": -1,
+            }
+            // setTimeout(this, 1000);
+            $.ajax({
+                async: false,
+                type: "POST",
+                url: "http://10.187.204.209:8080/er/relationship/link_obj",
+                headers: { "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                traditional : true,
+                data: JSON.stringify(new_link_obj),
+                dataType: "json",
+                contentType: "application/json",
+                success: function(result) {
+                    alert("success!");
+                    new_link_obj.edgeID = result.data.edgeID;
+                    console.log("api result: ", result);
+                    relation.belongObjWithCardinalityList.push(new_link_obj);
+                },
+                error: function(result) {
+                    is_success = false;
+                    console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                    alert(JSON.parse(result.responseText).data);
+                },
+            }, setTimeout(this, 1000));
+        }
+        
+    } else if (checkArray(entitiesArray, target) && checkArray(relationshipsArray, source)) {
+
+        entity = getElement(entitiesArray, target);
+        relation = getElement(relationshipsArray, source);
+        if (!entity.weakEntityName) {
+            new_link_obj = {
+                "relationshipID": relation.id,
+                "belongObjID": entity.id, 
+                "belongObjType": 2, // currently do not support relationship as the belongObj!
+                "cardinality": cardinality,
+                "portAtRelationshi": -1,
+                "portAtEntity": -1,
+            }
+            $.ajax({
+                async: false,
+                type: "POST",
+                url: "http://10.187.204.209:8080/er/relationship/link_obj",
+                headers: { "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                traditional : true,
+                data: JSON.stringify(new_link_obj),
+                dataType: "json",
+                contentType: "application/json",
+                success: function(result) {
+                    alert("success!");
+                    new_link_obj.edgeID = result.data.edgeID;
+                    console.log("api result: ", result);
+                    relation.belongObjWithCardinalityList.push(new_link_obj);
+                },
+                error: function(result) {
+                    is_success = false;
+                    console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                    alert(JSON.parse(result.responseText).data);
+                },
+            }, setTimeout(this, 1000));
+        }
+           
+    }
+
+
+    // Checking every sides of the link, if one side is a weak entity and the other side is a relationship, then
+    // need to invkoe the api; otherwise just skip.
+    // Advanced: also need to check whether there is a strong entity linking to the relationship before invoking 
+    // the api; if not linking, cannot link the weak entity! (In other words, it is necessary to have a strong entity 
+    // first, such that the weak entity cannot exist without its "identifying".)
+    
     if (checkArray(entitiesArray, source) && checkArray(relationshipsArray, target)) {
         entity = getElement(entitiesArray, source);
         relation = getElement(relationshipsArray, target);
-        console.log("!!!!!!!!!!!!", entity);
-        console.log("xxxxxxxxxxxx", relation);
-        new_link_obj = {
-            "relationshipID": relation.id,
-            "belongObjID": entity.id, 
-            "belongObjType": 2, // currently do not support relationship as the belongObj!
-            "cardinality": cardinality, 
-            "portAtRelationshi": -1,
-            "portAtEntity": -1,
+        if (entity.weakEntityName) {
+            if (relation.belongObjWithCardinalityList.length == 0) {
+                alert("must have a strong entity exist!");
+                return;
+            }
+            // Currently only support one strong entity, so just use index 0.
+            const strong_entity = relation.belongObjWithCardinalityList[0];
+
+            entity.weakEntityCardinality = new_cardinality_name;
+            entity.strongEntityCardinality = strong_entity.cardinality;
+            entity.strongEntityID = strong_entity.belongObjID;
+            entity.relationshipName = relation.name;
+
+            delete_relationship_request = {
+                "id": relation.id
+            }
+
+            $.ajax({
+                async: false,
+                type: "POST",
+                url: "http://10.187.204.209:8080/er/relationship/delete",
+                headers: { "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                traditional : true,
+                data: JSON.stringify(delete_relationship_request),
+                dataType: "json",
+                contentType: "application/json",
+                success: function(result) {
+                    alert("success to delete the relationship!");
+                    // new_link_obj.edgeID = result.data.edgeID;
+                    console.log("relete relationship api result: ", result);
+                },
+                error: function(result) {
+                    is_success = false;
+                    console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                    alert(JSON.parse(result.responseText).data);
+                },
+            }, setTimeout(this, 1000));
+
+            $.ajax({
+                async: false,
+                type: "POST",
+                url: "http://10.187.204.209:8080/er/entity/create_weak_entity",
+                headers: { "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                traditional : true,
+                data: JSON.stringify(entity),
+                dataType: "json",
+                contentType: "application/json",
+                success: function(result) {
+                    alert("success to create a new weak entity!");
+                    entity.id = result.data.weakEntityID;
+                    relation.id = result.data.relationshipID;
+                    console.log("api result: ", result);
+
+                    // May have issues here, since we save link information by link object.
+                    new_link_obj = {
+                        "relationshipID": relation.id,
+                        "belongObjID": entity.id, 
+                        "belongObjType": 2, // currently do not support relationship as the belongObj!
+                        "cardinality": cardinality,
+                        "portAtRelationshi": -1,
+                        "portAtEntity": -1,
+                    }
+
+                    // Didn't delete the original relationship object, only change its id and insert new link object.
+                    relation.belongObjWithCardinalityList.push(new_link_obj);
+                },
+                error: function(result) {
+                    is_success = false;
+                    console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                    alert(JSON.parse(result.responseText).data);
+                },
+            }, setTimeout(this, 1000));
         }
-        // setTimeout(this, 1000);
-        $.ajax({
-            async: false,
-            type: "POST",
-            url: "http://10.187.204.209:8080/er/relationship/link_obj",
-            headers: { "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-            traditional : true,
-            data: JSON.stringify(new_link_obj),
-            dataType: "json",
-            contentType: "application/json",
-            success: function(result) {
-                alert("success!");
-                new_link_obj.edgeID = result.data.edgeID;
-                console.log("api result: ", result);
-                relation.belongObjWithCardinalityList.push(new_link_obj);
-            },
-            error: function(result) {
-                is_success = false;
-                console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                alert(JSON.parse(result.responseText).data);
-            },
-        }, setTimeout(this, 1000));
     } else if (checkArray(entitiesArray, target) && checkArray(relationshipsArray, source)) {
         entity = getElement(entitiesArray, target);
         relation = getElement(relationshipsArray, source);
-        new_link_obj = {
-            "relationshipID": relation.id,
-            "belongObjID": entity.id, 
-            "belongObjType": 2, // currently do not support relationship as the belongObj!
-            "cardinality": cardinality,
-            "portAtRelationshi": -1,
-            "portAtEntity": -1,
+        if (entity.weakEntityName) {
+            if (relation.belongObjWithCardinalityList.length == 0) {
+                alert("must have a strong entity exist!");
+                return;
+            }
+            // Currently only support one strong entity, so just use index 0.
+            const strong_entity = relation.belongObjWithCardinalityList[0];
+
+            entity.weakEntityCardinality = cardinality;
+            entity.strongEntityCardinality = strong_entity.cardinality;
+            entity.strongEntityID = strong_entity.belongObjID;
+            entity.relationshipName = relation.name;
+
+            delete_relationship_request = {
+                "id": relation.id
+            }
+
+            $.ajax({
+                async: false,
+                type: "POST",
+                url: "http://10.187.204.209:8080/er/relationship/delete",
+                headers: { "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                traditional : true,
+                data: JSON.stringify(delete_relationship_request),
+                dataType: "json",
+                contentType: "application/json",
+                success: function(result) {
+                    alert("success to delete the relationship!");
+                    // new_link_obj.edgeID = result.data.edgeID;
+                    console.log("relete relationship api result: ", result);
+                },
+                error: function(result) {
+                    is_success = false;
+                    console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                    alert(JSON.parse(result.responseText).data);
+                },
+            });
+
+            console.log("cardinality: ", cardinality);
+            $.ajax({
+                async: false,
+                type: "POST",
+                url: "http://10.187.204.209:8080/er/entity/create_weak_entity",
+                headers: { "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                traditional : true,
+                data: JSON.stringify(entity),
+                dataType: "json",
+                contentType: "application/json",
+                success: function(result) {
+                    alert("success to create a new weak entity!");
+                    entity.id = result.data.weakEntityID;
+                    relation.id = result.data.relationshipID;
+                    console.log("api result: ", result);
+
+                    // May have issues here, since we save link information by link object.
+                    new_link_obj = {
+                        "relationshipID": relation.id,
+                        "belongObjID": entity.id, 
+                        "belongObjType": 2, // currently do not support relationship as the belongObj!
+                        "cardinality": cardinality,
+                        "portAtRelationshi": -1,
+                        "portAtEntity": -1,
+                    }
+
+                    // Didn't delete the original relationship object, only change its id and insert new link object.
+                    relation.belongObjWithCardinalityList.push(new_link_obj);
+                },
+                error: function(result) {
+                    is_success = false;
+                    console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                    alert(JSON.parse(result.responseText).data);
+                },
+            });
         }
-        $.ajax({
-            async: false,
-            type: "POST",
-            url: "http://10.187.204.209:8080/er/relationship/link_obj",
-            headers: { "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-            traditional : true,
-            data: JSON.stringify(new_link_obj),
-            dataType: "json",
-            contentType: "application/json",
-            success: function(result) {
-                alert("success!");
-                new_link_obj.edgeID = result.data.edgeID;
-                console.log("api result: ", result);
-                relation.belongObjWithCardinalityList.push(new_link_obj);
-            },
-            error: function(result) {
-                is_success = false;
-                console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                alert(JSON.parse(result.responseText).data);
-            },
-        }, setTimeout(this, 1000));
     }
     
     console.log("Relationshippppppppp: ", relationshipsArray);
@@ -1548,8 +1726,9 @@ paper.on('link:pointerup', (cell, evt) => {
 
 function checkArray(arr, cell) {
     const cell_name = cell.attributes.attrs.label.text;
+    // console.log("cell_name ", cell_name);
     for (idx in arr) {
-        if (arr[idx].name == cell_name) {
+        if (arr[idx].name == cell_name || arr[idx].weakEntityName) {
             return true;
         }
     }
@@ -1560,7 +1739,7 @@ function getElement(arr, cell) {
     const cell_name = cell.attributes.attrs.label.text;
     let result;
     for (idx in arr) {
-        if (arr[idx].name == cell_name) {
+        if (arr[idx].name == cell_name || arr[idx].weakEntityName == cell_name) {
             result = arr[idx];
         }
     }
