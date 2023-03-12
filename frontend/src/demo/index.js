@@ -32,6 +32,8 @@ let entitiesArray = [];
 let attributesArray = [];
 let relationshipsArray = [];
 
+const ip_address = "10.248.199.168";
+
 // Paper & PaperScroller
 // ---------------------
 
@@ -244,7 +246,7 @@ graph.on('add', function(cell) {
         $.ajax({
             async: false,
             type: "POST",
-            url: "http://10.248.199.168:8080/er/entity/create_strong",
+            url: "http://" + ip_address + ":8080/er/entity/create_strong",
             // url: "http://10.187.204.209:8080/er/entity/create_strong",
             headers: { "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
@@ -278,7 +280,7 @@ graph.on('add', function(cell) {
         $.ajax({
             async: false,
             type: "POST",
-            url: "http://10.187.204.209:8080/er/relationship/create_nary",
+            url: "http://" + ip_address + ":8080/er/relationship/create_nary",
             headers: { "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
             traditional : true,
@@ -846,33 +848,55 @@ const toolbar = new ui.Toolbar({
 
 toolbar.on({
     'clear:pointerclick': () => graph.clear(),
-    'print:pointerclick': () => console.log("print"),
+    'print:pointerclick': () => {
+        
+        $.confirm({
+            title: 'Confirm!',
+            content: 'Simple confirm!',
+            buttons: {
+                confirm: function () {
+                    $.alert('Confirmed!');
+                },
+                cancel: function () {
+                    $.alert('Canceled!');
+                },
+                somethingElse: {
+                    text: 'Something else',
+                    btnClass: 'btn-blue',
+                    keys: ['enter', 'shift'],
+                    action: function(){
+                        $.alert('Something else?');
+                    }
+                }
+            }
+        });
+    },
     'create:pointerclick': () => {
         let new_schema_name = window.prompt("Please enter the name of the new schema:", "");
         schemaName = new_schema_name;
         request = {
             "name": new_schema_name
         }
-        // $.ajax({
-        //     async: false,
-        //     type: "POST",
-        //     url: "http://10.187.204.209:8080/er/schema/create",
-        //     headers: { "Access-Control-Allow-Origin": "*",
-        //         "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-        //     traditional : true,
-        //     data: JSON.stringify(request),
-        //     dataType: "json",
-        //     contentType: "application/json",
-        //     success: function(result) {
-        //         alert("success!");
-        //         schemaID = result.data.id;
-        //         console.log("create new schema with ", result.data.id);
-        //     },
-        //     error: function(result) {
-        //         is_success = false;
-        //         alert(JSON.parse(result.responseText).data);
-        //     },
-        // }, setTimeout(this, 2000))
+        $.ajax({
+            async: false,
+            type: "POST",
+            url: "http://" + ip_address + ":8080/er/schema/create",
+            headers: { "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+            traditional : true,
+            data: JSON.stringify(request),
+            dataType: "json",
+            contentType: "application/json",
+            success: function(result) {
+                alert("success!");
+                schemaID = result.data.id;
+                console.log("create new schema with ", result.data.id);
+            },
+            error: function(result) {
+                is_success = false;
+                alert(JSON.parse(result.responseText).data);
+            },
+        })
         graph.clear();
         // paper.render();
     }
@@ -1012,7 +1036,7 @@ graph.on('change add remove', (cell) => {
                         $.ajax({
                             async: false,
                             type: "POST",
-                            url: "http://10.248.199.168:8080/er/attribute/update",
+                            url: "http://" + ip_address + ":8080/er/attribute/update",
                             headers: { "Access-Control-Allow-Origin": "*",
                                 "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
                             traditional : true,
@@ -1063,7 +1087,7 @@ graph.on('change add remove', (cell) => {
                         $.ajax({
                             async: false,
                             type: "POST",
-                            url: "http://10.248.199.168:8080/er/attribute/update",
+                            url: "http://" + ip_address + ":8080/er/attribute/update",
                             headers: { "Access-Control-Allow-Origin": "*",
                                 "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
                             traditional : true,
@@ -1136,7 +1160,7 @@ graph.on('change add remove', (cell) => {
                     $.ajax({
                         async: false,
                         type: "POST",
-                        url: "http://10.187.204.209:8080/er/entity/delete",
+                        url: "http://" + ip_address + ":8080/er/entity/delete",
                         headers: { "Access-Control-Allow-Origin": "*",
                             "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
                         traditional : true,
@@ -1156,7 +1180,7 @@ graph.on('change add remove', (cell) => {
                     $.ajax({
                         async: false,
                         type: "POST",
-                        url: "http://10.187.204.209:8080/er/entity/create_subset",
+                        url: "http://" + ip_address + ":8080/er/entity/create_subset",
                         headers: { "Access-Control-Allow-Origin": "*",
                             "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
                         traditional : true,
@@ -1233,7 +1257,7 @@ paper.on('link:pointerup', (cell, evt) => {
                 $.ajax({
                     async: false,
                     type: "POST",
-                    url: "http://10.187.204.209:8080/er/relationship/link_obj",
+                    url: "http://" + ip_address + ":8080/er/relationship/link_obj",
                     headers: { "Access-Control-Allow-Origin": "*",
                         "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
                     traditional : true,
@@ -1270,7 +1294,7 @@ paper.on('link:pointerup', (cell, evt) => {
                 $.ajax({
                     async: false,
                     type: "POST",
-                    url: "http://10.187.204.209:8080/er/relationship/link_obj",
+                    url: "http://" + ip_address + ":8080/er/relationship/link_obj",
                     headers: { "Access-Control-Allow-Origin": "*",
                         "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
                     traditional : true,
@@ -1323,7 +1347,7 @@ paper.on('link:pointerup', (cell, evt) => {
                 $.ajax({
                     async: false,
                     type: "POST",
-                    url: "http://10.187.204.209:8080/er/relationship/delete",
+                    url: "http://" + ip_address + ":8080/er/relationship/delete",
                     headers: { "Access-Control-Allow-Origin": "*",
                         "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
                     traditional : true,
@@ -1344,7 +1368,7 @@ paper.on('link:pointerup', (cell, evt) => {
                 $.ajax({
                     async: false,
                     type: "POST",
-                    url: "http://10.187.204.209:8080/er/entity/create_weak_entity",
+                    url: "http://" + ip_address + ":8080/er/entity/create_weak_entity",
                     headers: { "Access-Control-Allow-Origin": "*",
                         "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
                     traditional : true,
@@ -1400,7 +1424,7 @@ paper.on('link:pointerup', (cell, evt) => {
                 $.ajax({
                     async: false,
                     type: "POST",
-                    url: "http://10.187.204.209:8080/er/relationship/delete",
+                    url: "http://" + ip_address + ":8080/er/relationship/delete",
                     headers: { "Access-Control-Allow-Origin": "*",
                         "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
                     traditional : true,
@@ -1422,7 +1446,7 @@ paper.on('link:pointerup', (cell, evt) => {
                 $.ajax({
                     async: false,
                     type: "POST",
-                    url: "http://10.187.204.209:8080/er/entity/create_weak_entity",
+                    url: "http://" + ip_address + ":8080/er/entity/create_weak_entity",
                     headers: { "Access-Control-Allow-Origin": "*",
                         "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
                     traditional : true,
@@ -1615,7 +1639,7 @@ paper.on('link:pointerup', (cell, evt) => {
         $.ajax({
             async: false,
             type: "POST",
-            url: "http://10.248.199.168:8080/er/attribute/create",
+            url: "http://" + ip_address + ":8080/er/attribute/create",
             headers: { "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
             traditional : true,
