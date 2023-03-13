@@ -827,16 +827,16 @@ paper.on('blank:pointerdown', (evt) => {
 
 const toolbar = new ui.Toolbar({
     groups: {
-        print: { index: 1 },
-        clear: { index: 2 },
-        zoom: { index: 3 },
-        create: { index: 4 },
-        currentSchema: { index: 5 },
-        undoredo: { index: 6 }
+        clear: { index: 1 },
+        zoom: { index: 2 },
+        create: { index: 3 },
+        currentSchema: { index: 4 },
+        undoredo: { index: 5 },
+        map: { index: 6 },
     },
     tools: [
         { type: 'button', name: 'clear', group: 'clear', text: 'Clear Diagram' },
-        { type: 'button', name: 'print', group: 'print', text: 'print' },
+        { type: 'button', name: 'map', group: 'map', text: 'To DDL' },
         { type: 'zoom-out', name: 'zoom-out', group: 'zoom' },
         { type: 'zoom-in', name: 'zoom-in', group: 'zoom' },
         { type: 'button', name: 'create', group: 'create', text: 'create-new-schema' },
@@ -848,11 +848,39 @@ const toolbar = new ui.Toolbar({
 
 toolbar.on({
     'clear:pointerclick': () => graph.clear(),
-    'print:pointerclick': () => {
-        
+    'map:pointerclick': () => {
+
+        new_ddl_request = {
+            "id": 1137
+        }
+
+        let ddl;
+
+        $.ajax({
+            async: false,
+            type: "POST",
+            url: "http://" + ip_address + ":8080/er/schema/export_schema_to_ddl",
+            headers: { "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+            traditional : true,
+            data: JSON.stringify(new_ddl_request),
+            dataType: "json",
+            contentType: "application/json",
+            success: function(result) {
+                alert("success!");
+                ddl = result.data.schemaDDL;
+            },
+            error: function(result) {
+                is_success = false;
+                alert(JSON.parse(result.responseText).data);
+            },
+        })
+
+        console.log("DDL: ", ddl);
+
         $.confirm({
-            title: 'Confirm!',
-            content: 'Simple confirm!',
+            title: 'DDL of ' + schemaName,
+            content: ddl,
             buttons: {
                 confirm: function () {
                     $.alert('Confirmed!');
@@ -861,15 +889,19 @@ toolbar.on({
                     $.alert('Canceled!');
                 },
                 somethingElse: {
-                    text: 'Something else',
+                    text: 'Download',
                     btnClass: 'btn-blue',
                     keys: ['enter', 'shift'],
                     action: function(){
-                        $.alert('Something else?');
+                        // $.alert('Something else?');
+                        console.log("try to download!");
+                        const blob = new Blob([JSON.stringify(ddl)])
+                        util.downloadBlob(blob, schemaName + ".json");
                     }
                 }
             }
         });
+
     },
     'create:pointerclick': () => {
         let new_schema_name = window.prompt("Please enter the name of the new schema:", "");
@@ -1175,7 +1207,7 @@ graph.on('change add remove', (cell) => {
                             console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
                             alert(JSON.parse(result.responseText).data);
                         },
-                    }, setTimeout(this, 1000));
+                    });
 
                     $.ajax({
                         async: false,
@@ -1198,8 +1230,8 @@ graph.on('change add remove', (cell) => {
                             console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
                             alert(JSON.parse(result.responseText).data);
                         },
-                    }, setTimeout(this, 1000));
-                    console.log("latest entitiesarray ", entitiesArray);
+                    });
+                    // console.log("latest entitiesarray ", entitiesArray);
                 }
             }
             
@@ -1220,7 +1252,7 @@ function getAttribute(belongObject, attribute_name) {
 
 paper.on('link:pointerup', (cell, evt) => {
 
-    if (cell.attributes.target) {
+    if (cell.model.attributes.target.id) {
 
         // This is for linking relationship with entities
         const source = graph.getCell(cell.model.attributes.source.id);
@@ -1275,7 +1307,7 @@ paper.on('link:pointerup', (cell, evt) => {
                         console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
                         alert(JSON.parse(result.responseText).data);
                     },
-                }, setTimeout(this, 1000));
+                });
             }
             
         } else if (checkArray(entitiesArray, target) && checkArray(relationshipsArray, source)) {
@@ -1312,7 +1344,7 @@ paper.on('link:pointerup', (cell, evt) => {
                         console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
                         alert(JSON.parse(result.responseText).data);
                     },
-                }, setTimeout(this, 1000));
+                });
             }
             
         }
@@ -1363,7 +1395,7 @@ paper.on('link:pointerup', (cell, evt) => {
                         console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
                         alert(JSON.parse(result.responseText).data);
                     },
-                }, setTimeout(this, 1000));
+                });
 
                 $.ajax({
                     async: false,
@@ -1399,7 +1431,7 @@ paper.on('link:pointerup', (cell, evt) => {
                         console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
                         alert(JSON.parse(result.responseText).data);
                     },
-                }, setTimeout(this, 1000));
+                });
             }
         } else if (checkArray(entitiesArray, target) && checkArray(relationshipsArray, source)) {
             entity = getElement(entitiesArray, target);
