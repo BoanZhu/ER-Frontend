@@ -1008,12 +1008,16 @@ graph.on('change add remove', (cell) => {
                     const attribute_name = original_text.includes('?') ? original_text.substring(0, original_text.length - 1) : original_text;
                     const attribute = getAttribute(belongObject, attribute_name);
 
+                    console.log("original_text: ", original_text);
                     // This is used to set the optional
                     // if (cell.attributes.labels[0].attrs.text.optional == 'Yes') {
                     if (cell.attributes.labels[0].attrs.text.optional == 'Yes' && attribute.attributeType != 2 && !original_text.includes('?')) {
 
+                        console.log("1111111111111111: ", cell.attributes.labels[0].attrs.text);
                         if (attribute.isPrimary) {
-                            alert("This attribute is primary, cannot be set to optional!");
+                            alert("This attribute is a primary key, cannot be set to optional!");
+                            cell.attributes.labels[0].attrs.text.optional = 'No';
+                            console.log("1111111111111111: ", cell.attributes.labels[0].attrs.text);
                             // may need to break here?
                         } else {
                             cell.attributes.labels[0].attrs.text.text = original_text.includes('?') ? original_text : original_text + "?";
@@ -1049,10 +1053,12 @@ graph.on('change add remove', (cell) => {
                                     alert(JSON.parse(result.responseText).data);
                                 },
                             });
+                            console.log("cell.attributes.labels[0].attrs.text.text: ", cell.attributes.labels[0].attrs.text.text);
                         }
 
                     } else if (cell.attributes.labels[0].attrs.text.optional == 'No' && attribute.attributeType == 2 && original_text.includes('?')) {
-
+                        
+                        console.log("2222222222222222: ", cell.attributes.labels[0].attrs.text);
                         cell.attributes.labels[0].attrs.text.text = original_text.includes('?') ? original_text.substring(0, original_text.length - 1) : original_text;
                         // cell.attributes.labels[0].position.offset.x -= 8;
                         // cell.attributes.labels[0].position.offset.y -= 8;
@@ -1085,6 +1091,7 @@ graph.on('change add remove', (cell) => {
                                 alert(JSON.parse(result.responseText).data);
                             },
                         });
+                        console.log("cell.attributes.labels[0].attrs.text.text: ", cell.attributes.labels[0].attrs.text.text);
                     }
 
                     // This is used to set primary key
@@ -1094,10 +1101,13 @@ graph.on('change add remove', (cell) => {
 
                     // if (cell.attributes.labels[0].attrs.text.primary) {
                     if (cell.attributes.labels[0].attrs.text.primary == 'Yes' && attribute.isPrimary == false) {
-
+                        
+                        console.log("333333333333333333: ", cell.attributes.labels[0].attrs.text);
                         if (attribute.attributeType == 2) {
-                            alert("This attribute is primary, cannot be set to optional!");
+                            alert("This attribute is optional, cannot be set to primary!");
+                            cell.attributes.labels[0].attrs.text.primary = 'No'; // 这里需要控制下拉窗口的cache
                             // may need to break here?
+                            console.log("333333333333333333: ", cell.attributes.labels[0].attrs.text);
                         } else {
                             let underline_string = "";
                             let count = 0;
@@ -1169,7 +1179,7 @@ graph.on('change add remove', (cell) => {
                         }
                         
                     } else if (cell.attributes.labels[0].attrs.text.primary == 'No' && attribute.isPrimary == true) {
-
+                        console.log("4444444444444444: ", cell.attributes.labels[0].attrs.text);
                         cell.attributes.labels[0] = {
                             attrs: {
                                 text: {
