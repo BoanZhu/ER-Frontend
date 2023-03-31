@@ -10,6 +10,10 @@ This Source Code Form is subject to the terms of the JointJS+ Trial License
 file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
  or from the JointJS+ archive as was distributed by client IO. See the LICENSE file.*/
 
+// import { CloudLightning } from "react-bootstrap-icons";
+
+// import { config } from "process";
+
 
 const { setTheme, dia, shapes, ui, util, linkTools } = joint;
 // For modules:
@@ -32,7 +36,8 @@ let entitiesArray = [];
 let attributesArray = [];
 let relationshipsArray = [];
 
-const ip_address = "10.248.199.168";
+// const ip_address = "146.169.162.32";
+const ip_address = "10.187.204.209";
 
 // Paper & PaperScroller
 // ---------------------
@@ -196,8 +201,7 @@ const StrongEntity = dia.Element.define('myApp.StrongEntity', {
 
 graph.on('add', function(cell) { 
     if (cell.attributes.type === 'myApp.WeakEntity') {
-        console.log("Weak entity");
-        let new_weak_entity_name = window.prompt("Please enter the name of the new strong entity:", "");
+        let new_weak_entity_name = window.prompt("Please enter the name of the new weak entity:", "");
         new_weak_entity = {
             "schemaID": schemaID,
             "weakEntityName": new_weak_entity_name,
@@ -232,7 +236,6 @@ graph.on('add', function(cell) {
         // }, setTimeout(this, 2000))
     } else if (cell.attributes.type === 'myApp.StrongEntity') {
         
-        console.log('Strong entity');
         let new_strong_entity_name = window.prompt("Please enter the name of the new strong entity:", "");
         new_strong_entity = {
             "schemaID": schemaID,
@@ -261,12 +264,11 @@ graph.on('add', function(cell) {
             },
             error: function(result) {
                 is_success = false;
-                console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                console.log("Strong entity result: ", result.responseText); // It's a string but actually a JSON, so using JSON.parse 
                 alert(JSON.parse(result.responseText).data);
             },
         });
     } else if (cell.attributes.type === 'myApp.Relationship') {
-        console.log('Relationship');
         let new_relationship_name = window.prompt("Please enter the name of the new relationship:", "");
         new_relationship = {
             "schemaID": schemaID,
@@ -299,7 +301,6 @@ graph.on('add', function(cell) {
                 alert(JSON.parse(result.responseText).data);
             },
         })
-        console.log("relationshipsArray: ", relationshipsArray);
     } else if (cell.attributes.type == 'standard.Link') {
         if (cell.attributes.target.id == undefined) {
             // console.log("This shoud be an attribute");
@@ -322,7 +323,7 @@ paper.on('cell:pointerdblclick', function(elementView, evt) {
         let new_relationship_name = window.prompt("Please enter the new name of the relationship entity:", "");
         elementView.model.attributes.attrs.label.text = new_relationship_name;
     } else {
-        console.log("other elements", elementView);
+
     }
     elementView.render();
 })
@@ -576,21 +577,21 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                             index: 3,
                                         },
                                     },
-                                    rect: {
-                                        fill: {
-                                            type: 'color-palette',
-                                            options: options.colorPaletteReset,
-                                            label: 'Fill',
-                                            defaultValue: '#f6f6f6',
-                                            index: 5,
-                                        },
-                                        stroke: {
-                                            type: 'color-palette',
-                                            options: options.colorPaletteReset,
-                                            label: 'Outline',
-                                            index: 6,
-                                        },
-                                    }
+                                    // rect: {
+                                    //     fill: {
+                                    //         type: 'color-palette',
+                                    //         options: options.colorPaletteReset,
+                                    //         label: 'Fill',
+                                    //         defaultValue: '#f6f6f6',
+                                    //         index: 5,
+                                    //     },
+                                    //     stroke: {
+                                    //         type: 'color-palette',
+                                    //         options: options.colorPaletteReset,
+                                    //         label: 'Outline',
+                                    //         index: 6,
+                                    //     },
+                                    // }
                                 },
                                 position: {
                                     type: 'select-box',
@@ -673,21 +674,21 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                         index: 5
                                     }
                                 },
-                                rect: {
-                                    fill: {
-                                        type: 'color-palette',
-                                        options: options.colorPaletteReset,
-                                        label: 'Fill',
-                                        defaultValue: '#f6f6f6',
-                                        index: 3
-                                    },
-                                    stroke: {
-                                        type: 'color-palette',
-                                        options: options.colorPaletteReset,
-                                        label: 'Outline',
-                                        index: 4
-                                    }
-                                }
+                                // rect: {
+                                //     fill: {
+                                //         type: 'color-palette',
+                                //         options: options.colorPaletteReset,
+                                //         label: 'Fill',
+                                //         defaultValue: '#f6f6f6',
+                                //         index: 3
+                                //     },
+                                //     stroke: {
+                                //         type: 'color-palette',
+                                //         options: options.colorPaletteReset,
+                                //         label: 'Outline',
+                                //         index: 4
+                                //     }
+                                // }
                             },
                         }
                     }
@@ -794,10 +795,7 @@ paper.on('element:pointerclick', (elementView) => {
     });
 
     halo.on('action:link:pointerup', (linkView, evt, evt2) => {
-        // console.log("I'm here!!!!!!!!!!!!!!!!!!!!!!");
-        // console.log(linkView);
-        // console.log(evt);
-        // console.log(evt2);
+
     });
 });
 
@@ -851,7 +849,7 @@ toolbar.on({
     'map:pointerclick': () => {
 
         new_ddl_request = {
-            "id": 1137
+            "id": schemaID
         }
 
         let ddl;
@@ -876,7 +874,7 @@ toolbar.on({
             },
         })
 
-        console.log("DDL: ", ddl);
+        console.log("DDL: \n", ddl);
 
         $.confirm({
             title: 'DDL of ' + schemaName,
@@ -893,7 +891,6 @@ toolbar.on({
                     btnClass: 'btn-blue',
                     keys: ['enter', 'shift'],
                     action: function(){
-                        // $.alert('Something else?');
                         console.log("try to download!");
                         const blob = new Blob([JSON.stringify(ddl)])
                         util.downloadBlob(blob, schemaName + ".json");
@@ -985,14 +982,14 @@ graph.addCell(myLink);
 
 // React on changes in the graph.
 graph.on('change add remove', (cell) => {
-    console.log("change: ", cell);
+    console.log("cells: ", graph.getCells());
     if (cell.attributes.type == 'standard.Link') {
         // This is for the attributes setting; target.id == undefined means this is an attribute
         if (cell.attributes.target.id == undefined) {
 
             if (cell.attributes.labels) {
 
-                const position = calculateLabelPosition(cell);
+                const position = calculateLabelPosition(cell, "");
 
                 cell.attributes.labels[0].position = {
                     distance: 1,
@@ -1003,68 +1000,70 @@ graph.on('change add remove', (cell) => {
                 };
 
                 if (cell.attributes.labels[0].attrs) {
+
                     const original_text = cell.attributes.labels[0].attrs.text.text;
+                    const source_id = cell.attributes.source.id;
+                    const source = graph.getCell(source_id);
+                    const belongObject = getElement(entitiesArray, source);
+                    const attribute_name = original_text.includes('?') ? original_text.substring(0, original_text.length - 1) : original_text;
+                    const attribute = getAttribute(belongObject, attribute_name);
 
                     // This is used to set the optional
-                    if (cell.attributes.labels[0].attrs.text.optional == 'Yes') {
-                        cell.attributes.labels[0].attrs.text.text = original_text.includes('?') ? original_text : original_text + "?";
-                        cell.attributes.labels[0].position.offset.x -= 8;
-                        cell.attributes.labels[0].position.offset.y -= 8;
-                    } else if (cell.attributes.labels[0].attrs.text.optional == 'No') {
-                        cell.attributes.labels[0].attrs.text.text = original_text.includes('?') ? original_text.substring(0, original_text.length - 1) : original_text;
-                        cell.attributes.labels[0].position.offset.x -= 8;
-                        cell.attributes.labels[0].position.offset.y -= 8;
-                    }
+                    // if (cell.attributes.labels[0].attrs.text.optional == 'Yes') {
+                    if (cell.attributes.labels[0].attrs.text.optional == 'Yes' && attribute.attributeType != 2 && !original_text.includes('?')) {
 
-                    // This is used to set primary key
-                    // Here we need to reset the attribute name, because it may contains optional mark "?"
-                    const new_attribute_name = cell.attributes.labels[0].attrs.text.text;
+                        if (attribute.isPrimary) {
+                            alert("This attribute is primary, cannot be set to optional!");
+                            // may need to break here?
+                        } else {
+                            cell.attributes.labels[0].attrs.text.text = original_text.includes('?') ? original_text : original_text + "?";
+                            // cell.attributes.labels[0].position.offset.x -= 8;
+                            // cell.attributes.labels[0].position.offset.y -= 8;
 
-                    if (cell.attributes.labels[0].attrs.text.primary == 'Yes') {
-                        let underline_string = "";
-                        let count = 0;
-                        for (char in new_attribute_name) {
-                            console.log(count);
-                            underline_string += "_";
-                            count++;
-                        } 
-                        cell.attributes.labels[0] = {
-                            attrs: {
-                                text: {
-                                    text: new_attribute_name,
-                                    primary: "Yes"
-                                },
-                                outer: {
-                                    stroke: '#FFFFFF',
-                                    fill: '#FFFFFF',
-                                    text: underline_string,
-                                },
-                            },
-                            markup: util.svg`<text @selector="text" fill="#FFFFFF"/> <text @selector="outer" fill="#FFFFFF"/>`,
-                            position: {
-                                distance: 1,
-                                offset: {
-                                    x: position.final_x - 8,
-                                    y: position.final_y - 8
-                                }
+                            // invoke api to update its optional
+
+                            attribute_update_request = {
+                                "attributeID": attribute.id,
+                                "attributeType": 2,
+                                // "aimPort": -1
                             }
+
+                            $.ajax({
+                                async: false,
+                                type: "POST",
+                                url: "http://" + ip_address + ":8080/er/attribute/update",
+                                headers: { "Access-Control-Allow-Origin": "*",
+                                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                                traditional : true,
+                                data: JSON.stringify(attribute_update_request),
+                                dataType: "json",
+                                contentType: "application/json",
+                                success: function(result) {
+                                    alert("success to update attribute!");
+                                    console.log("update attribute api result: ", result);
+                                    attribute.attributeType = 2;
+                                },
+                                error: function(result) {
+                                    is_success = false;
+                                    console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                                    alert(JSON.parse(result.responseText).data);
+                                },
+                            });
                         }
-                        
-                        const source_id = cell.attributes.source.id;
-                        const source = graph.getCell(source_id);
-                        const belongObject = getElement(entitiesArray, source);
-                        const attribute_name = cell.attributes.labels[0].attrs.text.text;
 
-                        const attribute = getAttribute(belongObject, attribute_name);
-                        // console.log(cell);
+                    } else if (cell.attributes.labels[0].attrs.text.optional == 'No' && attribute.attributeType == 2 && original_text.includes('?')) {
 
+                        cell.attributes.labels[0].attrs.text.text = original_text.includes('?') ? original_text.substring(0, original_text.length - 1) : original_text;
+                        // cell.attributes.labels[0].position.offset.x -= 8;
+                        // cell.attributes.labels[0].position.offset.y -= 8;
+
+                        // need to invoke api here
                         attribute_update_request = {
                             "attributeID": attribute.id,
-                            "isPrimary": true, // can change its value when choosing 'isPrimary'.
+                            "attributeType": 1,
                             // "aimPort": -1
                         }
 
-                        
                         $.ajax({
                             async: false,
                             type: "POST",
@@ -1078,6 +1077,7 @@ graph.on('change add remove', (cell) => {
                             success: function(result) {
                                 alert("success to update attribute!");
                                 console.log("update attribute api result: ", result);
+                                attribute.attributeType = 1;
                             },
                             error: function(result) {
                                 is_success = false;
@@ -1085,20 +1085,106 @@ graph.on('change add remove', (cell) => {
                                 alert(JSON.parse(result.responseText).data);
                             },
                         });
-                    } else if (cell.attributes.labels[0].attrs.text.primary == 'No') {
+                    }
+
+                    // This is used to set primary key
+                    // Here we need to reset the attribute name, because it may contains optional mark "?"
+                    const new_attribute_name = cell.attributes.labels[0].attrs.text.text;
+
+
+                    // if (cell.attributes.labels[0].attrs.text.primary) {
+                    if (cell.attributes.labels[0].attrs.text.primary == 'Yes' && attribute.isPrimary == false) {
+
+                        if (attribute.attributeType == 2) {
+                            alert("This attribute is primary, cannot be set to optional!");
+                            // may need to break here?
+                        } else {
+                            let underline_string = "";
+                            let count = 0;
+                            for (char in new_attribute_name) {
+                                underline_string += "_";
+                                count++;
+                            } 
+                            cell.attributes.labels[0].attrs.outer = {
+                                text: underline_string,
+                                fill: "#FFFFFF"
+                            }
+                            cell.attributes.labels[0].markup = util.svg`<text @selector="text"/> <text @selector="outer"/>`;
+                            // cell.attributes.labels[0] = {
+                            //     attrs: {
+                            //         text: {
+                            //             text: new_attribute_name,
+                            //             primary: "Yes"
+                            //         },
+                            //         outer: {
+                            //             // stroke: '#FFFFFF',
+                            //             // fill: '#FFFFFF',
+                            //             text: underline_string,
+                            //         },
+                            //     },
+                            //     markup: util.svg`<text @selector="text" fill="#FFFFFF"/> <text @selector="outer" fill="#FFFFFF"/>`,
+                            //     position: {
+                            //         distance: 1,
+                            //         offset: {
+                            //             x: position.final_x - 8,
+                            //             y: position.final_y - 8
+                            //         }
+                            //     }
+                            // }
+                            
+                            const source_id = cell.attributes.source.id;
+                            const source = graph.getCell(source_id);
+                            const belongObject = getElement(entitiesArray, source);
+                            const attribute_name = cell.attributes.labels[0].attrs.text.text;
+
+                            const attribute = getAttribute(belongObject, attribute_name);
+
+                            attribute_update_request = {
+                                "attributeID": attribute.id,
+                                "isPrimary": true, // can change its value when choosing 'isPrimary'.
+                                // "aimPort": -1
+                            }
+
+                            $.ajax({
+                                async: false,
+                                type: "POST",
+                                url: "http://" + ip_address + ":8080/er/attribute/update",
+                                headers: { "Access-Control-Allow-Origin": "*",
+                                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                                traditional : true,
+                                data: JSON.stringify(attribute_update_request),
+                                dataType: "json",
+                                contentType: "application/json",
+                                success: function(result) {
+                                    alert("success to update attribute!");
+                                    console.log("update attribute api result: ", result);
+                                    attribute.isPrimary = true;
+                                },
+                                error: function(result) {
+                                    is_success = false;
+                                    console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                                    alert(JSON.parse(result.responseText).data);
+                                },
+                            });
+                        }
+                        
+                    } else if (cell.attributes.labels[0].attrs.text.primary == 'No' && attribute.isPrimary == true) {
+
                         cell.attributes.labels[0] = {
                             attrs: {
                                 text: {
                                     text: new_attribute_name,
-                                    primary: "No"
+                                    primary: "No",
+                                    optional: "No",
+                                    fill: "#FFFFFF"
                                 },
                             },
-                            markup: util.svg`<text @selector="text" fill="#FFFFFF"/>`,
+                            markup: util.svg`<text @selector="text"/>`,
                             position: {
                                 distance: 1,
                                 offset: {
-                                    x: position.final_x - 8,
-                                    y: position.final_y - 8
+                                    x: position.final_x,
+                                    y: position.final_y
                                 }
                             }
                         }
@@ -1129,14 +1215,17 @@ graph.on('change add remove', (cell) => {
                             success: function(result) {
                                 alert("success to update attribute!");
                                 console.log("update attribute api result: ", result);
+                                attribute.isPrimary = false;
                             },
                             error: function(result) {
                                 is_success = false;
                                 console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
                                 alert(JSON.parse(result.responseText).data);
+                                attribute.isPrimary = true;
                             },
                         });
                     }
+                    // }
                 }
             }
             
@@ -1145,7 +1234,7 @@ graph.on('change add remove', (cell) => {
 
             if (cell.attributes.labels) {
                 cell.attributes.labels[0].position = {
-                    offset: -12
+                    offset: -20
                 };
             }
 
@@ -1157,9 +1246,7 @@ graph.on('change add remove', (cell) => {
                     const source_id = cell.attributes.source.id;
                     const target_id = cell.attributes.target.id;
                     const source = graph.getCell(source_id);
-                    const target = graph.getCell(target_id);
-                    console.log("source: ", source);
-                    console.log("target: ", target);           
+                    const target = graph.getCell(target_id);         
 
                     const source_name = source.attributes.attrs.label.text;
                     const target_name = target.attributes.attrs.label.text;
@@ -1173,7 +1260,7 @@ graph.on('change add remove', (cell) => {
                             target_entity_id = entitiesArray[idx].id; 
                         }
                     }
-                    console.log("belongStrongEntityID", belongStrongEntityID);
+
                     new_subset = {
                         "schemaID": schemaID,
                         "subsetName": target_name,
@@ -1231,7 +1318,6 @@ graph.on('change add remove', (cell) => {
                             alert(JSON.parse(result.responseText).data);
                         },
                     });
-                    // console.log("latest entitiesarray ", entitiesArray);
                 }
             }
             
@@ -1251,8 +1337,8 @@ function getAttribute(belongObject, attribute_name) {
 }
 
 paper.on('link:pointerup', (cell, evt) => {
-
-    if (cell.model.attributes.target.id) {
+    console.log("wellllllll");
+    if (cell.model.attributes.target.id && !cell.model.attributes.labels) {
 
         // This is for linking relationship with entities
         const source = graph.getCell(cell.model.attributes.source.id);
@@ -1270,13 +1356,37 @@ paper.on('link:pointerup', (cell, evt) => {
             cardinality = 4;
         } else {
             cardinality = 0;
-        }
+        } 
 
         // need to wrapper the api invoking function later!
         if (checkArray(entitiesArray, source) && checkArray(relationshipsArray, target)) {
 
             entity = getElement(entitiesArray, source);
             relation = getElement(relationshipsArray, target);
+
+            cell.model.attributes.labels = [];
+            cell.model.attributes.labels[0] = {
+                attrs: {
+                    text: {
+                        text: new_cardinality_name,
+                        // primary: "Yes"
+                    },
+                    outer: {
+                        stroke: '#FFFFFF',
+                        // fill: '#f6f6f6',
+                        // fill: '#FFFFFF',
+                        // text: underline_string,
+                    },
+                },
+                // markup: util.svg`<text @selector="text" fill="#FFFFFF"/> <rect @selector="outer" fill="#f6f6f6"/>`,
+                markup: util.svg`<text @selector="text" fill="#FFFFFF"/>`,
+                position: {
+                    offset: -15
+                }
+            }
+
+            cell.render();
+
             if (!entity.weakEntityName) {
                 new_link_obj = {
                     "relationshipID": relation.id,
@@ -1314,6 +1424,30 @@ paper.on('link:pointerup', (cell, evt) => {
 
             entity = getElement(entitiesArray, target);
             relation = getElement(relationshipsArray, source);
+
+            cell.model.attributes.labels = [];
+            cell.model.attributes.labels[0] = {
+                attrs: {
+                    text: {
+                        text: new_cardinality_name,
+                        // primary: "Yes"
+                    },
+                    outer: {
+                        stroke: '#FFFFFF',
+                        // fill: '#f6f6f6',
+                        // fill: '#FFFFFF',
+                        // text: underline_string,
+                    },
+                },
+                // markup: util.svg`<text @selector="text" fill="#FFFFFF"/> <rect @selector="outer" fill="#f6f6f6"/>`,
+                markup: util.svg`<text @selector="text" fill="#FFFFFF"/>`,
+                position: {
+                    offset: 0
+                }
+            }
+
+            cell.render();
+
             if (!entity.weakEntityName) {
                 new_link_obj = {
                     "relationshipID": relation.id,
@@ -1388,7 +1522,7 @@ paper.on('link:pointerup', (cell, evt) => {
                     contentType: "application/json",
                     success: function(result) {
                         alert("success to delete the relationship!");
-                        console.log("relete relationship api result: ", result);
+                        console.log("delete relationship api result: ", result);
                     },
                     error: function(result) {
                         is_success = false;
@@ -1474,7 +1608,6 @@ paper.on('link:pointerup', (cell, evt) => {
                     },
                 });
 
-                console.log("cardinality: ", cardinality);
                 $.ajax({
                     async: false,
                     type: "POST",
@@ -1537,7 +1670,7 @@ function getElement(arr, cell) {
     return result;
 }
 
-function calculateLabelPosition(cell) {
+function calculateLabelPosition(cell, attribute_name) {
 
     // Need to check the relative position of the new attribute
     // There are four cases: 1. top; 2. right; 3. bottom; 4. left
@@ -1571,30 +1704,35 @@ function calculateLabelPosition(cell) {
     let final_x = 0;
     let final_y = 0;
 
+    const text = attribute_name;
+    // console.log(text);
+    // console.log((attribute_name.length - 2) / 2);
+    let final_x_offset = (-6) * ((attribute_name.length - 2) / 2) + 4; // This is used for giving left side attributes offset px to avoid too large name exceeds the area
+
     if (target_x >= source_x) {
         if (Math.abs(target_x - source_x) >= Math.abs(target_y - source_y)) {
-            final_x = 30;
-            final_y = 0;
+            final_x = 22; // 30
+            final_y = -8;
         } else {
             if (target_y <= source_y) {
-                final_x = 0;
-                final_y = -25;
+                final_x = final_x_offset - 8;
+                final_y = -33; // -25
             } else {
-                final_x = 0;
-                final_y = 25;
+                final_x = final_x_offset - 8;
+                final_y = 17; // 25
             }
         }
     } else {
         if (Math.abs(target_x - source_x) >= Math.abs(target_y - source_y)) {
-            final_x = -30;
-            final_y = 0;
+            final_x = -38 + (-6) * attribute_name.length;
+            final_y = -8;
         } else {
             if (target_y <= source_y) {
-                final_x = 0;
-                final_y = -25;
+                final_x = final_x_offset - 8;
+                final_y = -33; // -25
             } else {
-                final_x = 0;
-                final_y = 25;
+                final_x = final_x_offset - 8;
+                final_y = 17; // 25
             }
         }
     }
@@ -1607,33 +1745,37 @@ function calculateLabelPosition(cell) {
 }
 
 paper.on('link:pointerup', (cell, evt) => {
+
     if (!cell.model.attributes.labels && cell.model.attributes.target.id == undefined) {
         // Here, we set the new attribute name and put it in the right place.
         let new_attribute_name = window.prompt("Please enter the name of the attribute:", "");
+        const position = calculateLabelPosition(cell.model, new_attribute_name);
 
-        cell.addLabel({});
+        if (!cell.model.attributes.labels) {
+            cell.addLabel({});
+        }
 
-        const position = calculateLabelPosition(cell.model);
+        // cell.addLabel({});
 
+        // let label_index = cell.model.attributes.labels.length ? 1 : cell.model.attributes.labels.length;
         cell.model.attributes.labels[0] = {
             attrs: {
                 text: {
                     text: new_attribute_name,
                     optional: "No",
                     primary: "No",
+                    fill: "#FFFFFF"
                 },
             },
-            markup: util.svg`<text @selector="text" fill="#FFFFFF"/> `,
+            markup: util.svg`<text @selector="text"/>`,
             position: {
                 distance: 1,
                 offset: {
-                    x: position.final_x - 8,
-                    y: position.final_y - 8
+                    x: position.final_x,
+                    y: position.final_y
                 }
             }
         };
-
-        console.log(cell);
 
         const belongObjectGraphId = cell.model.attributes.source.id;
         const source = graph.getCell(belongObjectGraphId);
@@ -1648,10 +1790,10 @@ paper.on('link:pointerup', (cell, evt) => {
             belongObjType = 2;
         }
 
-        belongObject.attributesArray = [];
-
-        console.log("source: ", source);
-        console.log(belongObject);
+        if (!belongObject.attributesArray) {
+            belongObject.attributesArray = [];
+        }
+        
         new_attribute = {
             "belongObjID": belongObject.id,
             "belongObjType": belongObjType,
@@ -1666,8 +1808,6 @@ paper.on('link:pointerup', (cell, evt) => {
             }
         }
 
-        console.log(new_attribute);
-
         $.ajax({
             async: false,
             type: "POST",
@@ -1681,6 +1821,7 @@ paper.on('link:pointerup', (cell, evt) => {
             success: function(result) {
                 alert("success to add new attribute!");
                 new_attribute.id = result.data.id;
+                new_attribute.graphId = cell.id;
                 belongObject.attributesArray.push(new_attribute);
                 console.log("attribute api result: ", result);
             },
