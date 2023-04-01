@@ -810,11 +810,53 @@ paper.on('link:pointerclick', (linkView) => {
             new linkTools.SourceArrowhead(),
             new linkTools.TargetArrowhead(),
             new linkTools.Segments,
-            new linkTools.Remove({ offset: -20, distance: 40 })
+            new linkTools.Remove({ offset: -20, 
+                distance: 40, 
+                action: function(evt, linkView, toolView) {
+                    linkView.model.remove({ ui: true, tool: toolView.cid });
+                    
+                    const attribute_name = linkView.model.attributes.labels[0].attrs.text.text;
+                    const source_graph_id = linkView.model.attributes.source.id;
+                    const result = graph.getCell(source_graph_id);
+                    const source = getElement(entitiesArray, result);
+                    const attribute = getAttribute(source, attribute_name);
+                    const delete_attribute_request = {
+                        id: attribute.id
+                    }
+                    $.ajax({
+                        async: false,
+                        type: "POST",
+                        url: "http://" + ip_address + ":8080/er/attribute/delete",
+                        headers: { "Access-Control-Allow-Origin": "*",
+                            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                        traditional : true,
+                        data: JSON.stringify(delete_attribute_request),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function(result) {
+                            alert("success to delete the attribute!");
+                            removeAttribute(source.attributesArray, attribute);
+                        },
+                        error: function(result) {
+                            is_success = false;
+                            alert("fail to delete the attribute!");
+                            alert(JSON.parse(result.responseText).data);
+                        },
+                    })
+            }})
         ]
     });
     linkView.addTools(toolsView);
 });
+
+function removeAttribute(attributesArray, attribute) {
+    for (idx in attributesArray) {
+        if (attributesArray[idx].name == attribute.name) {
+            // delete attributesArray[idx];
+            attributesArray.splice(idx, idx);
+        }
+    }
+}
 
 paper.on('blank:pointerdown', (evt) => {
     paper.removeTools();
