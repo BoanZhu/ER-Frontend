@@ -817,33 +817,62 @@ paper.on('element:pointerclick', (elementView) => {
     });
 
     halo.on('action:remove:pointerdown', (evt, cellView, wtf) => {
-        const source = graph.getCell(elementView.model.id);
-        const entity = getElement(entitiesArray, source);
-        const delete_entity_request = {
-            id: entity.id
+        console.log(elementView);
+        if (elementView.model.attributes.type == "myApp.StrongEntity") {
+            const source = graph.getCell(elementView.model.id);
+            const entity = getElement(entitiesArray, source);
+            const delete_entity_request = {
+                id: entity.id
+            }
+            $.ajax({
+                async: false,
+                type: "POST",
+                url: "http://" + ip_address + ":8080/er/entity/delete",
+                headers: { "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                traditional : true,
+                data: JSON.stringify(delete_entity_request),
+                dataType: "json",
+                contentType: "application/json",
+                success: function(result) {
+                    alert("success to delete the entity!");
+                    // console.log(entitiesArray);
+                    removeElement(entitiesArray, entity);
+                    // console.log(entitiesArray);
+                },
+                error: function(result) {
+                    is_success = false;
+                    alert("fail to delete the attribute!");
+                    alert(JSON.parse(result.responseText).data);
+                },
+            })
+        } else {
+            const source = graph.getCell(elementView.model.id);
+            const relationship = getElement(relationshipsArray, source);
+            const delete_relationship_request = {
+                id: relationship.id
+            }
+            $.ajax({
+                async: false,
+                type: "POST",
+                url: "http://" + ip_address + ":8080/er/relationship/delete",
+                headers: { "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                traditional : true,
+                data: JSON.stringify(delete_relationship_request),
+                dataType: "json",
+                contentType: "application/json",
+                success: function(result) {
+                    alert("success to delete the relationship!");
+                    removeElement(relationshipsArray, relationship);
+                },
+                error: function(result) {
+                    is_success = false;
+                    alert("fail to delete the attribute!");
+                    alert(JSON.parse(result.responseText).data);
+                },
+            })
         }
-        $.ajax({
-            async: false,
-            type: "POST",
-            url: "http://" + ip_address + ":8080/er/entity/delete",
-            headers: { "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-            traditional : true,
-            data: JSON.stringify(delete_entity_request),
-            dataType: "json",
-            contentType: "application/json",
-            success: function(result) {
-                alert("success to delete the entity!");
-                // console.log(entitiesArray);
-                removeEntity(entity);
-                // console.log(entitiesArray);
-            },
-            error: function(result) {
-                is_success = false;
-                alert("fail to delete the attribute!");
-                alert(JSON.parse(result.responseText).data);
-            },
-        })
     });
 
     halo.on('action:link:pointerup', (linkView, evt, evt2) => {
@@ -910,12 +939,10 @@ function removeAttribute(attributesArray, attribute) {
     }
 }
 
-function removeEntity(entity) {
-    for (idx in entitiesArray) {
-        console.log("entitiesArray[idx].name: ", entitiesArray[idx].name);
-        console.log("entity.name: ", entity.name);
-        if (entitiesArray[idx].name == entity.name) {
-            entitiesArray.splice(idx, 1);
+function removeElement(array, entity) {
+    for (idx in array) {
+        if (array[idx].name == entity.name) {
+            array.splice(idx, 1);
         }
     }
 }
