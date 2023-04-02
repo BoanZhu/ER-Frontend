@@ -509,6 +509,19 @@ const options = {
     whetherPrimaryKey: [
         { text: "Yes", content: 'Yes' },
         { text: "No", content: 'No' }
+    ],
+    dataType: [
+        { text: "UNKNOWN", content: 'UNKNOWN' },
+        { text: "CHAR", content: 'CHAR' },
+        { text: "VARCHAR", content: 'VARCHAR' },
+        { text: "TEXT", content: 'TEXT' },
+        { text: "TINYINT", content: 'TINYINT' },
+        { text: "SMALLINT", content: 'SMALLINT' },
+        { text: "INT", content: 'INT' },
+        { text: "BIGINT", content: 'BIGINT' },
+        { text: "FLOAT", content: 'FLOAT' },
+        { text: "DOUBLE", content: 'DOUBLE' },
+        { text: "DATETIME", content: 'DATETIME' },
     ]
 }
 
@@ -576,6 +589,13 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                             label: 'Optional',
                                             index: 3,
                                         },
+                                        dataType: {
+                                            type: 'select-box',
+                                            defaultValue: 'TEXT',
+                                            options: options.dataType || [],
+                                            label: 'Data Type',
+                                            index: 4,
+                                        }
                                     },
                                     // rect: {
                                     //     fill: {
@@ -771,7 +791,9 @@ paper.on('element:pointerclick', (elementView) => {
     const handles = [{
         name: 'remove',
         position: 'nw',
-        events: { pointerdown: 'removeElement' }
+        events: { pointerup: 'removeElement',
+                
+                }
     }, {
         name: 'myCustomAction',
         position: 'ne',
@@ -792,6 +814,36 @@ paper.on('element:pointerclick', (elementView) => {
 
     halo.on('action:myCustomAction:pointerdown', (evt) => {
         alert('Try to create generalisation!');
+    });
+
+    halo.on('action:remove:pointerdown', (evt, cellView, wtf) => {
+        const source = graph.getCell(elementView.model.id);
+        const entity = getElement(entitiesArray, source);
+        const delete_entity_request = {
+            id: entity.id
+        }
+        $.ajax({
+            async: false,
+            type: "POST",
+            url: "http://" + ip_address + ":8080/er/entity/delete",
+            headers: { "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+            traditional : true,
+            data: JSON.stringify(delete_entity_request),
+            dataType: "json",
+            contentType: "application/json",
+            success: function(result) {
+                alert("success to delete the entity!");
+                // console.log(entitiesArray);
+                removeEntity(entity);
+                // console.log(entitiesArray);
+            },
+            error: function(result) {
+                is_success = false;
+                alert("fail to delete the attribute!");
+                alert(JSON.parse(result.responseText).data);
+            },
+        })
     });
 
     halo.on('action:link:pointerup', (linkView, evt, evt2) => {
@@ -854,6 +906,16 @@ function removeAttribute(attributesArray, attribute) {
         if (attributesArray[idx].name == attribute.name) {
             // delete attributesArray[idx];
             attributesArray.splice(idx, idx);
+        }
+    }
+}
+
+function removeEntity(entity) {
+    for (idx in entitiesArray) {
+        console.log("entitiesArray[idx].name: ", entitiesArray[idx].name);
+        console.log("entity.name: ", entity.name);
+        if (entitiesArray[idx].name == entity.name) {
+            entitiesArray.splice(idx, 1);
         }
     }
 }
@@ -1023,7 +1085,8 @@ const myLink = new shapes.standard.Link({
 graph.addCell(myLink);
 
 // React on changes in the graph.
-graph.on('change add remove', (cell) => {
+// graph.on('change add remove', (cell) => {
+graph.on('change add', (cell) => {
     console.log("cells: ", graph.getCells());
     if (cell.attributes.type == 'standard.Link') {
         // This is for the attributes setting; target.id == undefined means this is an attribute
@@ -1043,6 +1106,8 @@ graph.on('change add remove', (cell) => {
 
                 if (cell.attributes.labels[0].attrs) {
 
+                    console.log("hereeee");
+
                     const original_text = cell.attributes.labels[0].attrs.text.text;
                     const source_id = cell.attributes.source.id;
                     const source = graph.getCell(source_id);
@@ -1052,14 +1117,42 @@ graph.on('change add remove', (cell) => {
 
                     console.log("original_text: ", original_text);
                     // This is used to set the optional
-                    // if (cell.attributes.labels[0].attrs.text.optional == 'Yes') {
+
+                    if (cell.attributes.labels[0].attrs.text.dataType != attribute.dataType) {
+                        attribute_update_request = {
+                            "attributeID": attribute.id,
+                            "dataType": cell.attributes.labels[0].attrs.text.dataType
+                            // "aimPort": -1
+                        }
+
+                        $.ajax({
+                            async: false,
+                            type: "POST",
+                            url: "http://" + ip_address + ":8080/er/attribute/update",
+                            headers: { "Access-Control-Allow-Origin": "*",
+                                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                            traditional : true,
+                            data: JSON.stringify(attribute_update_request),
+                            dataType: "json",
+                            contentType: "application/json",
+                            success: function(result) {
+                                alert("success to update attribute dataType!");
+                                console.log("update attribute api result: ", result);
+                                attribute.dataType = cell.attributes.labels[0].attrs.text.dataType;
+                            },
+                            error: function(result) {
+                                is_success = false;
+                                console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                                alert(JSON.parse(result.responseText).data);
+                            },
+                        });
+                    }
+
                     if (cell.attributes.labels[0].attrs.text.optional == 'Yes' && attribute.attributeType != 2 && !original_text.includes('?')) {
 
-                        console.log("1111111111111111: ", cell.attributes.labels[0].attrs.text);
                         if (attribute.isPrimary) {
                             alert("This attribute is a primary key, cannot be set to optional!");
                             cell.attributes.labels[0].attrs.text.optional = 'No';
-                            console.log("1111111111111111: ", cell.attributes.labels[0].attrs.text);
                             // may need to break here?
                         } else {
                             cell.attributes.labels[0].attrs.text.text = original_text.includes('?') ? original_text : original_text + "?";
@@ -1095,12 +1188,10 @@ graph.on('change add remove', (cell) => {
                                     alert(JSON.parse(result.responseText).data);
                                 },
                             });
-                            console.log("cell.attributes.labels[0].attrs.text.text: ", cell.attributes.labels[0].attrs.text.text);
                         }
 
                     } else if (cell.attributes.labels[0].attrs.text.optional == 'No' && attribute.attributeType == 2 && original_text.includes('?')) {
                         
-                        console.log("2222222222222222: ", cell.attributes.labels[0].attrs.text);
                         cell.attributes.labels[0].attrs.text.text = original_text.includes('?') ? original_text.substring(0, original_text.length - 1) : original_text;
                         // cell.attributes.labels[0].position.offset.x -= 8;
                         // cell.attributes.labels[0].position.offset.y -= 8;
@@ -1144,12 +1235,10 @@ graph.on('change add remove', (cell) => {
                     // if (cell.attributes.labels[0].attrs.text.primary) {
                     if (cell.attributes.labels[0].attrs.text.primary == 'Yes' && attribute.isPrimary == false) {
                         
-                        console.log("333333333333333333: ", cell.attributes.labels[0].attrs.text);
                         if (attribute.attributeType == 2) {
                             alert("This attribute is optional, cannot be set to primary!");
                             cell.attributes.labels[0].attrs.text.primary = 'No'; // 这里需要控制下拉窗口的cache
                             // may need to break here?
-                            console.log("333333333333333333: ", cell.attributes.labels[0].attrs.text);
                         } else {
                             let underline_string = "";
                             let count = 0;
@@ -1221,7 +1310,7 @@ graph.on('change add remove', (cell) => {
                         }
                         
                     } else if (cell.attributes.labels[0].attrs.text.primary == 'No' && attribute.isPrimary == true) {
-                        console.log("4444444444444444: ", cell.attributes.labels[0].attrs.text);
+
                         cell.attributes.labels[0] = {
                             attrs: {
                                 text: {
