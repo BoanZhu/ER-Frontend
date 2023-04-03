@@ -187,8 +187,7 @@ const StrongEntity = dia.Element.define('myApp.StrongEntity', {
             event: 'StrongEntity:delete',
         },
         // event: 'StrongEntity:delete',
-    }
-
+    },
 }, {
     markup: [{
         tagName: 'rect',
@@ -346,36 +345,35 @@ var variable =  new joint.shapes.basic.Rect({
 variable.on('batch:stop', function (element) {alert(""); toggleEvidence(element.name);});
 
 const WeakEntity = dia.Element.define('myApp.WeakEntity', {
-        attrs: {
-            inner: {
-                width: '90',
-                height: '40',
-                x: 5,
-                y: 5,
-                strokeWidth: 2,
-                stroke: '#000000',
-                transparent: true,
-                fill: '#FFFFFF',
-            },
-            outer: {
-                width: '100',
-                height: '50',
-                strokeWidth: 2,
-                stroke: '#000000',
-                fill: '#FFFFFF',
-            },
-            label: {
-                x: '50',
-                y: '25',
-                textAnchor: 'middle',
-                textVerticalAnchor: 'middle',
-                fontSize: 14,
-                fill: '#00879b',
-                event: 'WeakEntity:changeLabel',
-            },
+    attrs: {
+        inner: {
+            width: '90',
+            height: '40',
+            x: 5,
+            y: 5,
+            strokeWidth: 2,
+            stroke: '#000000',
+            transparent: true,
+            fill: '#FFFFFF',
         },
-        magnet: false,
-    
+        outer: {
+            width: '100',
+            height: '50',
+            strokeWidth: 2,
+            stroke: '#000000',
+            fill: '#FFFFFF',
+        },
+        label: {
+            x: '50',
+            y: '25',
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle',
+            fontSize: 14,
+            fill: '#00879b',
+            event: 'WeakEntity:changeLabel',
+        },
+    },
+    magnet: false,
 }, {
     markup: [{
         tagName: 'rect',
@@ -417,11 +415,106 @@ const relationship = dia.Element.define('myApp.Relationship', {
             fill: '#00879b',
             strokeWidth: 0
         }
-    }
+    },
 }, {
     // <path d="M 10,30 A 20,20 0,0,1 50,30 A 20,20 0,0,1 90,30 Q 90,60 50,90 Q 10,60 10,30 z" />
     markup: util.svg`
         <rect @selector="body" transform='rotate(45, 25, 25)' />
+        <text @selector="label" x="0" y="15" fill="red" />
+    `
+})
+
+const generalization = dia.Element.define('myApp.Generalization', {
+    attrs: {
+        body: {
+            width: '50',
+            height: '50',
+            strokeWidth: 2,
+            stroke: 'grey',
+            fill: '#FFFFFF',
+            level: 2,
+        },
+        text: {
+            // text: 'Relation',
+            x: '80',
+            y: '40',
+            fontSize: 14,
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle',
+            fontFamily: 'Roboto Condensed',
+            fontWeight: 'Normal',
+            fill: '#00879b',
+            strokeWidth: 0
+        },
+        label: {
+            text: "generalization",
+        }
+    },
+    ports: {
+        groups: {
+            'inPort': {
+                markup: util.svg`<circle @selector="portBody"/>`,
+                z: -1,
+                attrs: {
+                    portBody: {
+                        r: 8,
+                        magnet: true,
+                        fill: '#00879b'
+                    }
+                },
+                position: { 
+                    name: 'inPort',
+                    args: {
+                        x: 80,
+                        y: 0
+                    }
+                },
+                // label: { position: { name: 'n' }}
+            },
+            'out1': {
+                markup: util.svg`<circle @selector="portBody"/>`,
+                z: -1,
+                attrs: {
+                    portBody: {
+                        r: 8,
+                        magnet: true,
+                        fill: '#00879b'
+                    }
+                },
+                position: { 
+                    name: 'outPort1',
+                    args: {
+                        x: 0,
+                        y: 100
+                    }
+                },
+                // label: { position: { name: 'n' }}
+            },
+            'out2': {
+                markup: util.svg`<circle @selector="portBody"/>`,
+                z: -1,
+                attrs: {
+                    portBody: {
+                        r: 8,
+                        magnet: true,
+                        fill: '#00879b'
+                    }
+                },
+                position: { 
+                    name: 'right',
+                    args: {
+                        x: 160,
+                        y: 100
+                    }
+                },
+                // label: { position: { name: 'right' }}
+            }
+        }
+    }
+}, {
+    // <path @selector="body" d="M 10,30 A 20,20 0,0,1 50,30 A 20,20 0,0,1 90,30 Q 90,60 50,90 Q 10,60 10,30 z" />
+    markup: util.svg`
+        <path @selector="body" d="M 80 0 V 0 H 80 V 20 L 60 20 L 40 40 L 60 60 H 100 L 120 40 L 100 20 H 80 M 80 60 V 80 M 80 80 H 160 H 0 M 160 100 V 80 M 0 100 V 80" stroke="blue" />
         <text @selector="label" x="0" y="15" fill="red" />
     `
 })
@@ -452,17 +545,29 @@ stencil.render().load({
     // }, {
     //     type: 'standard.Ellipse'
     // }],
+    
     myShapesGroup2: [
     {
         type: 'myApp.StrongEntity',
-        attrs: { label: { text: 'Entity' }}
+        attrs: { label: { text: 'Entity' }},
     }, {
         type: 'myApp.WeakEntity',
         attrs: { label: { text: 'WeakEntity' }}
     }, {
         type: 'myApp.Relationship',
-        attrs: { label: { text: 'Relation' } }
+        attrs: { 
+            label: { 
+                text: 'Relation' 
+            } 
+        },
+    }, {
+        type: 'myApp.Generalization',
+        ports: { items: [{ id: 'in1', group: 'inPort' }, { group: 'out1', id: 'out1' }, { group: 'out2', id: 'out2' }] }
     }, 
+    // {
+    //     type: 'myApp.MyShape',
+    //     ports: { items: [{ id: 'in1', group: 'in' }, { group: 'out', id: 'out1' }] }
+    // }
 ]
 });
 
@@ -1505,7 +1610,6 @@ function getAttribute(belongObject, attribute_name) {
 }
 
 paper.on('link:pointerup', (cell, evt) => {
-    console.log("wellllllll");
     if (cell.model.attributes.target.id && !cell.model.attributes.labels) {
 
         // This is for linking relationship with entities
@@ -1648,7 +1752,6 @@ paper.on('link:pointerup', (cell, evt) => {
                     },
                 });
             }
-            
         }
 
 
