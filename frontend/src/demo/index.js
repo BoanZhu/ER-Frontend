@@ -1220,6 +1220,7 @@ graph.addCell(myLink);
 // graph.on('change add remove', (cell) => {
 graph.on('change add', (cell) => {
     console.log("cells: ", graph.getCells());
+    console.log(cell);
     if (cell.attributes.type == 'standard.Link') {
         // This is for the attributes setting; target.id == undefined means this is an attribute
         if (cell.attributes.target.id == undefined) {
@@ -1504,7 +1505,6 @@ graph.on('change add', (cell) => {
             
             cell.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
         } else {
-
             if (cell.attributes.labels) {
                 cell.attributes.labels[0].position = {
                     offset: -20
@@ -1534,7 +1534,7 @@ graph.on('change add', (cell) => {
                         }
                     }
 
-                    new_subset = {
+                    create_subset_request = {
                         "schemaID": schemaID,
                         "subsetName": target_name,
                         "belongStrongEntityID": belongStrongEntityID,
@@ -1576,14 +1576,14 @@ graph.on('change add', (cell) => {
                         headers: { "Access-Control-Allow-Origin": "*",
                             "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
                         traditional : true,
-                        data: JSON.stringify(new_subset),
+                        data: JSON.stringify(create_subset_request),
                         dataType: "json",
                         contentType: "application/json",
                         success: function(result) {
                             alert("success!");
-                            new_subset.id = result.data.id;
-                            console.log(new_subset);
-                            entitiesArray.push(new_subset);
+                            create_subset_request.id = result.data.id;
+                            console.log(create_subset_request);
+                            entitiesArray.push(create_subset_request);
                         },
                         error: function(result) {
                             is_success = false;
@@ -1613,8 +1613,10 @@ paper.on('link:pointerup', (cell, evt) => {
     if (cell.model.attributes.target.id && !cell.model.attributes.labels) {
 
         // This is for linking relationship with entities
-        const source = graph.getCell(cell.model.attributes.source.id);
-        const target = graph.getCell(cell.model.attributes.target.id);
+        const source_id = cell.model.attributes.source.id;
+        const target_id = cell.model.attributes.target.id;
+        const source = graph.getCell(source_id);
+        const target = graph.getCell(target_id);
 
         let new_cardinality_name = window.prompt("Please enter the ratio of the new cardinality:", "");
         let cardinality;
@@ -1917,8 +1919,101 @@ paper.on('link:pointerup', (cell, evt) => {
             }
         }
 
+        // Here try to add new generalisations. The idea is that we need to check whether the generalisation's source (parent)
+        // entity is connected, if it does, then we can invoke the api to add a new subset under this generalisation. 
+        // Note that we don't need to do anything when the source is a strong entity and the target is the generalisation object.
+        // We only need to check when the source is the generalisation and the target is an entity. And in this case, if there is 
+        // no strong entity, there should not have a link and the backend should report "cannot have a generalisation without a 
+        // strong entity".
+        
+        if (source.attributes.type == "myApp.Generalization" && target.attributes.type == "myApp.StrongEntity") {
+
+            // now we need to check whether the "inPort" of the generalisation object is already connected by a strong entity.
+            const belongStrongEntity_graph_id = checkInPortConnected(source_id);
+            if (belongStrongEntity_graph_id) {
+
+                const belongStrongEntity_graph_object = graph.getCell(belongStrongEntity_graph_id);
+                const belongStrongEntity = getElement(entitiesArray, belongStrongEntity_graph_object);
+                const targetStrongEntity = getElement(entitiesArray, target);
+
+                console.log("belongStrongEntity_graph_object: ", belongStrongEntity_graph_object);
+                console.log("belongStrongEntity: ", belongStrongEntity);
+                const create_generalisation_request = {
+                    "schemaID": schemaID,
+                    "subsetName": target.attributes.attrs.label.text,
+                    "belongStrongEntityID": belongStrongEntity.id,
+                    "aimPort": -1,
+                    "layoutInfo": {
+                        "layoutX": target.attributes.position.x,
+                        "layoutY": target.attributes.position.y
+                    }
+                }
+
+                const delete_entity_request = {
+                    "id": targetStrongEntity.id,
+                }
+                $.ajax({
+                    async: false,
+                    type: "POST",
+                    url: "http://" + ip_address + ":8080/er/entity/delete",
+                    headers: { "Access-Control-Allow-Origin": "*",
+                        "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                    traditional : true,
+                    data: JSON.stringify(delete_entity_request),
+                    dataType: "json",
+                    contentType: "application/json",
+                    success: function(result) {
+                        // alert("success to delete the entity!");
+                        console.log("delete relationship api result: ", result);
+                    },
+                    error: function(result) {
+                        is_success = false;
+                        console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                        alert(JSON.parse(result.responseText).data);
+                    },
+                });
+
+                $.ajax({
+                    async: false,
+                    type: "POST",
+                    url: "http://" + ip_address + ":8080/er/entity/create_generalisation",
+                    headers: { "Access-Control-Allow-Origin": "*",
+                        "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                    traditional : true,
+                    data: JSON.stringify(create_generalisation_request),
+                    dataType: "json",
+                    contentType: "application/json",
+                    success: function(result) {
+                        alert("success to create a new generalisation subset!");
+                        targetStrongEntity.id = result.data.id;
+                        console.log("api result: ", result);
+                    },
+                    error: function(result) {
+                        is_success = false;
+                        console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                        alert(JSON.parse(result.responseText).data);
+                    },
+                });
+            }
+        }
+        // console.log("cellllll: ", cell);
+        // console.log("source: ", source);
+        // console.log("target: ", target);
     }
 }) 
+
+function checkInPortConnected(generalisation_id) {
+    const cells = graph.getCells();
+    let belongStrongEntity_graph_id;
+    for (idx in cells) {
+        if (cells[idx].attributes.type == "standard.Link" && cells[idx].attributes.target.id == generalisation_id) {
+            if (cells[idx].attributes.target.port == "in1") {
+                belongStrongEntity_graph_id = cells[idx].attributes.source.id;
+            }
+        }
+    }
+    return belongStrongEntity_graph_id;
+}
 
 function checkArray(arr, cell) {
     const cell_name = cell.attributes.attrs.label.text;
