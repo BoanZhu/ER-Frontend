@@ -265,6 +265,7 @@ graph.on('add', function(cell) {
                 is_success = false;
                 console.log("Strong entity result: ", result.responseText); // It's a string but actually a JSON, so using JSON.parse 
                 alert(JSON.parse(result.responseText).data);
+                graph.removeCells(cell);
             },
         });
     } else if (cell.attributes.type === 'myApp.Relationship') {
@@ -298,6 +299,7 @@ graph.on('add', function(cell) {
             error: function(result) {
                 is_success = false;
                 alert(JSON.parse(result.responseText).data);
+                graph.removeCells(cell);
             },
         })
     } else if (cell.attributes.type == 'standard.Link') {
@@ -1925,7 +1927,7 @@ paper.on('link:pointerup', (cell, evt) => {
         // We only need to check when the source is the generalisation and the target is an entity. And in this case, if there is 
         // no strong entity, there should not have a link and the backend should report "cannot have a generalisation without a 
         // strong entity".
-        
+
         if (source.attributes.type == "myApp.Generalization" && target.attributes.type == "myApp.StrongEntity") {
 
             // now we need to check whether the "inPort" of the generalisation object is already connected by a strong entity.
@@ -2195,6 +2197,10 @@ paper.on('link:pointerup', (cell, evt) => {
                 is_success = false;
                 console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
                 alert(JSON.parse(result.responseText).data);
+                console.log(graph.getCells());
+                console.log(cell);
+                graph.removeCells(cell.model);
+                console.log(graph.getCells());
             },
         });
     }
