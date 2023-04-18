@@ -39,8 +39,11 @@ let relationshipsArray = [];
 // const ip_address = "146.169.162.32";
 const ip_address = "10.187.204.209";
 
-// Paper & PaperScroller
-// ---------------------
+// let schemaID = "";
+let schemaID = "1133";
+let schemaName = "Test schema";
+
+// --------------------- Paper & PaperScroller ---------------------
 
 const paper = new dia.Paper({
     model: graph, // Set graph as the model for paper
@@ -83,19 +86,13 @@ const paperScroller = new ui.PaperScroller({
 document.querySelector('.paper-container').appendChild(paperScroller.el);
 paperScroller.render().center();
 
-paper.on('blank:pointerdown', (evt) => {
-    // Start panning the paper on mousedown
-    // evt.stopPropagation();
-    paperScroller.startPanning(evt);
-});
+// --------------------- Paper & PaperScroller End ---------------------
 
-// let schemaID = "";
-let schemaID = "1133";
-let schemaName = "Test schema";
 
-// Custom Shape
-// ------------
 
+// ------------ Custom Shape ------------
+
+// This is an example shape
 const MyShape = dia.Element.define('myApp.MyShape', {
     attrs: {
         body: {
@@ -163,6 +160,24 @@ const MyShape = dia.Element.define('myApp.MyShape', {
     }]
 });
 
+// another example shape
+var variable =  new joint.shapes.basic.Rect({
+    name : "123",
+    id: 123,
+    onclick : function () {alert("hello");},
+    size: { width: 10, height: 10 },
+    attrs: {
+        text: { text: "123", 'font-size': 10, 'font-family': 'monospace' },
+        rect: {
+            fill : "red", 
+            width: 10, height: 10,
+            rx: 5, ry: 5,
+            stroke: '#555',
+        }   
+    }   
+}); 
+variable.on('batch:stop', function (element) {alert(""); toggleEvidence(element.name);});
+
 const StrongEntity = dia.Element.define('myApp.StrongEntity', {
         
     // body: {
@@ -217,253 +232,6 @@ const StrongEntity = dia.Element.define('myApp.StrongEntity', {
         selector: 'label',
     }]
 });
-
-graph.on('add', function(cell) { 
-    if (cell.attributes.type === 'myApp.WeakEntity') {
-        let new_weak_entity_name = window.prompt("Please enter the name of the new weak entity:", "");
-        if (!new_weak_entity_name) {
-            graph.removeCells(cell);
-        } else {
-            new_weak_entity = {
-                "schemaID": schemaID,
-                "weakEntityName": new_weak_entity_name,
-                "weakEntityCardinality": "",
-                "strongEntityID": "",
-                "strongEntityCardinality": "",
-                "relationshipName": "",
-                "weakEntityLayoutInfo": {
-                    "layoutX": cell.attributes.position.x,
-                    "layoutY": cell.attributes.position.y
-                }
-            }
-            cell.attributes.attrs.label.text = new_weak_entity_name;
-            entitiesArray.push(new_weak_entity);
-            // $.ajax({
-            //     async: false,
-            //     type: "POST",
-            //     url: "http://10.187.204.209:8080/er/schema/create_weak_entity",
-            //     headers: { "Access-Control-Allow-Origin": "*",
-            //         "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-            //     traditional : true,
-            //     data: JSON.stringify(new_weak_entity),
-            //     dataType: "json",
-            //     contentType: "application/json",
-            //     success: function(result) {
-            //         alert("success!");
-            //     },
-            //     error: function(result) {
-            //         is_success = false;
-            //         alert(JSON.parse(result.responseText).data);
-            //     },
-            // }, setTimeout(this, 2000))
-        }
-        
-    } else if (cell.attributes.type === 'myApp.StrongEntity') {
-        
-        let new_strong_entity_name = window.prompt("Please enter the name of the new strong entity:", "");
-        if (!new_strong_entity_name) {
-            graph.removeCells(cell);
-        } else {
-            new_strong_entity = {
-                "schemaID": schemaID,
-                "name": new_strong_entity_name,
-                "layoutInfo": {
-                    "layoutX": cell.attributes.position.x,
-                    "layoutY": cell.attributes.position.y
-                }
-            }
-            cell.attributes.attrs.label.text = new_strong_entity_name;
-            $.ajax({
-                async: false,
-                type: "POST",
-                url: "http://" + ip_address + ":8080/er/entity/create_strong",
-                // url: "http://10.187.204.209:8080/er/entity/create_strong",
-                headers: { "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                traditional : true,
-                data: JSON.stringify(new_strong_entity),
-                dataType: "json",
-                contentType: "application/json",
-                success: function(result) {
-                    alert("success!");
-                    new_strong_entity.id = result.data.id;
-                    entitiesArray.push(new_strong_entity);
-                },
-                error: function(result) {
-                    is_success = false;
-                    console.log("Strong entity result: ", result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                    alert(JSON.parse(result.responseText).data);
-                    graph.removeCells(cell);
-                },
-            });
-        }
-        
-    } else if (cell.attributes.type === 'myApp.Relationship') {
-        let new_relationship_name = window.prompt("Please enter the name of the new relationship:", "");
-        if (!new_relationship_name) {
-            graph.removeCells(cell);
-        } else {
-            new_relationship = {
-                "schemaID": schemaID,
-                "name": new_relationship_name,
-                "layoutInfo": {
-                    "layoutX": cell.attributes.position.x,
-                    "layoutY": cell.attributes.position.y
-                }
-            }
-            cell.attributes.attrs.label.text = new_relationship_name;
-            $.ajax({
-                async: false,
-                type: "POST",
-                url: "http://" + ip_address + ":8080/er/relationship/create_nary",
-                headers: { "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                traditional : true,
-                data: JSON.stringify(new_relationship),
-                dataType: "json",
-                contentType: "application/json",
-                success: function(result) {
-                    alert("success!");
-                    console.log("relationship result: ", result);
-                    new_relationship.id = result.data.id;
-                    new_relationship.belongObjWithCardinalityList = [];
-                    relationshipsArray.push(new_relationship);
-                },
-                error: function(result) {
-                    is_success = false;
-                    alert(JSON.parse(result.responseText).data);
-                    graph.removeCells(cell);
-                },
-            })
-        }
-    } else if (cell.attributes.type == 'standard.Link') {
-        if (cell.attributes.target.id == undefined) {
-            // console.log("This shoud be an attribute");
-        } else {
-            // console.log("The target is an element");
-        }
-    } else {
-        console.log("Other elements");
-    }
-})
-
-paper.on('cell:pointerdblclick', function(elementView, evt) {
-    console.log("elementView: ", elementView);
-    const source = graph.getCell(elementView.model.id);
-    console.log("source: ", source);
-    if (elementView.model.attributes.type === 'myApp.WeakEntity') {
-        let new_weak_entity_name = window.prompt("Please enter the new name of the weak entity:", "");
-        const entity = getElement(entitiesArray, source);
-
-        update_entity_request = {
-            "entityID": entity.id,
-            "name": new_weak_entity_name
-        }
-
-        $.ajax({
-            async: false,
-            type: "POST",
-            url: "http://" + ip_address + ":8080/er/entity/update",
-            headers: { "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-            traditional : true,
-            data: JSON.stringify(update_entity_request),
-            dataType: "json",
-            contentType: "application/json",
-            success: function(result) {
-                alert("success to update the weak entity!");
-                elementView.model.attributes.attrs.label.text = new_weak_entity_name;
-                entity.weakEntityName = new_weak_entity_name;
-            },
-            error: function(result) {
-                is_success = false;
-                alert("fail to update the attribute!");
-                alert(JSON.parse(result.responseText).data);
-            },
-        })
-    } else if (elementView.model.attributes.type === 'myApp.StrongEntity') {
-        let new_strong_entity_name = window.prompt("Please enter the new name of the strong entity:", "");
-        const entity = getElement(entitiesArray, source);
-
-        update_entity_request = {
-            "entityID": entity.id,
-            "name": new_strong_entity_name
-        }
-
-        $.ajax({
-            async: false,
-            type: "POST",
-            url: "http://" + ip_address + ":8080/er/entity/update",
-            headers: { "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-            traditional : true,
-            data: JSON.stringify(update_entity_request),
-            dataType: "json",
-            contentType: "application/json",
-            success: function(result) {
-                alert("success to update the strong entity!");
-                elementView.model.attributes.attrs.label.text = new_strong_entity_name;
-                entity.name = new_strong_entity_name;
-            },
-            error: function(result) {
-                is_success = false;
-                alert("fail to update the attribute!");
-                alert(JSON.parse(result.responseText).data);
-            },
-        })
-    } else if (elementView.model.attributes.type === 'myApp.Relationship') {
-        let new_relationship_name = window.prompt("Please enter the new name of the relationship entity:", "");
-        const relationship = getElement(relationshipsArray, source);
-
-        update_relationship_request = {
-            "relationshipID": relationship.id,
-            "name": new_relationship_name
-        }
-
-        $.ajax({
-            async: false,
-            type: "POST",
-            url: "http://" + ip_address + ":8080/er/entity/update",
-            headers: { "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-            traditional : true,
-            data: JSON.stringify(update_relationship_request),
-            dataType: "json",
-            contentType: "application/json",
-            success: function(result) {
-                alert("success to update the relationship!");
-                elementView.model.attributes.attrs.label.text = new_relationship_name;
-                relationship.name = new_relationship_name;
-            },
-            error: function(result) {
-                is_success = false;
-                alert("fail to update the attribute!");
-                alert(JSON.parse(result.responseText).data);
-            },
-        })
-
-    } else {
-
-    }
-    elementView.render();
-})
-
-var variable =  new joint.shapes.basic.Rect({
-    name : "123",
-    id: 123,
-    onclick : function () {alert("hello");},
-    size: { width: 10, height: 10 },
-    attrs: {
-        text: { text: "123", 'font-size': 10, 'font-family': 'monospace' },
-        rect: {
-            fill : "red", 
-            width: 10, height: 10,
-            rx: 5, ry: 5,
-            stroke: '#555',
-        }   
-    }   
-}); 
-variable.on('batch:stop', function (element) {alert(""); toggleEvidence(element.name);});
 
 const WeakEntity = dia.Element.define('myApp.WeakEntity', {
     attrs: {
@@ -640,8 +408,11 @@ const generalization = dia.Element.define('myApp.Generalization', {
     `
 })
 
-// Stencil
-// -------
+// ------------ Custom Shape End ------------
+
+
+
+// ------- Stencil -------
 
 const stencil = new ui.Stencil({
     paper: paperScroller,
@@ -660,6 +431,7 @@ const stencil = new ui.Stencil({
 });
 
 document.querySelector('.stencil-container').appendChild(stencil.el);
+
 stencil.render().load({
     // myShapesGroup1: [{
     //     type: 'standard.Rectangle'
@@ -692,8 +464,11 @@ stencil.render().load({
 ]
 });
 
-// Inspector
-// --------
+// ------- Stencil End -------
+
+
+
+// -------- Inspector --------
 
 const options = {
     arrowheadSize: [
@@ -998,21 +773,11 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
     }
 });
 
-paper.on('link:setLabel:pointerclick', function(elementView, evt) {
-    // Stop any further actions with the element view e.g. dragging
-    // evt.stopPropagation();
-    // if (confirm('Are you sure you want to delete this element?')) {
-    //     elementView.model.remove();
-    // }
-});
+// -------- Inspector End --------
 
-// link:pointerdown
-paper.on('blank:pointerdown', () => {
-    ui.Inspector.close();
-});
 
-// Halo
-// ----
+
+// ---- Halo ----
 
 paper.on('element:pointerclick', (elementView) => {
     const handles = [{
@@ -1107,8 +872,11 @@ paper.on('element:pointerclick', (elementView) => {
     });
 });
 
-// Link Tools
-// ----------
+// ---- Halo End ----
+
+
+
+// ---------- Link Tools ----------
 
 paper.on('link:pointerclick', (linkView) => {
     console.log("link2: ", linkView);
@@ -1158,29 +926,11 @@ paper.on('link:pointerclick', (linkView) => {
     linkView.addTools(toolsView);
 });
 
-function removeAttribute(attributesArray, attribute) {
-    for (idx in attributesArray) {
-        if (attributesArray[idx].name == attribute.name) {
-            // delete attributesArray[idx];
-            attributesArray.splice(idx, idx);
-        }
-    }
-}
+// ---------- Link Tools End ----------
 
-function removeElement(array, entity) {
-    for (idx in array) {
-        if (array[idx].name == entity.name) {
-            array.splice(idx, 1);
-        }
-    }
-}
 
-paper.on('blank:pointerdown', (evt) => {
-    paper.removeTools();
-});
 
-// Toolbar
-// -------
+// ------- Toolbar -------
 
 const toolbar = new ui.Toolbar({
     groups: {
@@ -1295,6 +1045,10 @@ toolbar.on({
 document.querySelector('.toolbar-container').appendChild(toolbar.el);
 toolbar.render();
 
+// ------- Toolbar End -------
+
+
+
 // Working With Diagrams Programmatically
 // --------------------------------------
 
@@ -1341,6 +1095,11 @@ const myLink = new shapes.standard.Link({
 });
 graph.addCell(myLink);
 
+// Working With Diagrams Programmatically End
+
+
+
+// ----------------- All Events ----------------- 
 // React on changes in the graph.
 // graph.on('change add remove', (cell) => {
 graph.on('change add', (cell) => {
@@ -1723,16 +1482,258 @@ graph.on('change add', (cell) => {
     }
 });
 
-function getAttribute(belongObject, attribute_name) {
-    const attributesArray = belongObject.attributesArray;
-    let result;
-    for (idx in attributesArray) {
-        if (attributesArray[idx].name == attribute_name) {
-            result = attributesArray[idx];
+paper.on('blank:pointerdown', (evt) => {
+    paper.removeTools();
+});
+
+paper.on('link:setLabel:pointerclick', function(elementView, evt) {
+    // Stop any further actions with the element view e.g. dragging
+    // evt.stopPropagation();
+    // if (confirm('Are you sure you want to delete this element?')) {
+    //     elementView.model.remove();
+    // }
+});
+
+// link:pointerdown
+paper.on('blank:pointerdown', () => {
+    ui.Inspector.close();
+});
+
+graph.on('add', function(cell) { 
+    if (cell.attributes.type === 'myApp.WeakEntity') {
+        let new_weak_entity_name = window.prompt("Please enter the name of the new weak entity:", "");
+        if (!new_weak_entity_name) {
+            graph.removeCells(cell);
+        } else {
+            new_weak_entity = {
+                "schemaID": schemaID,
+                "weakEntityName": new_weak_entity_name,
+                "weakEntityCardinality": "",
+                "strongEntityID": "",
+                "strongEntityCardinality": "",
+                "relationshipName": "",
+                "weakEntityLayoutInfo": {
+                    "layoutX": cell.attributes.position.x,
+                    "layoutY": cell.attributes.position.y
+                }
+            }
+            cell.attributes.attrs.label.text = new_weak_entity_name;
+            entitiesArray.push(new_weak_entity);
+            // $.ajax({
+            //     async: false,
+            //     type: "POST",
+            //     url: "http://10.187.204.209:8080/er/schema/create_weak_entity",
+            //     headers: { "Access-Control-Allow-Origin": "*",
+            //         "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+            //     traditional : true,
+            //     data: JSON.stringify(new_weak_entity),
+            //     dataType: "json",
+            //     contentType: "application/json",
+            //     success: function(result) {
+            //         alert("success!");
+            //     },
+            //     error: function(result) {
+            //         is_success = false;
+            //         alert(JSON.parse(result.responseText).data);
+            //     },
+            // }, setTimeout(this, 2000))
         }
+        
+    } else if (cell.attributes.type === 'myApp.StrongEntity') {
+        
+        let new_strong_entity_name = window.prompt("Please enter the name of the new strong entity:", "");
+        if (!new_strong_entity_name) {
+            graph.removeCells(cell);
+        } else {
+            new_strong_entity = {
+                "schemaID": schemaID,
+                "name": new_strong_entity_name,
+                "layoutInfo": {
+                    "layoutX": cell.attributes.position.x,
+                    "layoutY": cell.attributes.position.y
+                }
+            }
+            cell.attributes.attrs.label.text = new_strong_entity_name;
+            $.ajax({
+                async: false,
+                type: "POST",
+                url: "http://" + ip_address + ":8080/er/entity/create_strong",
+                // url: "http://10.187.204.209:8080/er/entity/create_strong",
+                headers: { "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                traditional : true,
+                data: JSON.stringify(new_strong_entity),
+                dataType: "json",
+                contentType: "application/json",
+                success: function(result) {
+                    alert("success!");
+                    new_strong_entity.id = result.data.id;
+                    entitiesArray.push(new_strong_entity);
+                },
+                error: function(result) {
+                    is_success = false;
+                    console.log("Strong entity result: ", result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                    alert(JSON.parse(result.responseText).data);
+                    graph.removeCells(cell);
+                },
+            });
+        }
+        
+    } else if (cell.attributes.type === 'myApp.Relationship') {
+        let new_relationship_name = window.prompt("Please enter the name of the new relationship:", "");
+        if (!new_relationship_name) {
+            graph.removeCells(cell);
+        } else {
+            new_relationship = {
+                "schemaID": schemaID,
+                "name": new_relationship_name,
+                "layoutInfo": {
+                    "layoutX": cell.attributes.position.x,
+                    "layoutY": cell.attributes.position.y
+                }
+            }
+            cell.attributes.attrs.label.text = new_relationship_name;
+            $.ajax({
+                async: false,
+                type: "POST",
+                url: "http://" + ip_address + ":8080/er/relationship/create_nary",
+                headers: { "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                traditional : true,
+                data: JSON.stringify(new_relationship),
+                dataType: "json",
+                contentType: "application/json",
+                success: function(result) {
+                    alert("success!");
+                    console.log("relationship result: ", result);
+                    new_relationship.id = result.data.id;
+                    new_relationship.belongObjWithCardinalityList = [];
+                    relationshipsArray.push(new_relationship);
+                },
+                error: function(result) {
+                    is_success = false;
+                    alert(JSON.parse(result.responseText).data);
+                    graph.removeCells(cell);
+                },
+            })
+        }
+    } else if (cell.attributes.type == 'standard.Link') {
+        if (cell.attributes.target.id == undefined) {
+            // console.log("This shoud be an attribute");
+        } else {
+            // console.log("The target is an element");
+        }
+    } else {
+        console.log("Other elements");
     }
-    return result;
-}
+})
+
+paper.on('cell:pointerdblclick', function(elementView, evt) {
+    console.log("elementView: ", elementView);
+    const source = graph.getCell(elementView.model.id);
+    console.log("source: ", source);
+    if (elementView.model.attributes.type === 'myApp.WeakEntity') {
+        let new_weak_entity_name = window.prompt("Please enter the new name of the weak entity:", "");
+        const entity = getElement(entitiesArray, source);
+
+        update_entity_request = {
+            "entityID": entity.id,
+            "name": new_weak_entity_name
+        }
+
+        $.ajax({
+            async: false,
+            type: "POST",
+            url: "http://" + ip_address + ":8080/er/entity/update",
+            headers: { "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+            traditional : true,
+            data: JSON.stringify(update_entity_request),
+            dataType: "json",
+            contentType: "application/json",
+            success: function(result) {
+                alert("success to update the weak entity!");
+                elementView.model.attributes.attrs.label.text = new_weak_entity_name;
+                entity.weakEntityName = new_weak_entity_name;
+            },
+            error: function(result) {
+                is_success = false;
+                alert("fail to update the attribute!");
+                alert(JSON.parse(result.responseText).data);
+            },
+        })
+    } else if (elementView.model.attributes.type === 'myApp.StrongEntity') {
+        let new_strong_entity_name = window.prompt("Please enter the new name of the strong entity:", "");
+        const entity = getElement(entitiesArray, source);
+
+        update_entity_request = {
+            "entityID": entity.id,
+            "name": new_strong_entity_name
+        }
+
+        $.ajax({
+            async: false,
+            type: "POST",
+            url: "http://" + ip_address + ":8080/er/entity/update",
+            headers: { "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+            traditional : true,
+            data: JSON.stringify(update_entity_request),
+            dataType: "json",
+            contentType: "application/json",
+            success: function(result) {
+                alert("success to update the strong entity!");
+                elementView.model.attributes.attrs.label.text = new_strong_entity_name;
+                entity.name = new_strong_entity_name;
+            },
+            error: function(result) {
+                is_success = false;
+                alert("fail to update the attribute!");
+                alert(JSON.parse(result.responseText).data);
+            },
+        })
+    } else if (elementView.model.attributes.type === 'myApp.Relationship') {
+        let new_relationship_name = window.prompt("Please enter the new name of the relationship entity:", "");
+        const relationship = getElement(relationshipsArray, source);
+
+        update_relationship_request = {
+            "relationshipID": relationship.id,
+            "name": new_relationship_name
+        }
+
+        $.ajax({
+            async: false,
+            type: "POST",
+            url: "http://" + ip_address + ":8080/er/entity/update",
+            headers: { "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+            traditional : true,
+            data: JSON.stringify(update_relationship_request),
+            dataType: "json",
+            contentType: "application/json",
+            success: function(result) {
+                alert("success to update the relationship!");
+                elementView.model.attributes.attrs.label.text = new_relationship_name;
+                relationship.name = new_relationship_name;
+            },
+            error: function(result) {
+                is_success = false;
+                alert("fail to update the attribute!");
+                alert(JSON.parse(result.responseText).data);
+            },
+        })
+
+    } else {
+
+    }
+    elementView.render();
+})
+
+paper.on('blank:pointerdown', (evt) => {
+    // Start panning the paper on mousedown
+    // evt.stopPropagation();
+    paperScroller.startPanning(evt);
+});
 
 paper.on('link:pointerup', (cell, evt) => {
     console.log("link3: ", cell);
@@ -2128,6 +2129,142 @@ paper.on('link:pointerup', (cell, evt) => {
     }
 }) 
 
+paper.on('link:pointerup', (cell, evt) => {
+    console.log("link4: ", cell);
+
+    if (!cell.model.attributes.labels && cell.model.attributes.target.id == undefined) {
+        // Here, we set the new attribute name and put it in the right place.
+        let new_attribute_name = window.prompt("Please enter the name of the attribute:", "");
+        if (!new_attribute_name) {
+            graph.removeCells(cell.model);
+        } else {
+            const position = calculateLabelPosition(cell.model, new_attribute_name);
+
+            if (!cell.model.attributes.labels) {
+                cell.addLabel({});
+            }
+
+            // cell.addLabel({});
+
+            // let label_index = cell.model.attributes.labels.length ? 1 : cell.model.attributes.labels.length;
+            cell.model.attributes.labels[0] = {
+                attrs: {
+                    text: {
+                        text: new_attribute_name,
+                        optional: "No",
+                        primary: "No",
+                        fill: "#FFFFFF"
+                    },
+                },
+                markup: util.svg`<text @selector="text"/>`,
+                position: {
+                    distance: 1,
+                    offset: {
+                        x: position.final_x,
+                        y: position.final_y
+                    }
+                }
+            };
+
+            const belongObjectGraphId = cell.model.attributes.source.id;
+            const source = graph.getCell(belongObjectGraphId);
+            const belongObject = getElement(entitiesArray, source);
+
+            let belongObjType;
+            if (belongObject.weakEntityName) {
+                belongObjType = 2;
+            } else if (belongObject.belongObjWithCardinalityList) {
+                belongObjType = 3;
+            } else {
+                belongObjType = 2;
+            }
+
+            if (!belongObject.attributesArray) {
+                belongObject.attributesArray = [];
+            }
+            
+            new_attribute = {
+                "belongObjID": belongObject.id,
+                "belongObjType": belongObjType,
+                "name": new_attribute_name,
+                "dataType": "TEXT", // need to choose datatype in frontend; or check in the backend!
+                "isPrimary": false, // can change its value when choosing 'isPrimary'.
+                "attributeType": 1, // need to choose its type; when clicking isOptional, need to reset this value.
+                "aimPort": -1,
+                "layoutInfo": {
+                    "layoutX": cell.model.attributes.target.x,
+                    "layoutY": cell.model.attributes.target.y,
+                }
+            }
+
+            $.ajax({
+                async: false,
+                type: "POST",
+                url: "http://" + ip_address + ":8080/er/attribute/create",
+                headers: { "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                traditional : true,
+                data: JSON.stringify(new_attribute),
+                dataType: "json",
+                contentType: "application/json",
+                success: function(result) {
+                    alert("success to add new attribute!");
+                    new_attribute.id = result.data.id;
+                    new_attribute.graphId = cell.id;
+                    belongObject.attributesArray.push(new_attribute);
+                    console.log("attribute api result: ", result);
+                },
+                error: function(result) {
+                    is_success = false;
+                    console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                    alert(JSON.parse(result.responseText).data);
+                    graph.removeCells(cell.model);
+                },
+            });
+        }
+        
+    }
+})
+
+graph.on('change:level', (cell, level) => {
+    const color = (level > 8) ? '#ff9580' : '#ffffff';
+    cell.prop('attrs/body/fill', color);
+});
+
+// ----------------- All Events End ----------------- 
+
+
+
+// ----------------- All Helper functions -----------------
+
+function getAttribute(belongObject, attribute_name) {
+    const attributesArray = belongObject.attributesArray;
+    let result;
+    for (idx in attributesArray) {
+        if (attributesArray[idx].name == attribute_name) {
+            result = attributesArray[idx];
+        }
+    }
+    return result;
+}
+
+function removeAttribute(attributesArray, attribute) {
+    for (idx in attributesArray) {
+        if (attributesArray[idx].name == attribute.name) {
+            // delete attributesArray[idx];
+            attributesArray.splice(idx, idx);
+        }
+    }
+}
+
+function removeElement(array, entity) {
+    for (idx in array) {
+        if (array[idx].name == entity.name) {
+            array.splice(idx, 1);
+        }
+    }
+}
+
 function checkInPortConnected(generalisation_id) {
     const cells = graph.getCells();
     let belongStrongEntity_graph_id;
@@ -2238,104 +2375,6 @@ function calculateLabelPosition(cell, attribute_name) {
     return result;
 }
 
-paper.on('link:pointerup', (cell, evt) => {
-    console.log("link4: ", cell);
+// ----------------- All Helper functions -----------------
 
-    if (!cell.model.attributes.labels && cell.model.attributes.target.id == undefined) {
-        // Here, we set the new attribute name and put it in the right place.
-        let new_attribute_name = window.prompt("Please enter the name of the attribute:", "");
-        if (!new_attribute_name) {
-            graph.removeCells(cell.model);
-        } else {
-            const position = calculateLabelPosition(cell.model, new_attribute_name);
 
-            if (!cell.model.attributes.labels) {
-                cell.addLabel({});
-            }
-
-            // cell.addLabel({});
-
-            // let label_index = cell.model.attributes.labels.length ? 1 : cell.model.attributes.labels.length;
-            cell.model.attributes.labels[0] = {
-                attrs: {
-                    text: {
-                        text: new_attribute_name,
-                        optional: "No",
-                        primary: "No",
-                        fill: "#FFFFFF"
-                    },
-                },
-                markup: util.svg`<text @selector="text"/>`,
-                position: {
-                    distance: 1,
-                    offset: {
-                        x: position.final_x,
-                        y: position.final_y
-                    }
-                }
-            };
-
-            const belongObjectGraphId = cell.model.attributes.source.id;
-            const source = graph.getCell(belongObjectGraphId);
-            const belongObject = getElement(entitiesArray, source);
-
-            let belongObjType;
-            if (belongObject.weakEntityName) {
-                belongObjType = 2;
-            } else if (belongObject.belongObjWithCardinalityList) {
-                belongObjType = 3;
-            } else {
-                belongObjType = 2;
-            }
-
-            if (!belongObject.attributesArray) {
-                belongObject.attributesArray = [];
-            }
-            
-            new_attribute = {
-                "belongObjID": belongObject.id,
-                "belongObjType": belongObjType,
-                "name": new_attribute_name,
-                "dataType": "TEXT", // need to choose datatype in frontend; or check in the backend!
-                "isPrimary": false, // can change its value when choosing 'isPrimary'.
-                "attributeType": 1, // need to choose its type; when clicking isOptional, need to reset this value.
-                "aimPort": -1,
-                "layoutInfo": {
-                    "layoutX": cell.model.attributes.target.x,
-                    "layoutY": cell.model.attributes.target.y,
-                }
-            }
-
-            $.ajax({
-                async: false,
-                type: "POST",
-                url: "http://" + ip_address + ":8080/er/attribute/create",
-                headers: { "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                traditional : true,
-                data: JSON.stringify(new_attribute),
-                dataType: "json",
-                contentType: "application/json",
-                success: function(result) {
-                    alert("success to add new attribute!");
-                    new_attribute.id = result.data.id;
-                    new_attribute.graphId = cell.id;
-                    belongObject.attributesArray.push(new_attribute);
-                    console.log("attribute api result: ", result);
-                },
-                error: function(result) {
-                    is_success = false;
-                    console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                    alert(JSON.parse(result.responseText).data);
-                    graph.removeCells(cell.model);
-                },
-            });
-        }
-        
-    }
-})
-
-graph.on('change:level', (cell, level) => {
-    const color = (level > 8) ? '#ff9580' : '#ffffff';
-    cell.prop('attrs/body/fill', color);
-});
