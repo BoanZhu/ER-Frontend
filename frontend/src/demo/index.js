@@ -813,57 +813,22 @@ paper.on('element:pointerclick', (elementView) => {
         if (elementView.model.attributes.type == "myApp.StrongEntity") {
             const source = graph.getCell(elementView.model.id);
             const entity = getElement(entitiesArray, source);
-            const delete_entity_request = {
+            const entity_delete_request = {
                 id: entity.id
             }
-            $.ajax({
-                async: false,
-                type: "POST",
-                url: "http://" + ip_address + ":8080/er/entity/delete",
-                headers: { "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                traditional : true,
-                data: JSON.stringify(delete_entity_request),
-                dataType: "json",
-                contentType: "application/json",
-                success: function(result) {
-                    alert("success to delete the entity!");
-                    // console.log(entitiesArray);
-                    removeElement(entitiesArray, entity);
-                    // console.log(entitiesArray);
-                },
-                error: function(result) {
-                    is_success = false;
-                    alert("fail to delete the attribute!");
-                    alert(JSON.parse(result.responseText).data);
-                },
-            })
+            
+            // invoke 'er/entity/delete' api
+            entityDelete(entity_delete_request);
+
         } else {
             const source = graph.getCell(elementView.model.id);
             const relationship = getElement(relationshipsArray, source);
-            const delete_relationship_request = {
+            const relationship_delete_request = {
                 id: relationship.id
             }
-            $.ajax({
-                async: false,
-                type: "POST",
-                url: "http://" + ip_address + ":8080/er/relationship/delete",
-                headers: { "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                traditional : true,
-                data: JSON.stringify(delete_relationship_request),
-                dataType: "json",
-                contentType: "application/json",
-                success: function(result) {
-                    alert("success to delete the relationship!");
-                    removeElement(relationshipsArray, relationship);
-                },
-                error: function(result) {
-                    is_success = false;
-                    alert("fail to delete the attribute!");
-                    alert(JSON.parse(result.responseText).data);
-                },
-            })
+
+            // invoke 'er/relationship/delete' api
+            relationshipDelete(relationship_delete_request, relationship);
         }
     });
 
@@ -897,29 +862,12 @@ paper.on('link:pointerclick', (linkView) => {
                     const result = graph.getCell(source_graph_id);
                     const source = getElement(entitiesArray, result);
                     const attribute = getAttribute(source, attribute_name);
-                    const delete_attribute_request = {
+                    const attribute_delete_request = {
                         id: attribute.id
                     }
-                    $.ajax({
-                        async: false,
-                        type: "POST",
-                        url: "http://" + ip_address + ":8080/er/attribute/delete",
-                        headers: { "Access-Control-Allow-Origin": "*",
-                            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                        traditional : true,
-                        data: JSON.stringify(delete_attribute_request),
-                        dataType: "json",
-                        contentType: "application/json",
-                        success: function(result) {
-                            alert("success to delete the attribute!");
-                            removeAttribute(source.attributesArray, attribute);
-                        },
-                        error: function(result) {
-                            is_success = false;
-                            alert("fail to delete the attribute!");
-                            alert(JSON.parse(result.responseText).data);
-                        },
-                    })
+                    
+                    // invoke 'er/attribute/delete' api
+                    attributeDelete(attribute_delete_request, source, attribute);
             }})
         ]
     });
@@ -1103,8 +1051,8 @@ graph.addCell(myLink);
 // React on changes in the graph.
 // graph.on('change add remove', (cell) => {
 graph.on('change add', (cell) => {
-    console.log("cells: ", graph.getCells());
-    console.log(cell);
+    // console.log("cells: ", graph.getCells());
+    // console.log(cell);
     if (cell.attributes.type == 'standard.Link') {
         // This is for the attributes setting; target.id == undefined means this is an attribute
         if (cell.attributes.target.id == undefined) {
@@ -1123,8 +1071,6 @@ graph.on('change add', (cell) => {
 
                 if (cell.attributes.labels[0].attrs) {
 
-                    console.log("hereeee");
-
                     const original_text = cell.attributes.labels[0].attrs.text.text;
                     const source_id = cell.attributes.source.id;
                     const source = graph.getCell(source_id);
@@ -1142,27 +1088,8 @@ graph.on('change add', (cell) => {
                             // "aimPort": -1
                         }
 
-                        $.ajax({
-                            async: false,
-                            type: "POST",
-                            url: "http://" + ip_address + ":8080/er/attribute/update",
-                            headers: { "Access-Control-Allow-Origin": "*",
-                                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                            traditional : true,
-                            data: JSON.stringify(attribute_update_request),
-                            dataType: "json",
-                            contentType: "application/json",
-                            success: function(result) {
-                                alert("success to update attribute dataType!");
-                                console.log("update attribute api result: ", result);
-                                attribute.dataType = cell.attributes.labels[0].attrs.text.dataType;
-                            },
-                            error: function(result) {
-                                is_success = false;
-                                console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                                alert(JSON.parse(result.responseText).data);
-                            },
-                        });
+                        // invoke 'er/attribute/update' api
+                        attributeUpdate(attribute_update_request, attribute);
                     }
 
                     if (cell.attributes.labels[0].attrs.text.optional == 'Yes' && attribute.attributeType != 2 && !original_text.includes('?')) {
@@ -1184,27 +1111,8 @@ graph.on('change add', (cell) => {
                                 // "aimPort": -1
                             }
 
-                            $.ajax({
-                                async: false,
-                                type: "POST",
-                                url: "http://" + ip_address + ":8080/er/attribute/update",
-                                headers: { "Access-Control-Allow-Origin": "*",
-                                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                                traditional : true,
-                                data: JSON.stringify(attribute_update_request),
-                                dataType: "json",
-                                contentType: "application/json",
-                                success: function(result) {
-                                    alert("success to update attribute!");
-                                    console.log("update attribute api result: ", result);
-                                    attribute.attributeType = 2;
-                                },
-                                error: function(result) {
-                                    is_success = false;
-                                    console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                                    alert(JSON.parse(result.responseText).data);
-                                },
-                            });
+                            // invoke 'er/attribute/update' api
+                            attributeUpdate(attribute_update_request, attribute);
                         }
 
                     } else if (cell.attributes.labels[0].attrs.text.optional == 'No' && attribute.attributeType == 2 && original_text.includes('?')) {
@@ -1220,28 +1128,8 @@ graph.on('change add', (cell) => {
                             // "aimPort": -1
                         }
 
-                        $.ajax({
-                            async: false,
-                            type: "POST",
-                            url: "http://" + ip_address + ":8080/er/attribute/update",
-                            headers: { "Access-Control-Allow-Origin": "*",
-                                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                            traditional : true,
-                            data: JSON.stringify(attribute_update_request),
-                            dataType: "json",
-                            contentType: "application/json",
-                            success: function(result) {
-                                alert("success to update attribute!");
-                                console.log("update attribute api result: ", result);
-                                attribute.attributeType = 1;
-                            },
-                            error: function(result) {
-                                is_success = false;
-                                console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                                alert(JSON.parse(result.responseText).data);
-                            },
-                        });
-                        console.log("cell.attributes.labels[0].attrs.text.text: ", cell.attributes.labels[0].attrs.text.text);
+                        // invoke 'er/attribute/update' api
+                        attributeUpdate(attribute_update_request, attribute);
                     }
 
                     // This is used to set primary key
@@ -1303,27 +1191,8 @@ graph.on('change add', (cell) => {
                                 // "aimPort": -1
                             }
 
-                            $.ajax({
-                                async: false,
-                                type: "POST",
-                                url: "http://" + ip_address + ":8080/er/attribute/update",
-                                headers: { "Access-Control-Allow-Origin": "*",
-                                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                                traditional : true,
-                                data: JSON.stringify(attribute_update_request),
-                                dataType: "json",
-                                contentType: "application/json",
-                                success: function(result) {
-                                    alert("success to update attribute!");
-                                    console.log("update attribute api result: ", result);
-                                    attribute.isPrimary = true;
-                                },
-                                error: function(result) {
-                                    is_success = false;
-                                    console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                                    alert(JSON.parse(result.responseText).data);
-                                },
-                            });
+                            // invoke 'er/attribute/update' api
+                            attributeUpdate(attribute_update_request, attribute);
                         }
                         
                     } else if (cell.attributes.labels[0].attrs.text.primary == 'No' && attribute.isPrimary == true) {
@@ -1360,28 +1229,8 @@ graph.on('change add', (cell) => {
                             // "aimPort": -1
                         }
 
-                        $.ajax({
-                            async: false,
-                            type: "POST",
-                            url: "http://" + ip_address + ":8080/er/attribute/update",
-                            headers: { "Access-Control-Allow-Origin": "*",
-                                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                            traditional : true,
-                            data: JSON.stringify(attribute_update_request),
-                            dataType: "json",
-                            contentType: "application/json",
-                            success: function(result) {
-                                alert("success to update attribute!");
-                                console.log("update attribute api result: ", result);
-                                attribute.isPrimary = false;
-                            },
-                            error: function(result) {
-                                is_success = false;
-                                console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                                alert(JSON.parse(result.responseText).data);
-                                attribute.isPrimary = true;
-                            },
-                        });
+                        // invoke 'er/attribute/update' api
+                        attributeUpdate(attribute_update_request, attribute);
                     }
                     // }
                 }
@@ -1418,7 +1267,7 @@ graph.on('change add', (cell) => {
                         }
                     }
 
-                    create_subset_request = {
+                    subset_create_request = {
                         "schemaID": schemaID,
                         "subsetName": target_name,
                         "belongStrongEntityID": belongStrongEntityID,
@@ -1429,52 +1278,16 @@ graph.on('change add', (cell) => {
                         }
                     };
 
-                    delete_request = {
+                    entity_delete_request = {
                         "id": target_entity_id
                     };
 
-                    $.ajax({
-                        async: false,
-                        type: "POST",
-                        url: "http://" + ip_address + ":8080/er/entity/delete",
-                        headers: { "Access-Control-Allow-Origin": "*",
-                            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                        traditional : true,
-                        data: JSON.stringify(delete_request),
-                        dataType: "json",
-                        contentType: "application/json",
-                        success: function(result) {
-                            alert("success!");
-                        },
-                        error: function(result) {
-                            is_success = false;
-                            console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                            alert(JSON.parse(result.responseText).data);
-                        },
-                    });
+                    // invoke 'er/entity/delete' api
+                    entityDelete(entity_delete_request);
 
-                    $.ajax({
-                        async: false,
-                        type: "POST",
-                        url: "http://" + ip_address + ":8080/er/entity/create_subset",
-                        headers: { "Access-Control-Allow-Origin": "*",
-                            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                        traditional : true,
-                        data: JSON.stringify(create_subset_request),
-                        dataType: "json",
-                        contentType: "application/json",
-                        success: function(result) {
-                            alert("success!");
-                            create_subset_request.id = result.data.id;
-                            console.log(create_subset_request);
-                            entitiesArray.push(create_subset_request);
-                        },
-                        error: function(result) {
-                            is_success = false;
-                            console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                            alert(JSON.parse(result.responseText).data);
-                        },
-                    });
+                    // invoke 'er/entity/create_subset' api
+                    entityCreateSubset(subset_create_request);
+                    
                 }
             }
             
@@ -1519,24 +1332,6 @@ graph.on('add', function(cell) {
             }
             cell.attributes.attrs.label.text = new_weak_entity_name;
             entitiesArray.push(new_weak_entity);
-            // $.ajax({
-            //     async: false,
-            //     type: "POST",
-            //     url: "http://10.187.204.209:8080/er/schema/create_weak_entity",
-            //     headers: { "Access-Control-Allow-Origin": "*",
-            //         "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-            //     traditional : true,
-            //     data: JSON.stringify(new_weak_entity),
-            //     dataType: "json",
-            //     contentType: "application/json",
-            //     success: function(result) {
-            //         alert("success!");
-            //     },
-            //     error: function(result) {
-            //         is_success = false;
-            //         alert(JSON.parse(result.responseText).data);
-            //     },
-            // }, setTimeout(this, 2000))
         }
         
     } else if (cell.attributes.type === 'myApp.StrongEntity') {
@@ -1545,7 +1340,7 @@ graph.on('add', function(cell) {
         if (!new_strong_entity_name) {
             graph.removeCells(cell);
         } else {
-            new_strong_entity = {
+            strong_entity_create_request = {
                 "schemaID": schemaID,
                 "name": new_strong_entity_name,
                 "layoutInfo": {
@@ -1554,29 +1349,10 @@ graph.on('add', function(cell) {
                 }
             }
             cell.attributes.attrs.label.text = new_strong_entity_name;
-            $.ajax({
-                async: false,
-                type: "POST",
-                url: "http://" + ip_address + ":8080/er/entity/create_strong",
-                // url: "http://10.187.204.209:8080/er/entity/create_strong",
-                headers: { "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                traditional : true,
-                data: JSON.stringify(new_strong_entity),
-                dataType: "json",
-                contentType: "application/json",
-                success: function(result) {
-                    alert("success!");
-                    new_strong_entity.id = result.data.id;
-                    entitiesArray.push(new_strong_entity);
-                },
-                error: function(result) {
-                    is_success = false;
-                    console.log("Strong entity result: ", result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                    alert(JSON.parse(result.responseText).data);
-                    graph.removeCells(cell);
-                },
-            });
+
+            // invoke 'er/entity/create_strong' api
+            entityCreateStrong(strong_entity_create_request, cell);
+            
         }
         
     } else if (cell.attributes.type === 'myApp.Relationship') {
@@ -1584,7 +1360,7 @@ graph.on('add', function(cell) {
         if (!new_relationship_name) {
             graph.removeCells(cell);
         } else {
-            new_relationship = {
+            relationship_create_request = {
                 "schemaID": schemaID,
                 "name": new_relationship_name,
                 "layoutInfo": {
@@ -1593,29 +1369,10 @@ graph.on('add', function(cell) {
                 }
             }
             cell.attributes.attrs.label.text = new_relationship_name;
-            $.ajax({
-                async: false,
-                type: "POST",
-                url: "http://" + ip_address + ":8080/er/relationship/create_nary",
-                headers: { "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                traditional : true,
-                data: JSON.stringify(new_relationship),
-                dataType: "json",
-                contentType: "application/json",
-                success: function(result) {
-                    alert("success!");
-                    console.log("relationship result: ", result);
-                    new_relationship.id = result.data.id;
-                    new_relationship.belongObjWithCardinalityList = [];
-                    relationshipsArray.push(new_relationship);
-                },
-                error: function(result) {
-                    is_success = false;
-                    alert(JSON.parse(result.responseText).data);
-                    graph.removeCells(cell);
-                },
-            })
+
+            // invoke 'er/relationship/create_nary' api
+            relationshipCreateNary(relationship_create_request, cell);
+
         }
     } else if (cell.attributes.type == 'standard.Link') {
         if (cell.attributes.target.id == undefined) {
@@ -1636,93 +1393,38 @@ paper.on('cell:pointerdblclick', function(elementView, evt) {
         let new_weak_entity_name = window.prompt("Please enter the new name of the weak entity:", "");
         const entity = getElement(entitiesArray, source);
 
-        update_entity_request = {
+        entity_update_request = {
             "entityID": entity.id,
             "name": new_weak_entity_name
         }
 
-        $.ajax({
-            async: false,
-            type: "POST",
-            url: "http://" + ip_address + ":8080/er/entity/update",
-            headers: { "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-            traditional : true,
-            data: JSON.stringify(update_entity_request),
-            dataType: "json",
-            contentType: "application/json",
-            success: function(result) {
-                alert("success to update the weak entity!");
-                elementView.model.attributes.attrs.label.text = new_weak_entity_name;
-                entity.weakEntityName = new_weak_entity_name;
-            },
-            error: function(result) {
-                is_success = false;
-                alert("fail to update the attribute!");
-                alert(JSON.parse(result.responseText).data);
-            },
-        })
+        // invoke 'er/entity/update' api
+        entityUpdate(entity_update_request, entity, new_weak_entity_name, elementView);
+        
     } else if (elementView.model.attributes.type === 'myApp.StrongEntity') {
         let new_strong_entity_name = window.prompt("Please enter the new name of the strong entity:", "");
         const entity = getElement(entitiesArray, source);
 
-        update_entity_request = {
+        entity_update_request = {
             "entityID": entity.id,
             "name": new_strong_entity_name
         }
 
-        $.ajax({
-            async: false,
-            type: "POST",
-            url: "http://" + ip_address + ":8080/er/entity/update",
-            headers: { "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-            traditional : true,
-            data: JSON.stringify(update_entity_request),
-            dataType: "json",
-            contentType: "application/json",
-            success: function(result) {
-                alert("success to update the strong entity!");
-                elementView.model.attributes.attrs.label.text = new_strong_entity_name;
-                entity.name = new_strong_entity_name;
-            },
-            error: function(result) {
-                is_success = false;
-                alert("fail to update the attribute!");
-                alert(JSON.parse(result.responseText).data);
-            },
-        })
+        // invoke 'er/entity/update' api
+        entityUpdate(entity_update_request, entity, new_weak_entity_name, elementView);
+
     } else if (elementView.model.attributes.type === 'myApp.Relationship') {
         let new_relationship_name = window.prompt("Please enter the new name of the relationship entity:", "");
         const relationship = getElement(relationshipsArray, source);
 
-        update_relationship_request = {
+        relationship_update_request = {
             "relationshipID": relationship.id,
             "name": new_relationship_name
         }
 
-        $.ajax({
-            async: false,
-            type: "POST",
-            url: "http://" + ip_address + ":8080/er/entity/update",
-            headers: { "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-            traditional : true,
-            data: JSON.stringify(update_relationship_request),
-            dataType: "json",
-            contentType: "application/json",
-            success: function(result) {
-                alert("success to update the relationship!");
-                elementView.model.attributes.attrs.label.text = new_relationship_name;
-                relationship.name = new_relationship_name;
-            },
-            error: function(result) {
-                is_success = false;
-                alert("fail to update the attribute!");
-                alert(JSON.parse(result.responseText).data);
-            },
-        })
-
+        // invoke 'er/relationship/update' api
+        relationshipUpdate(relationship_update_request, relationship, new_relationship_name, elementView);
+        
     } else {
 
     }
@@ -1774,9 +1476,6 @@ paper.on('link:pointerup', (cell, evt) => {
                     },
                     outer: {
                         stroke: '#FFFFFF',
-                        // fill: '#f6f6f6',
-                        // fill: '#FFFFFF',
-                        // text: underline_string,
                     },
                 },
                 // markup: util.svg`<text @selector="text" fill="#FFFFFF"/> <rect @selector="outer" fill="#f6f6f6"/>`,
@@ -1789,7 +1488,7 @@ paper.on('link:pointerup', (cell, evt) => {
             cell.render();
 
             if (!entity.weakEntityName) {
-                new_link_obj = {
+                link_obj_request = {
                     "relationshipID": relation.id,
                     "belongObjID": entity.id, 
                     "belongObjType": 2, // currently do not support relationship as the belongObj!
@@ -1797,28 +1496,10 @@ paper.on('link:pointerup', (cell, evt) => {
                     "portAtRelationshi": -1,
                     "portAtEntity": -1,
                 }
-                $.ajax({
-                    async: false,
-                    type: "POST",
-                    url: "http://" + ip_address + ":8080/er/relationship/link_obj",
-                    headers: { "Access-Control-Allow-Origin": "*",
-                        "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                    traditional : true,
-                    data: JSON.stringify(new_link_obj),
-                    dataType: "json",
-                    contentType: "application/json",
-                    success: function(result) {
-                        alert("success!");
-                        new_link_obj.edgeID = result.data.edgeID;
-                        console.log("api result: ", result);
-                        relation.belongObjWithCardinalityList.push(new_link_obj);
-                    },
-                    error: function(result) {
-                        is_success = false;
-                        console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                        alert(JSON.parse(result.responseText).data);
-                    },
-                });
+
+                // invoke 'er/relationship/link_obj' api
+                relationshipLinkObj(link_obj_request, relation);
+                
             }
             
         } else if (checkArray(entitiesArray, target) && checkArray(relationshipsArray, source)) {
@@ -1850,7 +1531,7 @@ paper.on('link:pointerup', (cell, evt) => {
             cell.render();
 
             if (!entity.weakEntityName) {
-                new_link_obj = {
+                link_obj_request = {
                     "relationshipID": relation.id,
                     "belongObjID": entity.id, 
                     "belongObjType": 2, // currently do not support relationship as the belongObj!
@@ -1858,31 +1539,12 @@ paper.on('link:pointerup', (cell, evt) => {
                     "portAtRelationshi": -1,
                     "portAtEntity": -1,
                 }
-                $.ajax({
-                    async: false,
-                    type: "POST",
-                    url: "http://" + ip_address + ":8080/er/relationship/link_obj",
-                    headers: { "Access-Control-Allow-Origin": "*",
-                        "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                    traditional : true,
-                    data: JSON.stringify(new_link_obj),
-                    dataType: "json",
-                    contentType: "application/json",
-                    success: function(result) {
-                        alert("success!");
-                        new_link_obj.edgeID = result.data.edgeID;
-                        console.log("api result: ", result);
-                        relation.belongObjWithCardinalityList.push(new_link_obj);
-                    },
-                    error: function(result) {
-                        is_success = false;
-                        console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                        alert(JSON.parse(result.responseText).data);
-                    },
-                });
+
+                // invoke 'er/relationship/link_obj' api
+                relationshipLinkObj(link_obj_request, relation);
+                
             }
         }
-
 
         // Checking every sides of the link, if one side is a weak entity and the other side is a relationship, then
         // need to invkoe the api; otherwise just skip.
@@ -1906,66 +1568,16 @@ paper.on('link:pointerup', (cell, evt) => {
                 entity.strongEntityID = strong_entity.belongObjID;
                 entity.relationshipName = relation.name;
 
-                delete_relationship_request = {
+                relationship_delete_request = {
                     "id": relation.id
                 }
 
-                $.ajax({
-                    async: false,
-                    type: "POST",
-                    url: "http://" + ip_address + ":8080/er/relationship/delete",
-                    headers: { "Access-Control-Allow-Origin": "*",
-                        "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                    traditional : true,
-                    data: JSON.stringify(delete_relationship_request),
-                    dataType: "json",
-                    contentType: "application/json",
-                    success: function(result) {
-                        alert("success to delete the relationship!");
-                        console.log("delete relationship api result: ", result);
-                    },
-                    error: function(result) {
-                        is_success = false;
-                        console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                        alert(JSON.parse(result.responseText).data);
-                    },
-                });
+                // invoke 'er/relationship/delete' api
+                relationshipDelete(relationship_delete_request, relation);
 
-                $.ajax({
-                    async: false,
-                    type: "POST",
-                    url: "http://" + ip_address + ":8080/er/entity/create_weak_entity",
-                    headers: { "Access-Control-Allow-Origin": "*",
-                        "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                    traditional : true,
-                    data: JSON.stringify(entity),
-                    dataType: "json",
-                    contentType: "application/json",
-                    success: function(result) {
-                        alert("success to create a new weak entity!");
-                        entity.id = result.data.weakEntityID;
-                        relation.id = result.data.relationshipID;
-                        console.log("api result: ", result);
-
-                        // May have issues here, since we save link information by link object.
-                        new_link_obj = {
-                            "relationshipID": relation.id,
-                            "belongObjID": entity.id, 
-                            "belongObjType": 2, // currently do not support relationship as the belongObj!
-                            "cardinality": cardinality,
-                            "portAtRelationshi": -1,
-                            "portAtEntity": -1,
-                        }
-
-                        // Didn't delete the original relationship object, only change its id and insert new link object.
-                        relation.belongObjWithCardinalityList.push(new_link_obj);
-                    },
-                    error: function(result) {
-                        is_success = false;
-                        console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                        alert(JSON.parse(result.responseText).data);
-                    },
-                });
+                // invoke 'er/entity/create_weak_entity' api
+                entityCreateWeak(entity, relation);
+                
             }
         } else if (checkArray(entitiesArray, target) && checkArray(relationshipsArray, source)) {
             entity = getElement(entitiesArray, target);
@@ -1983,66 +1595,15 @@ paper.on('link:pointerup', (cell, evt) => {
                 entity.strongEntityID = strong_entity.belongObjID;
                 entity.relationshipName = relation.name;
 
-                delete_relationship_request = {
+                relationship_delete_request = {
                     "id": relation.id
                 }
 
-                $.ajax({
-                    async: false,
-                    type: "POST",
-                    url: "http://" + ip_address + ":8080/er/relationship/delete",
-                    headers: { "Access-Control-Allow-Origin": "*",
-                        "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                    traditional : true,
-                    data: JSON.stringify(delete_relationship_request),
-                    dataType: "json",
-                    contentType: "application/json",
-                    success: function(result) {
-                        alert("success to delete the relationship!");
-                        console.log("relete relationship api result: ", result);
-                    },
-                    error: function(result) {
-                        is_success = false;
-                        console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                        alert(JSON.parse(result.responseText).data);
-                    },
-                });
+                // invoke 'er/relationship/delete' api
+                relationshipDelete(relationship_delete_request, relation);
 
-                $.ajax({
-                    async: false,
-                    type: "POST",
-                    url: "http://" + ip_address + ":8080/er/entity/create_weak_entity",
-                    headers: { "Access-Control-Allow-Origin": "*",
-                        "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                    traditional : true,
-                    data: JSON.stringify(entity),
-                    dataType: "json",
-                    contentType: "application/json",
-                    success: function(result) {
-                        alert("success to create a new weak entity!");
-                        entity.id = result.data.weakEntityID;
-                        relation.id = result.data.relationshipID;
-                        console.log("api result: ", result);
-
-                        // May have issues here, since we save link information by link object.
-                        new_link_obj = {
-                            "relationshipID": relation.id,
-                            "belongObjID": entity.id, 
-                            "belongObjType": 2, // currently do not support relationship as the belongObj!
-                            "cardinality": cardinality,
-                            "portAtRelationshi": -1,
-                            "portAtEntity": -1,
-                        }
-
-                        // Didn't delete the original relationship object, only change its id and insert new link object.
-                        relation.belongObjWithCardinalityList.push(new_link_obj);
-                    },
-                    error: function(result) {
-                        is_success = false;
-                        console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                        alert(JSON.parse(result.responseText).data);
-                    },
-                });
+                // invoke 'er/entity/create_weak_entity' api
+                entityCreateWeak(entity, relation);
             }
         }
 
@@ -2065,7 +1626,7 @@ paper.on('link:pointerup', (cell, evt) => {
 
                 console.log("belongStrongEntity_graph_object: ", belongStrongEntity_graph_object);
                 console.log("belongStrongEntity: ", belongStrongEntity);
-                const create_generalisation_request = {
+                const entity_generalisation_create_request = {
                     "schemaID": schemaID,
                     "subsetName": target.attributes.attrs.label.text,
                     "belongStrongEntityID": belongStrongEntity.id,
@@ -2076,51 +1637,16 @@ paper.on('link:pointerup', (cell, evt) => {
                     }
                 }
 
-                const delete_entity_request = {
+                const entity_delete_request = {
                     "id": targetStrongEntity.id,
                 }
-                $.ajax({
-                    async: false,
-                    type: "POST",
-                    url: "http://" + ip_address + ":8080/er/entity/delete",
-                    headers: { "Access-Control-Allow-Origin": "*",
-                        "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                    traditional : true,
-                    data: JSON.stringify(delete_entity_request),
-                    dataType: "json",
-                    contentType: "application/json",
-                    success: function(result) {
-                        // alert("success to delete the entity!");
-                        console.log("delete relationship api result: ", result);
-                    },
-                    error: function(result) {
-                        is_success = false;
-                        console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                        alert(JSON.parse(result.responseText).data);
-                    },
-                });
+                
+                // invoke 'er/entity/delete' api
+                entityDelete(entity_delete_request);
 
-                $.ajax({
-                    async: false,
-                    type: "POST",
-                    url: "http://" + ip_address + ":8080/er/entity/create_generalisation",
-                    headers: { "Access-Control-Allow-Origin": "*",
-                        "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                    traditional : true,
-                    data: JSON.stringify(create_generalisation_request),
-                    dataType: "json",
-                    contentType: "application/json",
-                    success: function(result) {
-                        alert("success to create a new generalisation subset!");
-                        targetStrongEntity.id = result.data.id;
-                        console.log("api result: ", result);
-                    },
-                    error: function(result) {
-                        is_success = false;
-                        console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                        alert(JSON.parse(result.responseText).data);
-                    },
-                });
+                // invoke 'er/entity/create_generalisation' api
+                entityCreateGeneralisation(entity_generalisation_create_request, targetStrongEntity);
+                
             }
         }
         // console.log("cellllll: ", cell);
@@ -2183,7 +1709,7 @@ paper.on('link:pointerup', (cell, evt) => {
                 belongObject.attributesArray = [];
             }
             
-            new_attribute = {
+            attribute_create_request = {
                 "belongObjID": belongObject.id,
                 "belongObjType": belongObjType,
                 "name": new_attribute_name,
@@ -2197,30 +1723,9 @@ paper.on('link:pointerup', (cell, evt) => {
                 }
             }
 
-            $.ajax({
-                async: false,
-                type: "POST",
-                url: "http://" + ip_address + ":8080/er/attribute/create",
-                headers: { "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-                traditional : true,
-                data: JSON.stringify(new_attribute),
-                dataType: "json",
-                contentType: "application/json",
-                success: function(result) {
-                    alert("success to add new attribute!");
-                    new_attribute.id = result.data.id;
-                    new_attribute.graphId = cell.id;
-                    belongObject.attributesArray.push(new_attribute);
-                    console.log("attribute api result: ", result);
-                },
-                error: function(result) {
-                    is_success = false;
-                    console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
-                    alert(JSON.parse(result.responseText).data);
-                    graph.removeCells(cell.model);
-                },
-            });
+            // invoke 'er/attribute/create' api
+            attributeCreate(attribute_create_request, belongObject, cell);
+
         }
         
     }
@@ -2375,6 +1880,341 @@ function calculateLabelPosition(cell, attribute_name) {
     return result;
 }
 
-// ----------------- All Helper functions -----------------
+// ----------------- All Helper Functions End -----------------
 
 
+
+// ----------------- All Api Invoking Functions -----------------
+
+function attributeCreate(attribute_create_request, belongObject, cell) {
+    $.ajax({
+        async: false,
+        type: "POST",
+        url: "http://" + ip_address + ":8080/er/attribute/create",
+        headers: { "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+        traditional : true,
+        data: JSON.stringify(attribute_create_request),
+        dataType: "json",
+        contentType: "application/json",
+        success: function(result) {
+            alert("success to add new attribute!");
+            attribute_create_request.id = result.data.id;
+            attribute_create_request.graphId = cell.id;
+            belongObject.attributesArray.push(attribute_create_request);
+            console.log("attribute api result: ", result);
+        },
+        error: function(result) {
+            is_success = false;
+            console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+            alert(JSON.parse(result.responseText).data);
+            graph.removeCells(cell.model);
+        },
+    });
+}
+
+function attributeUpdate(attribute_update_request, attribute) {
+    $.ajax({
+        async: false,
+        type: "POST",
+        url: "http://" + ip_address + ":8080/er/attribute/update",
+        headers: { "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+        traditional : true,
+        data: JSON.stringify(attribute_update_request),
+        dataType: "json",
+        contentType: "application/json",
+        success: function(result) {
+            alert("success to update attribute dataType!");
+            console.log("update attribute api result: ", result);
+            attribute.dataType = cell.attributes.labels[0].attrs.text.dataType;
+        },
+        error: function(result) {
+            is_success = false;
+            console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+            alert(JSON.parse(result.responseText).data);
+        },
+    });
+}
+
+function attributeDelete(attribute_delete_request, source, attribute) {
+    $.ajax({
+        async: false,
+        type: "POST",
+        url: "http://" + ip_address + ":8080/er/attribute/delete",
+        headers: { "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+        traditional : true,
+        data: JSON.stringify(attribute_delete_request),
+        dataType: "json",
+        contentType: "application/json",
+        success: function(result) {
+            alert("success to delete the attribute!");
+            removeAttribute(source.attributesArray, attribute);
+        },
+        error: function(result) {
+            is_success = false;
+            alert("fail to delete the attribute!");
+            alert(JSON.parse(result.responseText).data);
+        },
+    })
+}
+
+function entityDelete(entity_delete_request) {
+    $.ajax({
+        async: false,
+        type: "POST",
+        url: "http://" + ip_address + ":8080/er/entity/delete",
+        headers: { "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+        traditional : true,
+        data: JSON.stringify(entity_delete_request),
+        dataType: "json",
+        contentType: "application/json",
+        success: function(result) {
+            alert("success!");
+        },
+        error: function(result) {
+            is_success = false;
+            console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+            alert(JSON.parse(result.responseText).data);
+        },
+    });
+}
+
+function relationshipDelete(relationship_delete_request, relationship) {
+    $.ajax({
+        async: false,
+        type: "POST",
+        url: "http://" + ip_address + ":8080/er/relationship/delete",
+        headers: { "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+        traditional : true,
+        data: JSON.stringify(relationship_delete_request),
+        dataType: "json",
+        contentType: "application/json",
+        success: function(result) {
+            alert("success to delete the relationship!");
+            removeElement(relationshipsArray, relationship);
+        },
+        error: function(result) {
+            is_success = false;
+            alert("fail to delete the relationship!");
+            alert(JSON.parse(result.responseText).data);
+        },
+    })
+}
+
+function entityCreateSubset(subset_create_request) {
+    $.ajax({
+        async: false,
+        type: "POST",
+        url: "http://" + ip_address + ":8080/er/entity/create_subset",
+        headers: { "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+        traditional : true,
+        data: JSON.stringify(subset_create_request),
+        dataType: "json",
+        contentType: "application/json",
+        success: function(result) {
+            alert("success!");
+            subset_create_request.id = result.data.id;
+            console.log(subset_create_request);
+            entitiesArray.push(subset_create_request);
+        },
+        error: function(result) {
+            is_success = false;
+            console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+            alert(JSON.parse(result.responseText).data);
+        },
+    });
+}
+
+function entityCreateStrong(strong_entity_create_request, cell) {
+    $.ajax({
+        async: false,
+        type: "POST",
+        url: "http://" + ip_address + ":8080/er/entity/create_strong",
+        // url: "http://10.187.204.209:8080/er/entity/create_strong",
+        headers: { "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+        traditional : true,
+        data: JSON.stringify(strong_entity_create_request),
+        dataType: "json",
+        contentType: "application/json",
+        success: function(result) {
+            alert("success!");
+            strong_entity_create_request.id = result.data.id;
+            entitiesArray.push(strong_entity_create_request);
+        },
+        error: function(result) {
+            is_success = false;
+            console.log("Strong entity result: ", result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+            alert(JSON.parse(result.responseText).data);
+            graph.removeCells(cell);
+        },
+    });
+}
+
+function relationshipCreateNary(relationship_create_request, cell) {
+    $.ajax({
+        async: false,
+        type: "POST",
+        url: "http://" + ip_address + ":8080/er/relationship/create_nary",
+        headers: { "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+        traditional : true,
+        data: JSON.stringify(relationship_create_request),
+        dataType: "json",
+        contentType: "application/json",
+        success: function(result) {
+            alert("success!");
+            console.log("relationship result: ", result);
+            relationship_create_request.id = result.data.id;
+            relationship_create_request.belongObjWithCardinalityList = [];
+            relationshipsArray.push(relationship_create_request);
+        },
+        error: function(result) {
+            is_success = false;
+            alert(JSON.parse(result.responseText).data);
+            graph.removeCells(cell);
+        },
+    })
+}
+
+function entityUpdate(entity_update_request, entity, new_weak_entity_name, elementView) {
+    $.ajax({
+        async: false,
+        type: "POST",
+        url: "http://" + ip_address + ":8080/er/entity/update",
+        headers: { "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+        traditional : true,
+        data: JSON.stringify(entity_update_request),
+        dataType: "json",
+        contentType: "application/json",
+        success: function(result) {
+            alert("success to update the weak entity!");
+            elementView.model.attributes.attrs.label.text = new_weak_entity_name;
+            entity.weakEntityName = new_weak_entity_name;
+        },
+        error: function(result) {
+            is_success = false;
+            alert("fail to update the attribute!");
+            alert(JSON.parse(result.responseText).data);
+        }
+    })
+}
+
+function relationshipUpdate(update_relationship_request, relationship, new_relationship_name, elementView) {
+    $.ajax({
+        async: false,
+        type: "POST",
+        url: "http://" + ip_address + ":8080/er/relationship/update",
+        headers: { "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+        traditional : true,
+        data: JSON.stringify(update_relationship_request),
+        dataType: "json",
+        contentType: "application/json",
+        success: function(result) {
+            alert("success to update the relationship!");
+            elementView.model.attributes.attrs.label.text = new_relationship_name;
+            relationship.name = new_relationship_name;
+        },
+        error: function(result) {
+            is_success = false;
+            alert("fail to update the attribute!");
+            alert(JSON.parse(result.responseText).data);
+        },
+    })
+}
+
+function relationshipLinkObj(link_obj_request, relationship) {
+    $.ajax({
+        async: false,
+        type: "POST",
+        url: "http://" + ip_address + ":8080/er/relationship/link_obj",
+        headers: { "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+        traditional : true,
+        data: JSON.stringify(link_obj_request),
+        dataType: "json",
+        contentType: "application/json",
+        success: function(result) {
+            alert("success!");
+            link_obj_request.edgeID = result.data.edgeID;
+            console.log("api result: ", result);
+            relationship.belongObjWithCardinalityList.push(link_obj_request);
+        },
+        error: function(result) {
+            is_success = false;
+            console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+            alert(JSON.parse(result.responseText).data);
+        },
+    });
+}
+
+function entityCreateWeak(entity, relation) {
+    $.ajax({
+        async: false,
+        type: "POST",
+        url: "http://" + ip_address + ":8080/er/entity/create_weak_entity",
+        headers: { "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+        traditional : true,
+        data: JSON.stringify(entity),
+        dataType: "json",
+        contentType: "application/json",
+        success: function(result) {
+            alert("success to create a new weak entity!");
+            entity.id = result.data.weakEntityID;
+            relation.id = result.data.relationshipID;
+            console.log("api result: ", result);
+
+            // May have issues here, since we save link information by link object.
+            new_link_obj = {
+                "relationshipID": relation.id,
+                "belongObjID": entity.id, 
+                "belongObjType": 2, // currently do not support relationship as the belongObj!
+                "cardinality": cardinality,
+                "portAtRelationshi": -1,
+                "portAtEntity": -1,
+            }
+
+            // Didn't delete the original relationship object, only change its id and insert new link object.
+            relation.belongObjWithCardinalityList.push(new_link_obj);
+        },
+        error: function(result) {
+            is_success = false;
+            console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+            alert(JSON.parse(result.responseText).data);
+        },
+    });
+}
+
+function entityCreateGeneralisation(entity_generalisation_create_request, targetStrongEntity) {
+    $.ajax({
+        async: false,
+        type: "POST",
+        url: "http://" + ip_address + ":8080/er/entity/create_generalisation",
+        headers: { "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+        traditional : true,
+        data: JSON.stringify(entity_generalisation_create_request),
+        dataType: "json",
+        contentType: "application/json",
+        success: function(result) {
+            alert("success to create a new generalisation subset!");
+            targetStrongEntity.id = result.data.id;
+            console.log("api result: ", result);
+        },
+        error: function(result) {
+            is_success = false;
+            console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+            alert(JSON.parse(result.responseText).data);
+        },
+    });
+}
+
+// ----------------- All Api Invoking Functions End -----------------
