@@ -845,6 +845,7 @@ paper.on('element:pointerclick', (elementView) => {
 
 paper.on('link:pointerclick', (linkView) => {
     console.log("link2: ", linkView);
+    // stop other events here?
     paper.removeTools();
     const toolsView = new dia.ToolsView({
         tools: [
@@ -1061,13 +1062,13 @@ graph.on('change add', (cell) => {
 
                 const position = calculateLabelPosition(cell, "");
 
-                cell.attributes.labels[0].position = {
-                    distance: 1,
-                    offset: {
-                        x: position.final_x,
-                        y: position.final_y
-                    }
-                };
+                // cell.attributes.labels[0].position = {
+                    // distance: 1,
+                    // offset: {
+                    //     x: position.final_x,
+                    //     y: position.final_y
+                    // }
+                // };
 
                 if (cell.attributes.labels[0].attrs) {
 
@@ -1214,37 +1215,27 @@ graph.on('change add', (cell) => {
                             // may need to break here?
                         } else {
                             let underline_string = "";
-                            let count = 0;
                             for (char in new_attribute_name) {
                                 underline_string += "_";
-                                count++;
                             } 
+
+                            console.log("cell.attributes.labels[0]: ", cell.attributes.labels[0]);
+
                             cell.attributes.labels[0].attrs.outer = {
                                 text: underline_string,
                                 fill: "#FFFFFF"
                             }
-                            cell.attributes.labels[0].markup = util.svg`<text @selector="text"/> <text @selector="outer"/>`;
-                            // cell.attributes.labels[0] = {
-                            //     attrs: {
-                            //         text: {
-                            //             text: new_attribute_name,
-                            //             primary: "Yes"
-                            //         },
-                            //         outer: {
-                            //             // stroke: '#FFFFFF',
-                            //             // fill: '#FFFFFF',
-                            //             text: underline_string,
-                            //         },
-                            //     },
-                            //     markup: util.svg`<text @selector="text" fill="#FFFFFF"/> <text @selector="outer" fill="#FFFFFF"/>`,
-                            //     position: {
-                            //         distance: 1,
-                            //         offset: {
-                            //             x: position.final_x - 8,
-                            //             y: position.final_y - 8
-                            //         }
+
+                            // console.log("mddddddd: ", cell.attributes.labels[0].position);
+                            // cell.attributes.labels[0].position = {
+                            //     distance: 1,
+                            //     offset: {
+                            //         x: position.final_x,
+                            //         y: position.final_y
                             //     }
-                            // }
+                            // };
+
+                            cell.attributes.labels[0].markup = util.svg`<text @selector="text"/> <text @selector="outer"/>`;
                             
                             const source_id = cell.attributes.source.id;
                             const source = graph.getCell(source_id);
@@ -1287,24 +1278,37 @@ graph.on('change add', (cell) => {
                         
                     } else if (cell.attributes.labels[0].attrs.text.primary == 'No' && attribute.isPrimary == true) {
 
-                        cell.attributes.labels[0] = {
-                            attrs: {
-                                text: {
-                                    text: new_attribute_name,
-                                    primary: "No",
-                                    optional: "No",
-                                    fill: "#FFFFFF"
-                                },
+                        console.log("cell.attributes.labels[0]: ", cell.attributes.labels[0]);
+
+                        cell.attributes.labels[0].attrs = {
+                            text: {
+                                text: new_attribute_name,
+                                primary: "No",
+                                optional: "No",
+                                fill: "#FFFFFF"
                             },
-                            markup: util.svg`<text @selector="text"/>`,
-                            position: {
-                                distance: 1,
-                                offset: {
-                                    x: position.final_x,
-                                    y: position.final_y
-                                }
-                            }
                         }
+
+                        cell.attributes.labels[0].markup = util.svg`<text @selector="text"/>`;
+
+                        // cell.attributes.labels[0] = {
+                        //     attrs: {
+                        //         text: {
+                        //             text: new_attribute_name,
+                        //             primary: "No",
+                        //             optional: "No",
+                        //             fill: "#FFFFFF"
+                        //         },
+                        //     },
+                        //     markup: util.svg`<text @selector="text"/>`,
+                        //     position: {
+                        //         distance: 1,
+                        //         offset: {
+                        //             x: position.final_x,
+                        //             y: position.final_y
+                        //         }
+                        //     }
+                        // }
 
                         const source_id = cell.attributes.source.id;
                         const source = graph.getCell(source_id);
@@ -1839,6 +1843,7 @@ paper.on('link:pointerup', (cell, evt) => {
             // invoke 'er/attribute/create' api
             attributeCreate(attribute_create_request, belongObject, cell);
 
+            console.log("55555555555555", cell.model.attributes);
         }
         
     }
@@ -1953,7 +1958,6 @@ function calculateLabelPosition(cell, attribute_name) {
     let final_x = 0;
     let final_y = 0;
 
-    const text = attribute_name;
     // console.log(text);
     // console.log((attribute_name.length - 2) / 2);
     let final_x_offset = (-6) * ((attribute_name.length - 2) / 2) + 4; // This is used for giving left side attributes offset px to avoid too large name exceeds the area
