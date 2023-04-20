@@ -796,7 +796,7 @@ paper.on('element:pointerclick', (elementView) => {
         handles.push({
             name: 'link',
             position: 'e',
-            // events: { pointerdown: 'startLinking', pointermove: 'doLink', pointerup: 'stopLinking' }
+            events: { pointerdown: 'startLinking', pointermove: 'doLink', pointerup: 'stopLinking' }
         });
     }
     const halo = new ui.Halo({
@@ -1078,10 +1078,13 @@ graph.on('change add', (cell) => {
                     const attribute_name = original_text.includes('?') ? original_text.substring(0, original_text.length - 1) : original_text;
                     const attribute = getAttribute(belongObject, attribute_name);
 
+                    console.log("attribute: ", attribute);
+                    console.log("cell.attributes.labels[0].attrs: ", cell.attributes.labels[0].attrs);
+
                     console.log("original_text: ", original_text);
                     // This is used to set the optional
 
-                    if (cell.attributes.labels[0].attrs.text.dataType != attribute.dataType) {
+                    if (cell.attributes.labels[0].attrs.text.dataType && cell.attributes.labels[0].attrs.text.dataType != attribute.dataType) {
                         attribute_update_request = {
                             "attributeID": attribute.id,
                             "dataType": cell.attributes.labels[0].attrs.text.dataType
@@ -1089,7 +1092,29 @@ graph.on('change add', (cell) => {
                         }
 
                         // invoke 'er/attribute/update' api
-                        attributeUpdate(attribute_update_request, attribute);
+                        // attributeUpdate(attribute_update_request, attribute, cell);
+
+                        $.ajax({
+                            async: false,
+                            type: "POST",
+                            url: "http://" + ip_address + ":8080/er/attribute/update",
+                            headers: { "Access-Control-Allow-Origin": "*",
+                                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                            traditional : true,
+                            data: JSON.stringify(attribute_update_request),
+                            dataType: "json",
+                            contentType: "application/json",
+                            success: function(result) {
+                                alert("success to update attribute dataType!");
+                                console.log("update attribute api result: ", result);
+                                attribute.dataType = cell.attributes.labels[0].attrs.text.dataType;
+                            },
+                            error: function(result) {
+                                is_success = false;
+                                console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                                alert(JSON.parse(result.responseText).data);
+                            },
+                        });
                     }
 
                     if (cell.attributes.labels[0].attrs.text.optional == 'Yes' && attribute.attributeType != 2 && !original_text.includes('?')) {
@@ -1112,7 +1137,29 @@ graph.on('change add', (cell) => {
                             }
 
                             // invoke 'er/attribute/update' api
-                            attributeUpdate(attribute_update_request, attribute);
+                            // attributeUpdate(attribute_update_request, attribute, cell);
+
+                            $.ajax({
+                                async: false,
+                                type: "POST",
+                                url: "http://" + ip_address + ":8080/er/attribute/update",
+                                headers: { "Access-Control-Allow-Origin": "*",
+                                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                                traditional : true,
+                                data: JSON.stringify(attribute_update_request),
+                                dataType: "json",
+                                contentType: "application/json",
+                                success: function(result) {
+                                    alert("success to update attribute!");
+                                    console.log("update attribute api result: ", result);
+                                    attribute.attributeType = 2;
+                                },
+                                error: function(result) {
+                                    is_success = false;
+                                    console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                                    alert(JSON.parse(result.responseText).data);
+                                },
+                            });
                         }
 
                     } else if (cell.attributes.labels[0].attrs.text.optional == 'No' && attribute.attributeType == 2 && original_text.includes('?')) {
@@ -1129,13 +1176,34 @@ graph.on('change add', (cell) => {
                         }
 
                         // invoke 'er/attribute/update' api
-                        attributeUpdate(attribute_update_request, attribute);
+                        // attributeUpdate(attribute_update_request, attribute, cell);
+
+                        $.ajax({
+                            async: false,
+                            type: "POST",
+                            url: "http://" + ip_address + ":8080/er/attribute/update",
+                            headers: { "Access-Control-Allow-Origin": "*",
+                                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                            traditional : true,
+                            data: JSON.stringify(attribute_update_request),
+                            dataType: "json",
+                            contentType: "application/json",
+                            success: function(result) {
+                                alert("success to update attribute!");
+                                console.log("update attribute api result: ", result);
+                                attribute.attributeType = 1;
+                            },
+                            error: function(result) {
+                                is_success = false;
+                                console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                                alert(JSON.parse(result.responseText).data);
+                            },
+                        });
                     }
 
                     // This is used to set primary key
                     // Here we need to reset the attribute name, because it may contains optional mark "?"
                     const new_attribute_name = cell.attributes.labels[0].attrs.text.text;
-
 
                     // if (cell.attributes.labels[0].attrs.text.primary) {
                     if (cell.attributes.labels[0].attrs.text.primary == 'Yes' && attribute.isPrimary == false) {
@@ -1192,7 +1260,29 @@ graph.on('change add', (cell) => {
                             }
 
                             // invoke 'er/attribute/update' api
-                            attributeUpdate(attribute_update_request, attribute);
+                            // attributeUpdate(attribute_update_request, attribute, cell);
+
+                            $.ajax({
+                                async: false,
+                                type: "POST",
+                                url: "http://" + ip_address + ":8080/er/attribute/update",
+                                headers: { "Access-Control-Allow-Origin": "*",
+                                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                                traditional : true,
+                                data: JSON.stringify(attribute_update_request),
+                                dataType: "json",
+                                contentType: "application/json",
+                                success: function(result) {
+                                    alert("success to update attribute!");
+                                    console.log("update attribute api result: ", result);
+                                    attribute.isPrimary = true;
+                                },
+                                error: function(result) {
+                                    is_success = false;
+                                    console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                                    alert(JSON.parse(result.responseText).data);
+                                },
+                            });
                         }
                         
                     } else if (cell.attributes.labels[0].attrs.text.primary == 'No' && attribute.isPrimary == true) {
@@ -1230,7 +1320,30 @@ graph.on('change add', (cell) => {
                         }
 
                         // invoke 'er/attribute/update' api
-                        attributeUpdate(attribute_update_request, attribute);
+                        // attributeUpdate(attribute_update_request, attribute, cell);
+
+                        $.ajax({
+                            async: false,
+                            type: "POST",
+                            url: "http://" + ip_address + ":8080/er/attribute/update",
+                            headers: { "Access-Control-Allow-Origin": "*",
+                                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                            traditional : true,
+                            data: JSON.stringify(attribute_update_request),
+                            dataType: "json",
+                            contentType: "application/json",
+                            success: function(result) {
+                                alert("success to update attribute!");
+                                console.log("update attribute api result: ", result);
+                                attribute.isPrimary = false;
+                            },
+                            error: function(result) {
+                                is_success = false;
+                                console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                                alert(JSON.parse(result.responseText).data);
+                                attribute.isPrimary = true;
+                            },
+                        });
                     }
                     // }
                 }
@@ -1913,7 +2026,7 @@ function attributeCreate(attribute_create_request, belongObject, cell) {
     });
 }
 
-function attributeUpdate(attribute_update_request, attribute) {
+function attributeUpdate(attribute_update_request, attribute, cell) {
     $.ajax({
         async: false,
         type: "POST",
