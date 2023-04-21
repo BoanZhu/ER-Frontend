@@ -1053,7 +1053,7 @@ graph.addCell(myLink);
 // graph.on('change add remove', (cell) => {
 graph.on('change add', (cell) => {
     // console.log("cells: ", graph.getCells());
-    // console.log(cell);
+    console.log("123456789", cell);
     if (cell.attributes.type == 'standard.Link') {
         // This is for the attributes setting; target.id == undefined means this is an attribute
         if (cell.attributes.target.id == undefined) {
@@ -1076,6 +1076,43 @@ graph.on('change add', (cell) => {
                     const source_id = cell.attributes.source.id;
                     const source = graph.getCell(source_id);
                     const belongObject = getElement(entitiesArray, source);
+
+                    if (checkAttributeNameModified(belongObject, original_text)) {
+                        let attributesArray = belongObject.attributesArray;
+                        for (idx in attributesArray) {
+                            if (attributesArray[idx].graphId == cell.id) {
+                                attributesArray[idx].name = original_text;
+                                console.log("attributesArray[idx]: ", attributesArray[idx]);
+
+                                const attribute_update_request = {
+                                    "attributeID": attributesArray[idx].id,
+                                    "name": attributesArray[idx].name
+                                }
+
+                                $.ajax({
+                                    async: false,
+                                    type: "POST",
+                                    url: "http://" + ip_address + ":8080/er/attribute/update",
+                                    headers: { "Access-Control-Allow-Origin": "*",
+                                        "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                                    traditional : true,
+                                    data: JSON.stringify(attribute_update_request),
+                                    dataType: "json",
+                                    contentType: "application/json",
+                                    success: function(result) {
+                                        alert("success to update attribute name!");
+                                        console.log("update attribute api result: ", result);
+                                    },
+                                    error: function(result) {
+                                        is_success = false;
+                                        console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                                        alert(JSON.parse(result.responseText).data);
+                                    },
+                                });
+                            }
+                        }
+                    }
+
                     const attribute_name = original_text.includes('?') ? original_text.substring(0, original_text.length - 1) : original_text;
                     const attribute = getAttribute(belongObject, attribute_name);
 
@@ -1409,7 +1446,87 @@ graph.on('change add', (cell) => {
             }
             
         }
-    }
+    } else if (cell.attributes.type == 'myApp.StrongEntity') {
+        if (cell.attributes.attrs.label) {
+
+            const original_text = cell.attributes.attrs.label.text;
+            const source_id = cell.attributes.id;
+
+            if (checkStrongEntityNameModified(original_text)) {
+                for (idx in entitiesArray) {
+                    if (entitiesArray[idx].graphId == source_id) {
+                        entitiesArray[idx].name = original_text;
+
+                        const entity_update_request = {
+                            "entityID": entitiesArray[idx].id,
+                            "name": entitiesArray[idx].name
+                        }
+
+                        $.ajax({
+                            async: false,
+                            type: "POST",
+                            url: "http://" + ip_address + ":8080/er/entity/update",
+                            headers: { "Access-Control-Allow-Origin": "*",
+                                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                            traditional : true,
+                            data: JSON.stringify(entity_update_request),
+                            dataType: "json",
+                            contentType: "application/json",
+                            success: function(result) {
+                                alert("success to update the name of the entity!");
+                            },
+                            error: function(result) {
+                                is_success = false;
+                                alert("fail to update the entity!");
+                                alert(JSON.parse(result.responseText).data);
+                            }
+                        })
+                    }
+                }
+
+            }
+
+        }
+    } else if (cell.attributes.type == 'myApp.Relationship') {
+
+        const original_text = cell.attributes.attrs.label.text;
+        const source_id = cell.attributes.id;
+
+        if (checkRelationshipNameModified(original_text)) {
+            for (idx in relationshipsArray) {
+                if (relationshipsArray[idx].graphId == source_id) {
+                    relationshipsArray[idx].name = original_text;
+
+                    relationship_update_request = {
+                        "relationshipID": relationshipsArray[idx].id,
+                        "name": relationshipsArray[idx].name
+                    }
+
+                    $.ajax({
+                        async: false,
+                        type: "POST",
+                        url: "http://" + ip_address + ":8080/er/relationship/update",
+                        headers: { "Access-Control-Allow-Origin": "*",
+                        "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                        traditional : true,
+                        data: JSON.stringify(relationship_update_request),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function(result) {
+                            alert("success to update the name of the relationship!");
+                        },
+                        error: function(result) {
+                            is_success = false;
+                            alert("fail to update the entity!");
+                            alert(JSON.parse(result.responseText).data);
+                        }
+                    })
+                }
+            }
+        }
+    } 
+
+    // Weak entity的更新必须依赖在一个已经和Strong entity连接的合法情况下，暂时不做考虑，后面需要优化处理Weak entity的问题。
 });
 
 paper.on('blank:pointerdown', (evt) => {
@@ -1516,7 +1633,7 @@ paper.on('cell:pointerdblclick', function(elementView, evt) {
         }
 
         // invoke 'er/entity/update' api
-        entityUpdate(entity_update_request, entity, new_weak_entity_name, elementView);
+        // entityUpdate(entity_update_request, entity, new_weak_entity_name, elementView);
         
     } else if (elementView.model.attributes.type === 'myApp.StrongEntity') {
         let new_strong_entity_name = window.prompt("Please enter the new name of the strong entity:", "");
@@ -1528,7 +1645,7 @@ paper.on('cell:pointerdblclick', function(elementView, evt) {
         }
 
         // invoke 'er/entity/update' api
-        entityUpdate(entity_update_request, entity, new_weak_entity_name, elementView);
+        entityUpdate(entity_update_request, entity, new_strong_entity_name, elementView);
 
     } else if (elementView.model.attributes.type === 'myApp.Relationship') {
         let new_relationship_name = window.prompt("Please enter the new name of the relationship entity:", "");
@@ -1871,6 +1988,37 @@ function getAttribute(belongObject, attribute_name) {
     return result;
 }
 
+function checkAttributeNameModified(belongObject, original_text) {
+    const attributesArray = belongObject.attributesArray;
+    let modified = true;
+    for (idx in attributesArray) {
+        if (attributesArray[idx].name == original_text) {
+            modified = false;
+        }
+    }
+    return modified;
+}
+
+function checkStrongEntityNameModified(original_text) {
+    let modified = true;
+    for (idx in entitiesArray) {
+        if (entitiesArray[idx].name == original_text) {
+            modified = false;
+        }
+    }
+    return modified;
+}
+
+function checkRelationshipNameModified(original_text) {
+    let modified = true;
+    for (idx in relationshipsArray) {
+        if (relationshipsArray[idx].name == original_text) {
+            modified = false;
+        }
+    }
+    return modified;
+}
+
 function removeAttribute(attributesArray, attribute) {
     for (idx in attributesArray) {
         if (attributesArray[idx].name == attribute.name) {
@@ -2017,7 +2165,7 @@ function attributeCreate(attribute_create_request, belongObject, cell) {
         success: function(result) {
             alert("success to add new attribute!");
             attribute_create_request.id = result.data.id;
-            attribute_create_request.graphId = cell.id;
+            attribute_create_request.graphId = cell.model.id;
             belongObject.attributesArray.push(attribute_create_request);
             console.log("attribute api result: ", result);
         },
@@ -2044,6 +2192,7 @@ function attributeUpdate(attribute_update_request, attribute, cell) {
         success: function(result) {
             alert("success to update attribute dataType!");
             console.log("update attribute api result: ", result);
+            console.log("cell1234567: ", cell);
             attribute.dataType = cell.attributes.labels[0].attrs.text.dataType;
         },
         error: function(result) {
@@ -2162,6 +2311,7 @@ function entityCreateStrong(strong_entity_create_request, cell) {
         success: function(result) {
             alert("success!");
             strong_entity_create_request.id = result.data.id;
+            strong_entity_create_request.graphId = cell.id;
             entitiesArray.push(strong_entity_create_request);
         },
         error: function(result) {
@@ -2188,6 +2338,7 @@ function relationshipCreateNary(relationship_create_request, cell) {
             alert("success!");
             console.log("relationship result: ", result);
             relationship_create_request.id = result.data.id;
+            relationship_create_request.graphId = cell.id;
             relationship_create_request.belongObjWithCardinalityList = [];
             relationshipsArray.push(relationship_create_request);
         },
@@ -2211,13 +2362,13 @@ function entityUpdate(entity_update_request, entity, new_weak_entity_name, eleme
         dataType: "json",
         contentType: "application/json",
         success: function(result) {
-            alert("success to update the weak entity!");
+            alert("success to update the name of the entity!");
             elementView.model.attributes.attrs.label.text = new_weak_entity_name;
             entity.weakEntityName = new_weak_entity_name;
         },
         error: function(result) {
             is_success = false;
-            alert("fail to update the attribute!");
+            alert("fail to update the entity!");
             alert(JSON.parse(result.responseText).data);
         }
     })
