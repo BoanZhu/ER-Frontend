@@ -528,7 +528,6 @@ const options = {
 
 paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
     if (elementView.model.attributes.type == "standard.Link") {
-        console.log("link: ", elementView);
         if (elementView.model.attributes.target.id == undefined) {
             ui.Inspector.create('.inspector-container', {
                 cell: elementView.model,
@@ -738,7 +737,6 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
         });
     }
     } else {
-        console.log("not link: ", elementView);
         ui.Inspector.create('.inspector-container', {
             cell: elementView.model,
             inputs: {
@@ -809,7 +807,6 @@ paper.on('element:pointerclick', (elementView) => {
     });
 
     halo.on('action:remove:pointerdown', (evt, cellView, wtf) => {
-        console.log(elementView);
         if (elementView.model.attributes.type == "myApp.StrongEntity") {
             const source = graph.getCell(elementView.model.id);
             const entity = getElement(entitiesArray, source);
@@ -844,7 +841,6 @@ paper.on('element:pointerclick', (elementView) => {
 // ---------- Link Tools ----------
 
 paper.on('link:pointerclick', (linkView) => {
-    console.log("link2: ", linkView);
     // stop other events here?
     paper.removeTools();
     const toolsView = new dia.ToolsView({
@@ -1052,7 +1048,6 @@ graph.addCell(myLink);
 // React on changes in the graph.
 // graph.on('change add remove', (cell) => {
 graph.on('change add', (cell) => {
-    // console.log("cells: ", graph.getCells());
     console.log("123456789", cell);
     if (cell.attributes.type == 'standard.Link') {
         // This is for the attributes setting; target.id == undefined means this is an attribute
@@ -1075,14 +1070,21 @@ graph.on('change add', (cell) => {
                     const original_text = cell.attributes.labels[0].attrs.text.text;
                     const source_id = cell.attributes.source.id;
                     const source = graph.getCell(source_id);
-                    const belongObject = getElement(entitiesArray, source);
+                    let belongObject;
+
+                    if (source.attributes.type == "myApp.StrongEntity" || source.attributes.type == "myApp.WeakEntity") {
+                        belongObject = getElement(entitiesArray, source);
+                    } else if (source.attributes.type == "myApp.Relationship") {
+                        belongObject = getElement(relationshipsArray, source);
+                    }
+
+                    // const belongObject = getElement(entitiesArray, source);
 
                     if (checkAttributeNameModified(belongObject, original_text)) {
                         let attributesArray = belongObject.attributesArray;
                         for (idx in attributesArray) {
                             if (attributesArray[idx].graphId == cell.id) {
                                 attributesArray[idx].name = original_text;
-                                console.log("attributesArray[idx]: ", attributesArray[idx]);
 
                                 const attribute_update_request = {
                                     "attributeID": attributesArray[idx].id,
@@ -1112,14 +1114,10 @@ graph.on('change add', (cell) => {
                             }
                         }
                     }
-
+                    
                     const attribute_name = original_text.includes('?') ? original_text.substring(0, original_text.length - 1) : original_text;
-                    const attribute = getAttribute(belongObject, attribute_name);
+                    const attribute = getAttribute(belongObject, original_text);
 
-                    console.log("attribute: ", attribute);
-                    console.log("cell.attributes.labels[0].attrs: ", cell.attributes.labels[0].attrs);
-
-                    console.log("original_text: ", original_text);
                     // This is used to set the optional
 
                     if (cell.attributes.labels[0].attrs.text.dataType && cell.attributes.labels[0].attrs.text.dataType != attribute.dataType) {
@@ -1256,14 +1254,11 @@ graph.on('change add', (cell) => {
                                 underline_string += "_";
                             } 
 
-                            console.log("cell.attributes.labels[0]: ", cell.attributes.labels[0]);
-
                             cell.attributes.labels[0].attrs.outer = {
                                 text: underline_string,
                                 fill: "#FFFFFF"
                             }
 
-                            // console.log("mddddddd: ", cell.attributes.labels[0].position);
                             // cell.attributes.labels[0].position = {
                             //     distance: 1,
                             //     offset: {
@@ -1274,12 +1269,12 @@ graph.on('change add', (cell) => {
 
                             cell.attributes.labels[0].markup = util.svg`<text @selector="text"/> <text @selector="outer"/>`;
                             
-                            const source_id = cell.attributes.source.id;
-                            const source = graph.getCell(source_id);
-                            const belongObject = getElement(entitiesArray, source);
-                            const attribute_name = cell.attributes.labels[0].attrs.text.text;
+                            // const source_id = cell.attributes.source.id;
+                            // const source = graph.getCell(source_id);
+                            // const belongObject = getElement(entitiesArray, source);
+                            // const attribute_name = cell.attributes.labels[0].attrs.text.text;
 
-                            const attribute = getAttribute(belongObject, attribute_name);
+                            // const attribute = getAttribute(belongObject, attribute_name);
 
                             attribute_update_request = {
                                 "attributeID": attribute.id,
@@ -1315,8 +1310,6 @@ graph.on('change add', (cell) => {
                         
                     } else if (cell.attributes.labels[0].attrs.text.primary == 'No' && attribute.isPrimary == true) {
 
-                        console.log("cell.attributes.labels[0]: ", cell.attributes.labels[0]);
-
                         cell.attributes.labels[0].attrs = {
                             text: {
                                 text: new_attribute_name,
@@ -1347,10 +1340,10 @@ graph.on('change add', (cell) => {
                         //     }
                         // }
 
-                        const source_id = cell.attributes.source.id;
-                        const source = graph.getCell(source_id);
-                        const belongObject = getElement(entitiesArray, source);
-                        const attribute_name = cell.attributes.labels[0].attrs.text.text;
+                        // const source_id = cell.attributes.source.id;
+                        // const source = graph.getCell(source_id);
+                        // const belongObject = getElement(entitiesArray, source);
+                        // const attribute_name = cell.attributes.labels[0].attrs.text.text;
 
                         const attribute = getAttribute(belongObject, attribute_name);
 
@@ -1620,9 +1613,7 @@ graph.on('add', function(cell) {
 })
 
 paper.on('cell:pointerdblclick', function(elementView, evt) {
-    console.log("elementView: ", elementView);
     const source = graph.getCell(elementView.model.id);
-    console.log("source: ", source);
     if (elementView.model.attributes.type === 'myApp.WeakEntity') {
         let new_weak_entity_name = window.prompt("Please enter the new name of the weak entity:", "");
         const entity = getElement(entitiesArray, source);
@@ -1672,7 +1663,6 @@ paper.on('blank:pointerdown', (evt) => {
 });
 
 paper.on('link:pointerup', (cell, evt) => {
-    console.log("link3: ", cell);
     if (cell.model.attributes.target.id && !cell.model.attributes.labels) {
 
         // This is for linking relationship with entities
@@ -1858,8 +1848,6 @@ paper.on('link:pointerup', (cell, evt) => {
                 const belongStrongEntity = getElement(entitiesArray, belongStrongEntity_graph_object);
                 const targetStrongEntity = getElement(entitiesArray, target);
 
-                console.log("belongStrongEntity_graph_object: ", belongStrongEntity_graph_object);
-                console.log("belongStrongEntity: ", belongStrongEntity);
                 const entity_generalisation_create_request = {
                     "schemaID": schemaID,
                     "subsetName": target.attributes.attrs.label.text,
@@ -1883,14 +1871,10 @@ paper.on('link:pointerup', (cell, evt) => {
                 
             }
         }
-        // console.log("cellllll: ", cell);
-        // console.log("source: ", source);
-        // console.log("target: ", target);
     }
 }) 
 
 paper.on('link:pointerup', (cell, evt) => {
-    console.log("link4: ", cell);
 
     if (!cell.model.attributes.labels && cell.model.attributes.target.id == undefined) {
         // Here, we set the new attribute name and put it in the right place.
@@ -1928,16 +1912,30 @@ paper.on('link:pointerup', (cell, evt) => {
 
             const belongObjectGraphId = cell.model.attributes.source.id;
             const source = graph.getCell(belongObjectGraphId);
-            const belongObject = getElement(entitiesArray, source);
 
+            let belongObject;
             let belongObjType;
-            if (belongObject.weakEntityName) {
+
+            if (source.attributes.type == "myApp.StrongEntity") {
+                belongObject = getElement(entitiesArray, source);
                 belongObjType = 2;
-            } else if (belongObject.belongObjWithCardinalityList) {
+            } else if (source.attributes.type == "myApp.Relationship") {
+                belongObject = getElement(relationshipsArray, source);
                 belongObjType = 3;
-            } else {
+            } else if (source.attributes.type == "myApp.WeakEntity") {
+                belongObject = getElement(entitiesArray, source);
                 belongObjType = 2;
             }
+            
+
+            
+            // if (belongObject.weakEntityName) {
+            //     belongObjType = 2;
+            // } else if (belongObject.belongObjWithCardinalityList) {
+            //     belongObjType = 3;
+            // } else {
+            //     belongObjType = 2;
+            // }
 
             if (!belongObject.attributesArray) {
                 belongObject.attributesArray = [];
@@ -1959,8 +1957,6 @@ paper.on('link:pointerup', (cell, evt) => {
 
             // invoke 'er/attribute/create' api
             attributeCreate(attribute_create_request, belongObject, cell);
-
-            console.log("55555555555555", cell.model.attributes);
         }
         
     }
@@ -2061,10 +2057,8 @@ function checkArray(arr, cell) {
 
 function getElement(arr, cell) {
     const cell_name = cell.attributes.attrs.label.text;
-    console.log("cell_name: ", cell_name);
     let result;
     for (idx in arr) {
-        console.log("arr[idx].name: ", arr[idx].name);
         if (arr[idx].name == cell_name || arr[idx].weakEntityName == cell_name) {
             result = arr[idx];
         }
@@ -2192,7 +2186,6 @@ function attributeUpdate(attribute_update_request, attribute, cell) {
         success: function(result) {
             alert("success to update attribute dataType!");
             console.log("update attribute api result: ", result);
-            console.log("cell1234567: ", cell);
             attribute.dataType = cell.attributes.labels[0].attrs.text.dataType;
         },
         error: function(result) {
