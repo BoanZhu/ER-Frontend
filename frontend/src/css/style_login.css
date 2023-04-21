@@ -1,0 +1,47 @@
+/*! JointJS+ v3.6.3 - HTML5 Diagramming Framework - TRIAL VERSION
+
+Copyright (c) 2022 client IO
+
+ 2023-01-17 
+
+
+This Source Code Form is subject to the terms of the JointJS+ Trial License
+, v. 2.0. If a copy of the JointJS+ License was not distributed with this
+file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
+ or from the JointJS+ archive as was distributed by client IO. See the LICENSE file.*/
+
+.main {
+    width: 100vw;
+    height: 100vh;
+    background-color: cornflowerblue;
+}
+
+.loginWindow {
+    left: 60vw;
+    top: 28vh;
+    position: absolute;
+    background-color: white;
+    border-radius: 5px;
+    padding: 38px 35px;
+    width: fit-content;
+}
+
+.title {
+    color: #0d6efd;
+    font-size: 28px;
+    text-align: center;
+    font-weight: bold;
+    height: 35px;
+}
+
+.subTitle {
+    color: #adb5bd;
+    text-align: center;
+}
+
+.btnLogin {
+    margin-top: 20px;
+    width: 100%;
+}
+
+
