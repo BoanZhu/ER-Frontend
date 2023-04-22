@@ -1949,6 +1949,40 @@ paper.on('link:pointerup', (cell, evt) => {
                 relationshipLinkObj(link_obj_request, relation);
                 
             }
+        } else if (checkArray(relationshipsArray, source) && checkArray(relationshipsArray, target)) {
+            const relationship1 = getElement(relationshipsArray, source);
+            const relationship2 = getElement(relationshipsArray, target);
+
+            cell.model.attributes.labels = [];
+            cell.model.attributes.labels[0] = {
+                attrs: {
+                    text: {
+                        text: new_cardinality_name,
+                    },
+                    outer: {
+                        stroke: '#FFFFFF',
+                    },
+                },
+                // markup: util.svg`<text @selector="text" fill="#FFFFFF"/> <rect @selector="outer" fill="#f6f6f6"/>`,
+                markup: util.svg`<text @selector="text" fill="#FFFFFF"/>`,
+                position: {
+                    offset: 0
+                }
+            }
+
+            cell.render();
+
+            link_obj_request = {
+                "relationshipID": relationship1.id,
+                "belongObjID": relationship2.id, 
+                "belongObjType": 3, // currently do not support relationship as the belongObj!
+                "cardinality": cardinality,
+                "portAtRelationshi": -1,
+                "portAtEntity": -1,
+            }
+
+            // invoke 'er/relationship/link_obj' api
+            relationshipLinkObj(link_obj_request, relationship1);
         }
 
         // Checking every sides of the link, if one side is a weak entity and the other side is a relationship, then
