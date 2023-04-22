@@ -867,7 +867,7 @@ paper.on('link:pointerclick', (linkView) => {
                 action: function(evt, linkView, toolView) {
                     linkView.model.remove({ ui: true, tool: toolView.cid });
                     
-                    const attribute_name = linkView.model.attributes.labels[0].attrs.text.text;
+                    let attribute_name = linkView.model.attributes.labels[0].attrs.text.text;
                     const source_graph_id = linkView.model.attributes.source.id;
                     const result = graph.getCell(source_graph_id);
                     let source;
@@ -878,10 +878,11 @@ paper.on('link:pointerclick', (linkView) => {
                     }
 
                     // const source = getElement(entitiesArray, result);
-                    console.log("attribute_name", attribute_name);
-                    console.log("source_graph_id", source_graph_id);
-                    console.log("result: ", result);
-                    console.log("source: ", source);
+
+                    if (attribute_name.includes("?") || attribute_name.includes("+") || attribute_name.includes("*")){
+                        attribute_name = attribute_name.substring(0, attribute_name.length - 1);
+                    }
+
                     const attribute = getAttribute(source, attribute_name);
                     const attribute_delete_request = {
                         id: attribute.id
