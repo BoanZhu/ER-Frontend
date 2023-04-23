@@ -37,7 +37,9 @@ let attributesArray = [];
 let relationshipsArray = [];
 
 // const ip_address = "146.169.162.32";
-const ip_address = "10.187.204.209";
+// const ip_address = "10.187.204.209";
+const ip_address = "10.29.8.141";
+
 
 // let schemaID = "";
 let schemaID = "1133";
@@ -1796,6 +1798,7 @@ graph.on('add', function(cell) {
 paper.on('cell:pointerdblclick', function(elementView, evt) {
     const source = graph.getCell(elementView.model.id);
     if (elementView.model.attributes.type === 'myApp.WeakEntity') {
+        // window.confirm();
         let new_weak_entity_name = window.prompt("Please enter the new name of the weak entity:", "");
         const entity = getElement(entitiesArray, source);
 
@@ -1805,7 +1808,7 @@ paper.on('cell:pointerdblclick', function(elementView, evt) {
         }
 
         // invoke 'er/entity/update' api
-        // entityUpdate(entity_update_request, entity, new_weak_entity_name, elementView);
+        entityUpdate(entity_update_request, entity, new_weak_entity_name, elementView);
         
     } else if (elementView.model.attributes.type === 'myApp.StrongEntity') {
         let new_strong_entity_name = window.prompt("Please enter the new name of the strong entity:", "");
@@ -1852,7 +1855,12 @@ paper.on('link:pointerup', (cell, evt) => {
         const source = graph.getCell(source_id);
         const target = graph.getCell(target_id);
 
-        let new_cardinality_name = window.prompt("Please enter the ratio of the new cardinality:", "");
+        let new_cardinality_name = window.prompt("Please enter the ratio of the new cardinality (Please choose between 0:1, 1:1, 0:N, 1:N):", "");
+        
+        while (new_cardinality_name != "0:1" && new_cardinality_name != "0:N" && new_cardinality_name != "1:1" && new_cardinality_name != "1:N") {
+            new_cardinality_name = window.prompt("This ratio is not supperted! Please choose between 0:1, 1:1, 0:N, 1:N.", "");
+        }
+        
         let cardinality;
         if (new_cardinality_name == "0:1") {
             cardinality = 1;
