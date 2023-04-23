@@ -44,6 +44,7 @@ const ip_address = "10.29.8.141";
 // let schemaID = "";
 let schemaID = "1133";
 let schemaName = "Test schema";
+let ddl;
 
 // --------------------- Paper & PaperScroller ---------------------
 
@@ -912,6 +913,7 @@ const toolbar = new ui.Toolbar({
         currentSchema: { index: 4 },
         undoredo: { index: 5 },
         map: { index: 6 },
+        test: { index: 7 },
     },
     tools: [
         { type: 'button', name: 'clear', group: 'clear', text: 'Clear Diagram' },
@@ -919,6 +921,7 @@ const toolbar = new ui.Toolbar({
         { type: 'zoom-out', name: 'zoom-out', group: 'zoom' },
         { type: 'zoom-in', name: 'zoom-in', group: 'zoom' },
         { type: 'button', name: 'create', group: 'create', text: 'create-new-schema' },
+        { type: 'button', name: 'test', group: 'test', text: 'connect to database and execute' },
     ],
     references: {
         paperScroller // built in zoom-in/zoom-out control types require access to paperScroller instance
@@ -932,8 +935,6 @@ toolbar.on({
         new_ddl_request = {
             "id": schemaID
         }
-
-        let ddl;
 
         $.ajax({
             async: false,
@@ -1011,7 +1012,81 @@ toolbar.on({
             graph.clear();
             // paper.render();
         }
-    }
+    },
+    'test:pointerclick': () => {
+        // let databaseType = window.prompt("Please enter the type of the database:", "");
+        // $.confirm();
+        $("#dialog").dialog({
+            // console.log($("#connect"), 11111),
+            buttons: [
+                {
+                    text: "connect and execute",
+                    click: function() {
+                        if (!$("#database-type").val() || !$("#hostname").val() || !$("#port-number").val() || !$("#database-name").val() || !$("#username").val()) {
+                            alert("Please fill all the lines!");
+                            return;
+                        } else {
+                            const databaseType = $("#database-type").val();
+                            const hostname = $("#hostname").val();
+                            const portNumber = $("#port-number").val();
+                            const databaseName = $("#database-name").val();
+                            const username = $("#username").val();
+                            const password = $("#password").val();
+                            // console.log("databaseType: ", databaseType);
+                            // console.log("hostname: ", hostname);
+                            // console.log("portNumber: ", portNumber);
+                            // console.log("databaseName: ", databaseName);
+                            // console.log("username: ", username);
+                            // console.log("password: ", password);
+
+                            // 除了以上所有东西先传给后端，还需要把ddl传过去，也就是要在ddl成功生成后才能做该操作
+                            // ddl是个string，然后后端需要连接数据库之后再尝试execute生成的ddl
+
+                            const connect_database_and_execute_ddl_requset = {
+                                "databaseType": databaseType,
+                                "hostname": hostname,
+                                "portNumber": portNumber,
+                                "databaseName": databaseName,
+                                "username": username,
+                                "password": password,
+                                "ddl": ddl,
+                            }
+
+                            $.ajax({
+                                async: false,
+                                type: "POST",
+                                url: "http://" + ip_address + ":8080/er/schema/connect_database_and_execute_ddl",
+                                headers: { "Access-Control-Allow-Origin": "*",
+                                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                                traditional : true,
+                                data: JSON.stringify(connect_database_and_execute_ddl_requset),
+                                dataType: "json",
+                                contentType: "application/json",
+                                success: function(result) {
+                                    alert("success to execute the ddl!");
+                                    console.log("execute the ddl api result: ", result);
+                                },
+                                error: function(result) {
+                                    is_success = false;
+                                    console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                                    alert(JSON.parse(result.responseText).data);
+                                },
+                            });
+                        }
+                    },
+                },
+                {
+                    text: "Cancel",
+                    click: function() {
+                      $("#dialog").dialog( "close" );
+                    }
+                }
+            ]
+        });
+        $("#connect").click(function() {
+            alert( "Handler for .click() called." );
+        })
+    },
 });
 
 document.querySelector('.toolbar-container').appendChild(toolbar.el);
