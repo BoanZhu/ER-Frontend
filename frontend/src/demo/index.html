@@ -10,26 +10,29 @@
     <div class="stencil-container"></div>
     <div class="paper-container"></div>
     <div class="inspector-container"></div>
-    <div id="dialog" title="Create new user" style="display:none;">
-      <p class="validateTips">All form fields are required.</p>
-      <!-- <form action='tuscript.php'>
-        <fieldset> -->
-          <label for="database-type">Database Type</label>
-          <input type="text" name="database-type" id="database-type" class="text">
-          <label for="hostname">Hostname</label>
-          <input type="text" name="hostname" id="hostname" value="" class="text">
-          <label for="port-number">port number</label>
-          <input type="text" name="port-number" id="port-number" value="" class="text">
-          <label for="database-name">database name</label>
-          <input type="text" name="database-name" id="database-name" value="" class="text">
-          <label for="username">Username</label>
-          <input type="text" name="username" id="username" value="" class="text">
-          <label for="password">Password</label>
-          <input type="password" name="password" id="password" value="" class="text">
-          <!-- <button type="button" id="connect">connect and execute</button> -->
-          <!-- <button type="button" id="connect" onclick="return confirm('Are you sure you want to search Google?')">connect and execute</button> -->
-        <!-- </fieldset>
-      </form> -->
+    <div style="position: relative;">
+      <div id="dialog" title="Connect to database" style="display:none;">
+        <p class="validateTips">All form fields are required.</p>
+        <!-- <form action='tuscript.php'>
+          <fieldset> -->
+            <label for="database-type">Database Type</label>
+            <input type="text" name="database-type" id="database-type" class="text">
+            <label for="hostname">Hostname</label>
+            <input type="text" name="hostname" id="hostname" value="" class="text">
+            <label for="port-number">port number</label>
+            <input type="text" name="port-number" id="port-number" value="" class="text">
+            <label for="database-name">database name</label>
+            <input type="text" name="database-name" id="database-name" value="" class="text">
+            <label for="username">Username</label>
+            <input type="text" name="username" id="username" value="" class="text">
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password" value="" class="text">
+            <!-- <button type="button" id="connect">connect and execute</button> -->
+            <!-- <button type="button" id="connect" onclick="return confirm('Are you sure you want to search Google?')">connect and execute</button> -->
+          <!-- </fieldset>
+        </form> -->
+      </div>
+      <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css" />
     </div>
 
     <!-- JointJS+ dependencies: -->
@@ -43,9 +46,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
     <!-- <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script> -->
+    
     <script src="https://code.jquery.com/ui/1.11.1/jquery-ui.min.js"></script>
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css" />
     <script src="./rappid.js"></script>
     <script src="./index.js"></script>
+    
   </body>
 </html>

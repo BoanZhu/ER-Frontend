@@ -46,6 +46,16 @@ let schemaID = "1133";
 let schemaName = "Test schema";
 let ddl;
 
+let parent = $("#dialog").parent();
+console.log(parent);
+// parent.css("height", "150px");
+// parent.css("width", "150px");
+// parent.css("top", "15%");
+// parent.css("left", "40%");
+// parent.css("background-color", "yellow");
+// console.log(parent.css("top"));
+// $("#dialog").dialog();
+
 // --------------------- Paper & PaperScroller ---------------------
 
 const paper = new dia.Paper({
@@ -914,6 +924,7 @@ const toolbar = new ui.Toolbar({
         undoredo: { index: 5 },
         map: { index: 6 },
         test: { index: 7 },
+        validation: {index: 8 },
     },
     tools: [
         { type: 'button', name: 'clear', group: 'clear', text: 'Clear Diagram' },
@@ -922,6 +933,7 @@ const toolbar = new ui.Toolbar({
         { type: 'zoom-in', name: 'zoom-in', group: 'zoom' },
         { type: 'button', name: 'create', group: 'create', text: 'create-new-schema' },
         { type: 'button', name: 'test', group: 'test', text: 'connect to database and execute' },
+        { type: 'button', name: 'validation', group: 'validation', text: 'validate the schema' },
     ],
     references: {
         paperScroller // built in zoom-in/zoom-out control types require access to paperScroller instance
@@ -1013,9 +1025,52 @@ toolbar.on({
             // paper.render();
         }
     },
+    'validation:pointerclick': () => {
+        let parents = $("#dialog").parent();
+        // parent.css("height", "150px");
+        // parent.css("width", "150px");
+        parents.css("top", "15%");
+        parents.css("left", "40%");
+        parents.css("background-color", "yellow");
+        $("#dialog").dialog();
+    },
     'test:pointerclick': () => {
         // let databaseType = window.prompt("Please enter the type of the database:", "");
         // $.confirm();
+
+        
+        
+        let parent = $("#dialog").parent();
+        console.log(parent.css("height"));
+        console.log(parent.css("width"));
+        console.log(parent.css("top"));
+        console.log(parent.css("left"));
+
+        parent.css("top", "15%");
+        parent.css("left", "40%");
+        parent.css("background-color", "yellow");
+
+        // parent.css("height", "150px");
+        // parent.css("width", "150px");
+        // parents.css("top", "15%");
+        // parents.css("left", "40%");
+        // parents.css("background-color", "yellow");
+        // console.log("11111", $("#dialog"));
+        // console.log("22222", $("#dialog").parent());
+        // console.log("33333", $("#dialog").parent().parent());
+        // console.log("44444", $("#dialog").parent().parent().parent());
+        // // $("#dialog").css("left", "40%");
+        
+        // console.log("555555555: ", $("body > div.ui-dialog.ui-widget.ui-widget-content.ui-corner-all.ui-front.ui-dialog-buttons.ui-draggable.ui-resizable > div.ui-dialog-titlebar.ui-widget-header.ui-corner-all.ui-helper-clearfix.ui-draggable-handle"));
+        // console.log("body: ", $("body"));
+        // console.log("childs: ", $("body").children())
+
+        // $("#dialog").dialog({
+        //     $("#dialog").dialog( "close" );
+        // });
+
+        // $("#dialog").dialog( "close" );
+
         $("#dialog").dialog({
             // console.log($("#connect"), 11111),
             buttons: [
@@ -1078,14 +1133,17 @@ toolbar.on({
                 {
                     text: "Cancel",
                     click: function() {
-                      $("#dialog").dialog( "close" );
+                        $("#dialog").css("width", "350px");
+                        console.log("dddddd: ", $("#dialog").css("width"));
+                        $("#dialog").dialog( "close" );
                     }
                 }
             ]
         });
-        $("#connect").click(function() {
-            alert( "Handler for .click() called." );
-        })
+
+        // $("#connect").click(function() {
+        //     alert( "Handler for .click() called." );
+        // })
     },
 });
 
