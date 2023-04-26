@@ -38,8 +38,7 @@ let relationshipsArray = [];
 
 // const ip_address = "146.169.162.32";
 // const ip_address = "10.187.204.209";
-const ip_address = "10.29.8.141";
-
+const ip_address = "10.29.10.219";
 
 // let schemaID = "";
 let schemaID = "1133";
@@ -911,11 +910,11 @@ const toolbar = new ui.Toolbar({
         clear: { index: 1 },
         zoom: { index: 2 },
         create: { index: 3 },
-        currentSchema: { index: 4 },
-        undoredo: { index: 5 },
-        map: { index: 6 },
-        test: { index: 7 },
-        validation: {index: 8 },
+        validate: { index: 4 },
+        // currentSchema: { index: 4 },
+        // undoredo: { index: 5 },
+        map: { index: 5 },
+        execute: { index: 6 },
     },
     tools: [
         { type: 'button', name: 'clear', group: 'clear', text: 'Clear Diagram' },
@@ -923,8 +922,8 @@ const toolbar = new ui.Toolbar({
         { type: 'zoom-out', name: 'zoom-out', group: 'zoom' },
         { type: 'zoom-in', name: 'zoom-in', group: 'zoom' },
         { type: 'button', name: 'create', group: 'create', text: 'create-new-schema' },
-        { type: 'button', name: 'test', group: 'test', text: 'connect to database and execute' },
-        { type: 'button', name: 'validation', group: 'validation', text: 'validate the schema' },
+        { type: 'button', name: 'execute', group: 'execute', text: 'connect to database and execute' },
+        { type: 'button', name: 'validate', group: 'validate', text: 'validate the schema' },
     ],
     references: {
         paperScroller // built in zoom-in/zoom-out control types require access to paperScroller instance
@@ -1016,7 +1015,7 @@ toolbar.on({
             // paper.render();
         }
     },
-    'validation:pointerclick': () => {
+    'validate:pointerclick': () => {
         
         let parent = $("#dialog").parent();
 
@@ -1028,27 +1027,42 @@ toolbar.on({
             $("#dialog").dialog('close');
         }, 10);
 
-        is_validated = true;
-        
+        const validate_schema_request = {
+            "schemaID": schemaID,
+        }
+
+        $.ajax({
+            async: false,
+            type: "POST",
+            url: "http://" + ip_address + ":8080/er/schema/validate_schema",
+            headers: { "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+            traditional : true,
+            data: JSON.stringify(validate_schema_request),
+            dataType: "json",
+            contentType: "application/json",
+            success: function(result) {
+                alert("Pass the validation");
+                is_validated = true;
+                console.log("Validation api result: ", result);
+            },
+            error: function(result) {
+                console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
+                alert(JSON.parse(result.responseText).data);
+            },
+        });
+
         $("#dialog").dialog();
         
     },
-    'test:pointerclick': () => {
+    'execute:pointerclick': () => {
 
         if (is_validated) {
-            // let databaseType = window.prompt("Please enter the type of the database:", "");
-            // $.confirm();
             
             let parent = $("#dialog").parent();
 
-            // parent.css("height", "150px");
-            // parent.css("width", "1500px");
             parent.css("top", "15%");
             parent.css("left", "40%");
-            // parent.css("background-color", "yellow");
-
-            // $("#dialog").reload();
-            console.log("parent: ", parent);
 
             $("#dialog").dialog({
                 // console.log($("#connect"), 11111),
