@@ -915,6 +915,7 @@ const toolbar = new ui.Toolbar({
         // undoredo: { index: 5 },
         map: { index: 5 },
         execute: { index: 6 },
+        render: { index: 7 },
     },
     tools: [
         { type: 'button', name: 'clear', group: 'clear', text: 'Clear Diagram' },
@@ -924,6 +925,7 @@ const toolbar = new ui.Toolbar({
         { type: 'button', name: 'create', group: 'create', text: 'create-new-schema' },
         { type: 'button', name: 'execute', group: 'execute', text: 'connect to database and execute' },
         { type: 'button', name: 'validate', group: 'validate', text: 'validate the schema' },
+        { type: 'button', name: 'render', group: 'render', text: 'render the schema' },
     ],
     references: {
         paperScroller // built in zoom-in/zoom-out control types require access to paperScroller instance
@@ -1142,6 +1144,33 @@ toolbar.on({
             alert("Please validate the schema first!");
         }
 
+    },
+    'render:pointerclick': () => {
+        
+        const render_schema_as_image_request = {
+            "schemaID": schemaID,
+        }
+
+        $.ajax({
+            async: false,
+            type: "POST",
+            url: "http://" + ip_address + ":8080/er/schema/render_schema_as_image",
+            headers: { "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+            traditional : true,
+            data: JSON.stringify(render_schema_as_image_request),
+            dataType: "json",
+            contentType: "application/json",
+            success: function(result) {
+                alert("success to render the schema as an image!");
+                // schemaID = result.data.id;
+                // console.log("create new schema with ", result.data.id);
+            },
+            error: function(result) {
+                is_success = false;
+                alert(JSON.parse(result.responseText).data);
+            },
+        })
     }
 });
 
