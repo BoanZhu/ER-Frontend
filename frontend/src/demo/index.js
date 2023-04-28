@@ -33,12 +33,12 @@ setTheme('dark');
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 
 let entitiesArray = [];
-let attributesArray = [];
+// let attributesArray = [];
 let relationshipsArray = [];
 
 // const ip_address = "146.169.162.32";
-// const ip_address = "10.187.204.209";
-const ip_address = "10.29.10.219";
+const ip_address = "10.187.204.209";
+// const ip_address = "10.29.10.219";
 
 // let schemaID = "";
 let schemaID = "1133";
@@ -916,16 +916,20 @@ const toolbar = new ui.Toolbar({
         map: { index: 5 },
         execute: { index: 6 },
         render: { index: 7 },
+        toJson: { index: 8 },
+        loadFromJson: { index: 9 },
     },
     tools: [
         { type: 'button', name: 'clear', group: 'clear', text: 'Clear Diagram' },
         { type: 'button', name: 'map', group: 'map', text: 'To DDL' },
         { type: 'zoom-out', name: 'zoom-out', group: 'zoom' },
         { type: 'zoom-in', name: 'zoom-in', group: 'zoom' },
-        { type: 'button', name: 'create', group: 'create', text: 'create-new-schema' },
-        { type: 'button', name: 'execute', group: 'execute', text: 'connect to database and execute' },
-        { type: 'button', name: 'validate', group: 'validate', text: 'validate the schema' },
-        { type: 'button', name: 'render', group: 'render', text: 'render the schema' },
+        { type: 'button', name: 'create', group: 'create', text: 'Create new schema' },
+        { type: 'button', name: 'execute', group: 'execute', text: 'Connect to database and execute' },
+        { type: 'button', name: 'validate', group: 'validate', text: 'Validate the schema' },
+        { type: 'button', name: 'render', group: 'render', text: 'Render the schema' },
+        { type: 'button', name: 'toJson', group: 'toJson', text: 'To Json' }, 
+        { type: 'button', name: 'loadFromJson', group: 'loadFromJson', text: 'Load from Json' },
     ],
     references: {
         paperScroller // built in zoom-in/zoom-out control types require access to paperScroller instance
@@ -1146,7 +1150,7 @@ toolbar.on({
 
     },
     'render:pointerclick': () => {
-        
+
         const render_schema_as_image_request = {
             "schemaID": schemaID,
         }
@@ -1171,7 +1175,100 @@ toolbar.on({
                 alert(JSON.parse(result.responseText).data);
             },
         })
-    }
+    },
+    'toJson:pointerclick': () => {
+
+        // var jsonObject = graph.toJSON();
+
+        // // Here we need to push the entitiesArray and relationshipsArray in the Json object so that everything 
+        // // will be same after re-loading the Json file.
+        // jsonObject.entitiesArray = entitiesArray;
+        // jsonObject.relationshipsArray = relationshipsArray;
+        // jsonObject.schemaName = schemaName;
+        // jsonObject.schemaID = schemaID;
+
+        // var jsonString = JSON.stringify(jsonObject);
+        // // console.log("new Json string: ", jsonString);
+        // const blob = new Blob([jsonString])
+        // util.downloadBlob(blob, schemaName + ".json");
+        // console.log("Download finished!");
+        
+
+
+
+
+        document.getElementById("fileInput").click();
+        // console.log("input: ", document.getElementById("fileInput").value);
+        // console.log("File: ", document.forms['fileInput']);
+
+        // const path = document.getElementById("fileInput").value;
+        // const new_path = document.getElementById("fileInput").files[0];
+        // console.log("path: ", path);
+        // console.log("new_path", new_path);
+    },  
+    'loadFromJson:pointerclick': () => {
+
+        const file = document.getElementById("fileInput").files[0];
+        var cells;
+
+        if (file) {
+            var reader = new FileReader();
+            console.log("reader: ", reader);
+            reader.readAsText(file, 'UTF-8');
+
+            reader.onload = function(e) {
+                var data = this.result;
+                console.log("Data: ", data);
+                console.log("Type: ", typeof data);
+
+                var jsonObject = JSON.parse(data);
+                entitiesArray = jsonObject.entitiesArray;
+                relationshipsArray = jsonObject.relationshipsArray;
+                schemaName = jsonObject.schemaName;
+                schemaId = jsonObject.schemaID;
+
+                console.log("entitiesArray: ", entitiesArray);
+                console.log("relationshipsArray: ", relationshipsArray);
+                console.log("schemaName: ", schemaName);
+                console.log("schemaID: ", schemaID);
+                
+                console.log("jsonObject: ", jsonObject);
+                console.log("cells: ", jsonObject.cells);
+
+                cells = jsonObject.cells;
+                console.log("typeof cells: ", typeof cells);
+                // graph.fromJSON(jsonObject.cells);
+                graph.fromJSON(cells);
+            }
+            
+            console.log("12345");
+        }
+
+        
+
+
+        var json = $.getJSON("Json8.json")
+        json.then(response => {
+
+            console.log("Json Object: ", response);
+
+            // "response" is a Json object
+            // graph.fromJSON(response);
+
+            entitiesArray = response.entitiesArray;
+            relationshipsArray = response.relationshipsArray;
+            // console.log("entitiesArray: ", entitiesArray);
+            // console.log("relationshipsArray: ", relationshipsArray);
+
+            schemaName = response.schemaName;
+            schemaId = response.schemaID;
+
+            console.log("typeof cells: ", typeof response.cells);
+            console.log("cells: ", response.cells);
+            graph.fromJSON(response.cells);
+
+        });
+    },
 });
 
 document.querySelector('.toolbar-container').appendChild(toolbar.el);
