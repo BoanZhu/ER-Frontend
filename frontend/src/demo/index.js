@@ -917,7 +917,8 @@ const toolbar = new ui.Toolbar({
         execute: { index: 6 },
         render: { index: 7 },
         toJson: { index: 8 },
-        loadFromJson: { index: 9 },
+        upload: { index: 9 },
+        loadFromJson: { index: 10 },
     },
     tools: [
         { type: 'button', name: 'clear', group: 'clear', text: 'Clear Diagram' },
@@ -929,6 +930,7 @@ const toolbar = new ui.Toolbar({
         { type: 'button', name: 'validate', group: 'validate', text: 'Validate the schema' },
         { type: 'button', name: 'render', group: 'render', text: 'Render the schema' },
         { type: 'button', name: 'toJson', group: 'toJson', text: 'To Json' }, 
+        { type: 'button', name: 'upload', group: 'upload', text: 'Upload Json' },
         { type: 'button', name: 'loadFromJson', group: 'loadFromJson', text: 'Load from Json' },
     ],
     references: {
@@ -1178,42 +1180,32 @@ toolbar.on({
     },
     'toJson:pointerclick': () => {
 
-        // var jsonObject = graph.toJSON();
+        var jsonObject = graph.toJSON();
 
-        // // Here we need to push the entitiesArray and relationshipsArray in the Json object so that everything 
-        // // will be same after re-loading the Json file.
-        // jsonObject.entitiesArray = entitiesArray;
-        // jsonObject.relationshipsArray = relationshipsArray;
-        // jsonObject.schemaName = schemaName;
-        // jsonObject.schemaID = schemaID;
+        // Here we need to push the entitiesArray and relationshipsArray in the Json object so that everything 
+        // will be same after re-loading the Json file.
+        jsonObject.entitiesArray = entitiesArray;
+        jsonObject.relationshipsArray = relationshipsArray;
+        jsonObject.schemaName = schemaName;
+        jsonObject.schemaID = schemaID;
 
-        // var jsonString = JSON.stringify(jsonObject);
-        // // console.log("new Json string: ", jsonString);
-        // const blob = new Blob([jsonString])
-        // util.downloadBlob(blob, schemaName + ".json");
-        // console.log("Download finished!");
-        
+        var jsonString = JSON.stringify(jsonObject);
+        // console.log("new Json string: ", jsonString);
+        const blob = new Blob([jsonString])
+        util.downloadBlob(blob, schemaName + ".json");
+        console.log("Download finished!");
 
-
-
-
-        document.getElementById("fileInput").click();
-        // console.log("input: ", document.getElementById("fileInput").value);
-        // console.log("File: ", document.forms['fileInput']);
-
-        // const path = document.getElementById("fileInput").value;
-        // const new_path = document.getElementById("fileInput").files[0];
-        // console.log("path: ", path);
-        // console.log("new_path", new_path);
     },  
+    'upload:pointerclick': () => {
+        document.getElementById("fileInput").click();
+        alert("Success to upload a file!");
+    },
     'loadFromJson:pointerclick': () => {
 
         const file = document.getElementById("fileInput").files[0];
-        var cells;
 
         if (file) {
             var reader = new FileReader();
-            console.log("reader: ", reader);
             reader.readAsText(file, 'UTF-8');
 
             reader.onload = function(e) {
@@ -1225,49 +1217,36 @@ toolbar.on({
                 entitiesArray = jsonObject.entitiesArray;
                 relationshipsArray = jsonObject.relationshipsArray;
                 schemaName = jsonObject.schemaName;
-                schemaId = jsonObject.schemaID;
+                schemaID = jsonObject.schemaID;
 
-                console.log("entitiesArray: ", entitiesArray);
-                console.log("relationshipsArray: ", relationshipsArray);
-                console.log("schemaName: ", schemaName);
-                console.log("schemaID: ", schemaID);
-                
-                console.log("jsonObject: ", jsonObject);
-                console.log("cells: ", jsonObject.cells);
-
-                cells = jsonObject.cells;
-                console.log("typeof cells: ", typeof cells);
-                // graph.fromJSON(jsonObject.cells);
-                graph.fromJSON(cells);
+                graph.fromJSON(jsonObject);
             }
-            
-            console.log("12345");
+        } else {
+            alert("Please upload a Json file first.");
         }
 
-        
 
+        // var json = $.getJSON("Json5.json")
+        // json.then(response => {
 
-        var json = $.getJSON("Json8.json")
-        json.then(response => {
+        //     console.log("Json Object: ", response);
 
-            console.log("Json Object: ", response);
+        //     // "response" is a Json object
+        //     // graph.fromJSON(response);
 
-            // "response" is a Json object
-            // graph.fromJSON(response);
+        //     entitiesArray = response.entitiesArray;
+        //     relationshipsArray = response.relationshipsArray;
+        //     // console.log("entitiesArray: ", entitiesArray);
+        //     // console.log("relationshipsArray: ", relationshipsArray);
 
-            entitiesArray = response.entitiesArray;
-            relationshipsArray = response.relationshipsArray;
-            // console.log("entitiesArray: ", entitiesArray);
-            // console.log("relationshipsArray: ", relationshipsArray);
+        //     // schemaName = response.schemaName;
+        //     // schemaId = response.schemaID;
 
-            schemaName = response.schemaName;
-            schemaId = response.schemaID;
-
-            console.log("typeof cells: ", typeof response.cells);
-            console.log("cells: ", response.cells);
-            graph.fromJSON(response.cells);
-
-        });
+        //     console.log("typeof cells: ", typeof response.cells);
+        //     console.log("cells: ", response.cells);
+        //     graph.fromJSON(response);
+        //     console.log("cells2: ", response.cells);
+        // });
     },
 });
 
