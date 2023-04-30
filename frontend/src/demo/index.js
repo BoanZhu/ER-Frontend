@@ -2994,6 +2994,9 @@ function entityCreateGeneralisation(entity_generalisation_create_request, target
 
 // ----------------- All Api Invoking Functions End -----------------
 
+
+
+
 // const myShape = new MyShape({
 //     size: { width: 100, height: 100 },
 //     position: { x: 50, y: 50 },
@@ -3018,18 +3021,103 @@ function entityCreateGeneralisation(entity_generalisation_create_request, target
 // myShape.prop('level', 2);
 // myShape.prop('attrs/body/fill', '#80eaff');
 
+var entitiesPosition = [
+    [1, 0, 1],
+    [0, 0, 0],
+    [1, 0, 1]
+];
+
+var relationshipsPosition = [
+    [0, 1, 0],
+    [1, 0, 1],
+    [0, 1, 0]
+];
+
+var positionXY = [
+    [[200, 100], [500, 100], [800, 100]],
+    [[200, 500], [500, 500], [800, 500]],
+    [[200, 800], [500, 800], [800, 800]]
+];
+
+function findNextEntityPosition() {
+
+    var result = {
+        "x": -1,
+        "y": -1
+    };
+    for (rowIdx in entitiesPosition) {
+        var row = entitiesPosition[rowIdx];
+        // console.log("rowIdx: ", rowIdx);
+        // console.log("row: ", row);
+        for (columnIdx in row) {
+            var column = row[columnIdx];
+            // console.log("columnIdx: ", columnIdx);
+            // console.log("column: ", column);
+            if (column == 1) {
+                result.x = rowIdx;
+                result.y = columnIdx;
+                entitiesPosition[rowIdx][columnIdx] = 0;
+                return result;
+            }
+        }
+    }
+    return result;
+}
+
+function findNextRelationshipPosition() {
+
+    var result = {
+        "x": -1,
+        "y": -1
+    };
+    for (rowIdx in relationshipsPosition) {
+        var row = relationshipsPosition[rowIdx];
+        // console.log("rowIdx: ", rowIdx);
+        // console.log("row: ", row);
+        for (columnIdx in row) {
+            var column = row[columnIdx];
+            // console.log("columnIdx: ", columnIdx);
+            // console.log("column: ", column);
+            if (column == 1) {
+                result.x = rowIdx;
+                result.y = columnIdx;
+                relationshipsPosition[rowIdx][columnIdx] = 0;
+                return result;
+            }
+        }
+    }
+    return result;
+}
+
+function calculateAttributePosition(sourceX, sourceY) {
+
+    if (sourceX < 500) {
+        return [
+            [sourceX - 80, sourceY - 20],
+            [sourceX - 80, sourceY + 20],
+            [sourceX - 80, sourceY + 60]
+        ];
+    } else {
+        return [
+            [sourceX + 100 + 80, sourceY - 20],
+            [sourceX + 100 + 80, sourceY + 20],
+            [sourceX + 100 + 80, sourceY + 60]
+        ]
+    }
+}
+
+
 // This is one of the main function which is used to extract the backend JSON string to re-build the ER diagram.
 // This is used for after reverse engineer so that users can easily modify the ER schema which is from a relational database.
 function transferJSONintoDiagram(JSONObject) {
 
     is_transfered = true;
 
-    console.log("JSONObject: ", JSONObject);
+    // console.log("JSONObject: ", JSONObject);
 
     // From the backend we can get the backend JSON string and then we can parse it into this 'JSONObject'
 
     schemaName = JSONObject.name;
-    console.log("schemaName: ", schemaName);
     // invoke api to create a new schema here
 
     var entityList = JSONObject.entityList;
@@ -3038,45 +3126,35 @@ function transferJSONintoDiagram(JSONObject) {
     // The first step is to create all of the strong entities and relationships.
     for (idx in entityList) {
         var entity = entityList[idx];
-        console.log("entity: ", entity);
+        // console.log("entity: ", entity);
         var newEntity;
-        if (entity.entityType == "STRONG" && entity.name == "Person") {
-            newEntity = new StrongEntity({
-                position: { x: 200, y: 440},
-                attrs: { label: { text: entity.name }},
-            })
-            // invoke api to create a new strong entity here
-            
-            
-        } else if (entity.entityType == "STRONG" && entity.name == "Project") {
-            newEntity = new StrongEntity({
-                position: { x: 700, y: 440},
-                attrs: { label: { text: entity.name }},
-            })
-            // invoke api to create a new strong entity here
-            
-        }
+        
+        var position = findNextEntityPosition();
+
+        var location = positionXY[position.x][position.y];
+
+        newEntity = new StrongEntity({
+            position: { x: location[0], y: location[1] },
+            attrs: { label: { text: entity.name }},
+        })
 
         graph.addCell(newEntity);
 
         var attributesArray = [];
+
+        var positionList = calculateAttributePosition(location[0], location[1]);
+        console.log("positionList: ", positionList);
+
         for (idx in entity.attributeList) {
+
             var attribute = entity.attributeList[idx];
-            console.log("attribute: ", attribute);
-            // {
-            //     "name" : "Age",
-            //     "dataType" : "TEXT",
-            //     "isPrimary" : false,
-            //     "attributeType" : "Mandatory",
-            //     "layoutInfo" : {
-            //       "layoutX" : 120.0,
-            //       "layoutY" : 530.0
-            //     }
-            //   }
+            var location = positionList[idx];
+
             var newLink = new shapes.standard.Link({
                 attrs: { line: { stroke: '#fbf5d0' }},
                 source: { id: newEntity.id },
-                target: { x: attribute.layoutInfo.layoutX, y: attribute.layoutInfo.layoutY }
+                // target: { x: attribute.layoutInfo.layoutX, y: attribute.layoutInfo.layoutY }
+                target: { x: location[0], y: location[1] }
             })
             newLink.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
 
@@ -3115,7 +3193,7 @@ function transferJSONintoDiagram(JSONObject) {
                 attributeType = 4;
             }
 
-            var newAttaibute = {
+            var newAttribute = {
                 "belongObjID": 3718,
                 "belongObjType": 2,
                 "name": attribute.name,
@@ -3130,8 +3208,8 @@ function transferJSONintoDiagram(JSONObject) {
                 "id": 3199, // 后端获取
                 "graphId": newLink.id
             }
-            
-            attributesArray.push(newAttaibute);
+
+            attributesArray.push(newAttribute);
         }
 
         let newElement = {
@@ -3151,32 +3229,25 @@ function transferJSONintoDiagram(JSONObject) {
 
     for (idx in relationshipList) {
         var relation = relationshipList[idx];
-        console.log("relation: ", relation);
+        
+        var position = findNextRelationshipPosition();
+
+        var location = positionXY[position.x][position.y];
+
         const newRelationship = new relationship({
-            position: { x: 460, y: 440},
+            position: { x: location[0], y: location[1] },
             attrs: { label: { text: relation.name }},
         })
 
         graph.addCell(newRelationship);
 
-        var newElement = {
-            "schemaID": schemaID,
-            "name": relation.name,
-            "layoutInfo": {
-                "layoutX": newRelationship.attributes.position.x,
-                "layoutY": newRelationship.attributes.position.y
-            },
-            "id": 222,
-            "graphId": newRelationship.id,
-            "belongObjWithCardinalityList": []
-        }
-        relationshipsArray.push(newElement);
+        var belongObjWithCardinalityList = [];
 
         // Connect all entities it can, some entities may not be created now
         for (idx in relation.edgeList) {
             var edge = relation.edgeList[idx];
             var target = findEntity(edge.entity);
-            console.log("target: ", target);
+            // console.log("target: ", target);
 
             if (target) {
                 const newLink = new shapes.standard.Link({
@@ -3184,7 +3255,7 @@ function transferJSONintoDiagram(JSONObject) {
                     source: { id: newRelationship.id },
                     target: { id: target.graphId }
                 });
-                console.log("newLink: ", newLink);
+                // console.log("newLink: ", newLink);
                 
                 // remove the target arrow
                 newLink.attributes.attrs.line.targetMarker.d = 'M 0 0 0 0';
@@ -3203,9 +3274,48 @@ function transferJSONintoDiagram(JSONObject) {
                         offset: -15
                     }
                 }
+
+                let cardinality;
+                if (edge.cardinality == "0:1") {
+                    cardinality = 1;
+                } else if (edge.cardinality == "0:N") {
+                    cardinality = 2;
+                } else if (edge.cardinality == "1:1") {
+                    cardinality = 3;
+                } else if (edge.cardinality == "1:N") {
+                    cardinality = 4;
+                } else {
+                    cardinality = 0; // not a valid cardinality or didn't give a cardinality
+                } 
+
+                var linkObj = {
+                    "relationshipID": 123,
+                    "belongObjID": target.id, 
+                    "belongObjType": 2, // currently do not support relationship as the belongObj!
+                    "cardinality": cardinality, 
+                    "portAtRelationship": -1,
+                    "portAtEntity": -1,
+                    "edgeID": 123,
+                }
+
+                belongObjWithCardinalityList.push(linkObj);
+
                 graph.addCell(newLink);
             }
         }
+
+        var newElement = {
+            "schemaID": schemaID,
+            "name": relation.name,
+            "layoutInfo": {
+                "layoutX": newRelationship.attributes.position.x,
+                "layoutY": newRelationship.attributes.position.y
+            },
+            "id": 222,
+            "graphId": newRelationship.id,
+            "belongObjWithCardinalityList": belongObjWithCardinalityList,
+        }
+        relationshipsArray.push(newElement);
     }
 
     console.log("entitiesArray: ", entitiesArray);
