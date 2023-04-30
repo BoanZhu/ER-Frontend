@@ -37,7 +37,8 @@ let entitiesArray = [];
 let relationshipsArray = [];
 
 // const ip_address = "146.169.162.32";
-const ip_address = "10.187.204.209";
+// const ip_address = "10.187.204.209";
+const ip_address = "10.248.207.227";
 // const ip_address = "10.29.10.219";
 
 // let schemaID = "";
@@ -45,6 +46,9 @@ let schemaID = "1133";
 let schemaName = "Test schema";
 let ddl;
 let is_validated = false;
+
+let backendJson;
+let is_transfered = false;
 
 // --------------------- Paper & PaperScroller ---------------------
 
@@ -919,6 +923,7 @@ const toolbar = new ui.Toolbar({
         toJson: { index: 8 },
         upload: { index: 9 },
         loadFromJson: { index: 10 },
+        toBackendJson: { index: 11 },
     },
     tools: [
         { type: 'button', name: 'clear', group: 'clear', text: 'Clear Diagram' },
@@ -932,6 +937,7 @@ const toolbar = new ui.Toolbar({
         { type: 'button', name: 'toJson', group: 'toJson', text: 'To Json' }, 
         { type: 'button', name: 'upload', group: 'upload', text: 'Upload Json' },
         { type: 'button', name: 'loadFromJson', group: 'loadFromJson', text: 'Load from Json' },
+        { type: 'button', name: 'toBackendJson', group: 'toBackendJson', text: 'To backend Json' },
     ],
     references: {
         paperScroller // built in zoom-in/zoom-out control types require access to paperScroller instance
@@ -939,7 +945,12 @@ const toolbar = new ui.Toolbar({
 });
 
 toolbar.on({
-    'clear:pointerclick': () => graph.clear(),
+    'clear:pointerclick': () => {
+        graph.clear();
+        console.log("backendJson: ", backendJson);
+        var JSONObject = JSON.parse(backendJson);
+        transferJSONintoDiagram(JSONObject);
+    },
     'map:pointerclick': () => {
 
         new_ddl_request = {
@@ -1248,6 +1259,35 @@ toolbar.on({
         //     console.log("cells2: ", response.cells);
         // });
     },
+    'toBackendJson:pointerclick': () => {
+
+        const export_schema_to_json_request = {
+            "id": 1168
+        }
+
+        $.ajax({
+            async: false,
+            type: "POST",
+            url: "http://" + ip_address + ":8080/er/schema/export_schema_to_json",
+            headers: { "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+            traditional : true,
+            data: JSON.stringify(export_schema_to_json_request),
+            dataType: "json",
+            contentType: "application/json",
+            success: function(result) {
+                alert("success to export the schema into Json!");
+                console.log(result.data.schemaJSON);
+                backendJson = result.data.schemaJSON;
+                // schemaID = result.data.id;
+                // console.log("create new schema with ", result.data.id);
+            },
+            error: function(result) {
+                is_success = false;
+                alert(JSON.parse(result.responseText).data);
+            },
+        })
+    }
 });
 
 document.querySelector('.toolbar-container').appendChild(toolbar.el);
@@ -1312,6 +1352,9 @@ graph.addCell(myLink);
 // graph.on('change add remove', (cell) => {
 graph.on('change add', (cell) => {
     console.log("123456789", cell);
+    if (is_transfered) {
+        return;
+    }
     if (cell.attributes.type == 'standard.Link') {
         // This is for the attributes setting; target.id == undefined means this is an attribute
         if (cell.attributes.target.id == undefined) {
@@ -1959,6 +2002,9 @@ paper.on('blank:pointerdown', () => {
 });
 
 graph.on('add', function(cell) { 
+    if (is_transfered) {
+        return;
+    }
     if (cell.attributes.type === 'myApp.WeakEntity') {
         let new_weak_entity_name = window.prompt("Please enter the name of the new weak entity:", "");
         if (!new_weak_entity_name) {
@@ -2947,3 +2993,236 @@ function entityCreateGeneralisation(entity_generalisation_create_request, target
 }
 
 // ----------------- All Api Invoking Functions End -----------------
+
+// const myShape = new MyShape({
+//     size: { width: 100, height: 100 },
+//     position: { x: 50, y: 50 },
+//     attrs: { label: { text: 'My Shape' }},
+//     level: 3,
+//     ports: { items: [{ id: 'in1', group: 'in' }, { group: 'out', id: 'out1' }] }
+// });
+// graph.addCell(myShape);
+
+// const newShape = new MyShape({
+//     size: { width: 100, height: 100 },
+//     position: { x: 500, y: 500 },
+//     attrs: { label: { text: 'My Shape' }},
+//     level: 3,
+//     ports: { items: [{ id: 'in1', group: 'in' }, { group: 'out', id: 'out1' }] }
+// });
+// graph.addCell(newShape);
+
+// // Get element from the graph and change its properties.
+// myShape.prop('attrs/label/text', 'My Updated Shape');
+// myShape.prop('size/width', 150);
+// myShape.prop('level', 2);
+// myShape.prop('attrs/body/fill', '#80eaff');
+
+// This is one of the main function which is used to extract the backend JSON string to re-build the ER diagram.
+// This is used for after reverse engineer so that users can easily modify the ER schema which is from a relational database.
+function transferJSONintoDiagram(JSONObject) {
+
+    is_transfered = true;
+
+    console.log("JSONObject: ", JSONObject);
+
+    // From the backend we can get the backend JSON string and then we can parse it into this 'JSONObject'
+
+    schemaName = JSONObject.name;
+    console.log("schemaName: ", schemaName);
+    // invoke api to create a new schema here
+
+    var entityList = JSONObject.entityList;
+    var relationshipList = JSONObject.relationshipList;
+
+    // The first step is to create all of the strong entities and relationships.
+    for (idx in entityList) {
+        var entity = entityList[idx];
+        console.log("entity: ", entity);
+        var newEntity;
+        if (entity.entityType == "STRONG" && entity.name == "Person") {
+            newEntity = new StrongEntity({
+                position: { x: 200, y: 440},
+                attrs: { label: { text: entity.name }},
+            })
+            // invoke api to create a new strong entity here
+            
+            
+        } else if (entity.entityType == "STRONG" && entity.name == "Project") {
+            newEntity = new StrongEntity({
+                position: { x: 700, y: 440},
+                attrs: { label: { text: entity.name }},
+            })
+            // invoke api to create a new strong entity here
+            
+        }
+
+        graph.addCell(newEntity);
+
+        var attributesArray = [];
+        for (idx in entity.attributeList) {
+            var attribute = entity.attributeList[idx];
+            console.log("attribute: ", attribute);
+            // {
+            //     "name" : "Age",
+            //     "dataType" : "TEXT",
+            //     "isPrimary" : false,
+            //     "attributeType" : "Mandatory",
+            //     "layoutInfo" : {
+            //       "layoutX" : 120.0,
+            //       "layoutY" : 530.0
+            //     }
+            //   }
+            var newLink = new shapes.standard.Link({
+                attrs: { line: { stroke: '#fbf5d0' }},
+                source: { id: newEntity.id },
+                target: { x: attribute.layoutInfo.layoutX, y: attribute.layoutInfo.layoutY }
+            })
+            newLink.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
+
+            const position = calculateLabelPosition(newLink, attribute.name);
+            newLink.attributes.labels = [];
+            console.log(attribute.isPrimary);
+            newLink.attributes.labels[0] = {
+                attrs: {
+                    text: {
+                        text: attribute.name,
+                        // optional: "No",
+                        attributeType: attribute.attributeType,
+                        primary: attribute.isPrimary == true ? "Yes" : "No",
+                        fill: "#FFFFFF"
+                    },
+                },
+                markup: util.svg`<text @selector="text"/>`,
+                position: {
+                    distance: 1,
+                    offset: {
+                        x: position.final_x,
+                        y: position.final_y
+                    }
+                }
+            };
+            graph.addCell(newLink);
+
+            var attributeType;
+            if (attribute.attributeType == "Mandatory") {
+                attributeType = 1;
+            } else if (attribute.attributeType == "Optional") {
+                attributeType = 2;
+            } else if (attribute.attributeType == "Multivalued") {
+                attributeType = 3;
+            } else if (attribute.attributeType == "Both") {
+                attributeType = 4;
+            }
+
+            var newAttaibute = {
+                "belongObjID": 3718,
+                "belongObjType": 2,
+                "name": attribute.name,
+                "dataType": attribute.dataType,
+                "isPrimary": attribute.isPrimary,
+                "attributeType": attributeType,
+                "aimPort": -1,
+                "layoutInfo": {
+                    "layoutX": newLink.attributes.target.x,
+                    "layoutY": newLink.attributes.target.y
+                },
+                "id": 3199, // 后端获取
+                "graphId": newLink.id
+            }
+            
+            attributesArray.push(newAttaibute);
+        }
+
+        let newElement = {
+            "schemaID": schemaID,
+            "name": entity.name,
+            "layoutInfo": {
+                "layoutX": newEntity.attributes.position.x,
+                "layoutY": newEntity.attributes.position.y
+            },
+            "id": 111,
+            "graphId": newEntity.id,
+            "attributesArray": attributesArray,
+        }
+        
+        entitiesArray.push(newElement);
+    }
+
+    for (idx in relationshipList) {
+        var relation = relationshipList[idx];
+        console.log("relation: ", relation);
+        const newRelationship = new relationship({
+            position: { x: 460, y: 440},
+            attrs: { label: { text: relation.name }},
+        })
+
+        graph.addCell(newRelationship);
+
+        var newElement = {
+            "schemaID": schemaID,
+            "name": relation.name,
+            "layoutInfo": {
+                "layoutX": newRelationship.attributes.position.x,
+                "layoutY": newRelationship.attributes.position.y
+            },
+            "id": 222,
+            "graphId": newRelationship.id,
+            "belongObjWithCardinalityList": []
+        }
+        relationshipsArray.push(newElement);
+
+        // Connect all entities it can, some entities may not be created now
+        for (idx in relation.edgeList) {
+            var edge = relation.edgeList[idx];
+            var target = findEntity(edge.entity);
+            console.log("target: ", target);
+
+            if (target) {
+                const newLink = new shapes.standard.Link({
+                    attrs: { line: { stroke: '#fbf5d0' }},
+                    source: { id: newRelationship.id },
+                    target: { id: target.graphId }
+                });
+                console.log("newLink: ", newLink);
+                
+                // remove the target arrow
+                newLink.attributes.attrs.line.targetMarker.d = 'M 0 0 0 0';
+
+                // set the cardinality
+                newLink.attributes.labels = [];
+                newLink.attributes.labels[0] = {
+                    attrs: {
+                        text: {
+                            text: edge.cardinality,
+                            // primary: "Yes"
+                        }
+                    },
+                    markup: util.svg`<text @selector="text" fill="#FFFFFF"/>`,
+                    position: {
+                        offset: -15
+                    }
+                }
+                graph.addCell(newLink);
+            }
+        }
+    }
+
+    console.log("entitiesArray: ", entitiesArray);
+    console.log("relationshipsArray: ", relationshipsArray);
+
+    // Then we deal with the weak entities and subsets.
+
+    is_transfered = false;
+}
+
+function findEntity(name) {
+    let target;
+    for (idx in entitiesArray) {
+        if (entitiesArray[idx].name == name) {
+            target = entitiesArray[idx];
+            return target;
+        }
+    }
+    return target;
+}
