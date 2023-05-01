@@ -1397,16 +1397,17 @@ graph.addCell(myLink);
 // graph.on('change add remove', (cell) => {
 graph.on('change add', (cell) => {
     console.log("123456789", cell);
-    if (is_transfered) {
-        return;
-    }
+    console.log("is_transfered: ", is_transfered);
+    // if (is_transfered) {
+    //     return;
+    // }
     if (cell.attributes.type == 'standard.Link') {
         // This is for the attributes setting; target.id == undefined means this is an attribute
         if (cell.attributes.target.id == undefined) {
 
             if (cell.attributes.labels) {
 
-                const position = calculateLabelPosition(cell, "");
+                // const position = calculateLabelPosition(cell, "");
 
                 // cell.attributes.labels[0].position = {
                     // distance: 1,
@@ -1419,6 +1420,8 @@ graph.on('change add', (cell) => {
                 if (cell.attributes.labels[0].attrs) {
 
                     let original_text = cell.attributes.labels[0].attrs.text.text;
+
+                    console.log("original_text: ", original_text);
 
                     // 确保label里的文本和右边的设置框完全保持一致
 
@@ -1439,6 +1442,8 @@ graph.on('change add', (cell) => {
                     } else if (source.attributes.type == "myApp.Relationship") {
                         belongObject = getElement(relationshipsArray, source);
                     }
+
+                    console.log("belongObject: ", belongObject);
 
                     let attribute_name = original_text;
                     if (original_text.includes('?') || original_text.includes('+') || original_text.includes('*')) {
@@ -1506,6 +1511,7 @@ graph.on('change add', (cell) => {
                             dataType: "json",
                             contentType: "application/json",
                             success: function(result) {
+                                console.log("The first one.");
                                 alert("success to update attribute dataType!");
                                 console.log("update attribute api result: ", result);
                                 attribute.dataType = cell.attributes.labels[0].attrs.text.dataType;
@@ -1892,6 +1898,10 @@ graph.on('change add', (cell) => {
             
             cell.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
         } else {
+            if (is_transfered) {
+                return;
+            }
+
             if (cell.attributes.labels) {
                 cell.attributes.labels[0].position = {
                     offset: -20
@@ -1947,6 +1957,9 @@ graph.on('change add', (cell) => {
             
         }
     } else if (cell.attributes.type == 'myApp.StrongEntity') {
+        if (is_transfered) {
+            return;
+        }
         if (cell.attributes.attrs.label) {
 
             const original_text = cell.attributes.attrs.label.text;
@@ -1988,6 +2001,9 @@ graph.on('change add', (cell) => {
 
         }
     } else if (cell.attributes.type == 'myApp.Relationship') {
+        if (is_transfered) {
+            return;
+        }
 
         const original_text = cell.attributes.attrs.label.text;
         const source_id = cell.attributes.id;
@@ -2542,6 +2558,9 @@ function getAttribute(belongObject, attribute_name) {
 }
 
 function checkAttributeNameModified(belongObject, attribute_name) {
+    if (is_transfered) {
+        return;
+    }
     const attributesArray = belongObject.attributesArray;
     let modified = true;
     for (idx in attributesArray) {
@@ -2742,6 +2761,7 @@ function attributeUpdate(attribute_update_request, attribute, cell) {
         dataType: "json",
         contentType: "application/json",
         success: function(result) {
+            console.log("The second one.");
             alert("success to update attribute dataType!");
             console.log("update attribute api result: ", result);
             attribute.dataType = cell.attributes.labels[0].attrs.text.dataType;
@@ -3171,7 +3191,7 @@ function transferJSONintoDiagram(JSONObject) {
     // The first step is to create all of the strong entities and relationships.
     for (idx in entityList) {
         var entity = entityList[idx];
-        // console.log("entity: ", entity);
+
         var newEntity;
         
         var position = findNextEntityPosition();
@@ -3185,10 +3205,21 @@ function transferJSONintoDiagram(JSONObject) {
 
         graph.addCell(newEntity);
 
-        var attributesArray = [];
+        let newElement = {
+            "schemaID": JSONObject.id,
+            "name": entity.name,
+            "layoutInfo": {
+                "layoutX": newEntity.attributes.position.x,
+                "layoutY": newEntity.attributes.position.y
+            },
+            "id": entity.id,
+            "graphId": newEntity.id,
+            "attributesArray": [],
+        }
+
+        entitiesArray.push(newElement);
 
         var positionList = calculateAttributePosition(location[0], location[1]);
-        console.log("positionList: ", positionList);
 
         for (idx in entity.attributeList) {
 
@@ -3218,26 +3249,55 @@ function transferJSONintoDiagram(JSONObject) {
 
             newLink.attributes.labels = [];
 
-            newLink.attributes.labels[0] = {
-                attrs: {
-                    text: {
-                        text: attribute.name,
-                        // optional: "No",
-                        attributeType: attributeType,
-                        primary: attribute.isPrimary == true ? "Yes" : "No",
-                        fill: "#FFFFFF"
+            if (attribute.isPrimary) {
+                let underline_string = "";
+                for (char in attribute.name) {
+                    underline_string += "_";
+                } 
+
+                newLink.attributes.labels[0] = {
+                    attrs: {
+                        text: {
+                            text: attribute.name,
+                            attributeType: attributeType,
+                            primary: attribute.isPrimary == true ? "Yes" : "No",
+                            fill: "#FFFFFF"
+                        },
+                        outer: {
+                            text: underline_string,
+                            fill: "#FFFFFF"
+                        }
                     },
-                },
-                markup: util.svg`<text @selector="text"/>`,
-                position: {
-                    distance: 1,
-                    offset: {
-                        x: position.final_x,
-                        y: position.final_y
+                    markup: util.svg`<text @selector="text"/> <text @selector="outer"/>`,
+                    position: {
+                        distance: 1,
+                        offset: {
+                            x: position.final_x,
+                            y: position.final_y
+                        }
                     }
-                }
-            };
-            graph.addCell(newLink);
+                };
+            } else {
+                newLink.attributes.labels[0] = {
+                    attrs: {
+                        text: {
+                            text: attribute.name,
+                            // optional: "No",
+                            attributeType: attributeType,
+                            primary: attribute.isPrimary == true ? "Yes" : "No",
+                            fill: "#FFFFFF"
+                        },
+                    },
+                    markup: util.svg`<text @selector="text"/>`,
+                    position: {
+                        distance: 1,
+                        offset: {
+                            x: position.final_x,
+                            y: position.final_y
+                        }
+                    }
+                };
+            } 
 
             // var attributeType;
             // if (attribute.attributeType == "Mandatory") {
@@ -3266,22 +3326,12 @@ function transferJSONintoDiagram(JSONObject) {
                 "graphId": newLink.id
             }
 
-            attributesArray.push(newAttribute);
+            newElement.attributesArray.push(newAttribute);
+
+            graph.addCell(newLink);
         }
 
-        let newElement = {
-            "schemaID": JSONObject.id,
-            "name": entity.name,
-            "layoutInfo": {
-                "layoutX": newEntity.attributes.position.x,
-                "layoutY": newEntity.attributes.position.y
-            },
-            "id": entity.id,
-            "graphId": newEntity.id,
-            "attributesArray": attributesArray,
-        }
-        
-        entitiesArray.push(newElement);
+        // entitiesArray.push(newElement);
     }
 
     for (idx in relationshipList) {
@@ -3298,7 +3348,20 @@ function transferJSONintoDiagram(JSONObject) {
 
         graph.addCell(newRelationship);
 
-        var belongObjWithCardinalityList = [];
+        var newElement = {
+            "schemaID": JSONObject.id,
+            "name": relation.name,
+            "layoutInfo": {
+                "layoutX": newRelationship.attributes.position.x,
+                "layoutY": newRelationship.attributes.position.y
+            },
+            "id": relation.id,
+            "graphId": newRelationship.id,
+            "belongObjWithCardinalityList": [],
+        }
+        relationshipsArray.push(newElement);
+
+        // var belongObjWithCardinalityList = [];
 
         // Connect all entities it can, some entities may not be created now
         for (idx in relation.edgeList) {
@@ -3311,7 +3374,6 @@ function transferJSONintoDiagram(JSONObject) {
                     source: { id: newRelationship.id },
                     target: { id: target.graphId }
                 });
-                // console.log("newLink: ", newLink);
                 
                 // remove the target arrow
                 newLink.attributes.attrs.line.targetMarker.d = 'M 0 0 0 0';
@@ -3364,24 +3426,12 @@ function transferJSONintoDiagram(JSONObject) {
                     "edgeID": edge.id,
                 }
 
-                belongObjWithCardinalityList.push(linkObj);
+                newElement.belongObjWithCardinalityList.push(linkObj);
 
                 graph.addCell(newLink);
             }
         }
 
-        var newElement = {
-            "schemaID": JSONObject.id,
-            "name": relation.name,
-            "layoutInfo": {
-                "layoutX": newRelationship.attributes.position.x,
-                "layoutY": newRelationship.attributes.position.y
-            },
-            "id": relation.id,
-            "graphId": newRelationship.id,
-            "belongObjWithCardinalityList": belongObjWithCardinalityList,
-        }
-        relationshipsArray.push(newElement);
     }
 
     console.log("entitiesArray: ", entitiesArray);
