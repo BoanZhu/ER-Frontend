@@ -912,7 +912,7 @@ paper.on('link:pointerclick', (linkView) => {
 const toolbar = new ui.Toolbar({
     groups: {
         clear: { index: 1 },
-        zoom: { index: 2 },
+        // zoom: { index: 2 },
         create: { index: 3 },
         validate: { index: 4 },
         // currentSchema: { index: 4 },
@@ -924,12 +924,13 @@ const toolbar = new ui.Toolbar({
         upload: { index: 9 },
         loadFromJson: { index: 10 },
         toBackendJson: { index: 11 },
+        reverse: { index: 12 },
     },
     tools: [
         { type: 'button', name: 'clear', group: 'clear', text: 'Clear Diagram' },
         { type: 'button', name: 'map', group: 'map', text: 'To DDL' },
-        { type: 'zoom-out', name: 'zoom-out', group: 'zoom' },
-        { type: 'zoom-in', name: 'zoom-in', group: 'zoom' },
+        // { type: 'zoom-out', name: 'zoom-out', group: 'zoom' },
+        // { type: 'zoom-in', name: 'zoom-in', group: 'zoom' },
         { type: 'button', name: 'create', group: 'create', text: 'Create new schema' },
         { type: 'button', name: 'execute', group: 'execute', text: 'Connect to database and execute' },
         { type: 'button', name: 'validate', group: 'validate', text: 'Validate the schema' },
@@ -938,6 +939,7 @@ const toolbar = new ui.Toolbar({
         { type: 'button', name: 'upload', group: 'upload', text: 'Upload Json' },
         { type: 'button', name: 'loadFromJson', group: 'loadFromJson', text: 'Load from Json' },
         { type: 'button', name: 'toBackendJson', group: 'toBackendJson', text: 'To backend Json' },
+        { type: 'button', name: 'reverse', group: 'reverse', text: 'Reverse' },
     ],
     references: {
         paperScroller // built in zoom-in/zoom-out control types require access to paperScroller instance
@@ -947,9 +949,9 @@ const toolbar = new ui.Toolbar({
 toolbar.on({
     'clear:pointerclick': () => {
         graph.clear();
-        console.log("backendJson: ", backendJson);
-        var JSONObject = JSON.parse(backendJson);
-        transferJSONintoDiagram(JSONObject);
+        // console.log("backendJson: ", backendJson);
+        // var JSONObject = JSON.parse(backendJson);
+        // transferJSONintoDiagram(JSONObject);
     },
     'map:pointerclick': () => {
 
@@ -1281,6 +1283,49 @@ toolbar.on({
                 backendJson = result.data.schemaJSON;
                 // schemaID = result.data.id;
                 // console.log("create new schema with ", result.data.id);
+            },
+            error: function(result) {
+                is_success = false;
+                alert(JSON.parse(result.responseText).data);
+            },
+        })
+    },
+    'reverse:pointerclick': () => {
+
+        // const reverse_engineer_request = {
+        //     "databaseType": databaseType,
+        //     "hostname": hostname,
+        //     "portNumber": portNumber,
+        //     "databaseName": databaseName,
+        //     "username": username,
+        //     "password": password,
+        // }
+
+        const reverse_engineer_request = {
+            "databaseType": "postgresql",
+            "hostname": "localhost",
+            "portNumber": 5433,
+            "databaseName": "boanzhu",
+            "username": "boanzhu",
+            "password": "",
+        }
+
+        $.ajax({
+            async: false,
+            type: "POST",
+            url: "http://" + ip_address + ":8080/er/schema/reverse_engineer",
+            headers: { "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+            traditional : true,
+            data: JSON.stringify(reverse_engineer_request),
+            dataType: "json",
+            contentType: "application/json",
+            success: function(result) {
+                alert("success to reverse engineer!");
+                console.log("result: ", result.data.json);
+                backendJson = result.data.json;
+                var JSONObject = JSON.parse(backendJson);
+                transferJSONintoDiagram(JSONObject);
             },
             error: function(result) {
                 is_success = false;
@@ -3159,14 +3204,26 @@ function transferJSONintoDiagram(JSONObject) {
             newLink.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
 
             const position = calculateLabelPosition(newLink, attribute.name);
+
+            var attributeType;
+            if (attribute.attributeType == 1) {
+                attributeType = "Mandatory"
+            } else if (attribute.attributeType == 2) {
+                attributeType = "Optional"
+            } else if (attribute.attributeType == 3) {
+                attributeType = "Multivalued"
+            } else if (attribute.attributeType == 4) {
+                attributeType = "Both"
+            }
+
             newLink.attributes.labels = [];
-            console.log(attribute.isPrimary);
+
             newLink.attributes.labels[0] = {
                 attrs: {
                     text: {
                         text: attribute.name,
                         // optional: "No",
-                        attributeType: attribute.attributeType,
+                        attributeType: attributeType,
                         primary: attribute.isPrimary == true ? "Yes" : "No",
                         fill: "#FFFFFF"
                     },
@@ -3182,30 +3239,30 @@ function transferJSONintoDiagram(JSONObject) {
             };
             graph.addCell(newLink);
 
-            var attributeType;
-            if (attribute.attributeType == "Mandatory") {
-                attributeType = 1;
-            } else if (attribute.attributeType == "Optional") {
-                attributeType = 2;
-            } else if (attribute.attributeType == "Multivalued") {
-                attributeType = 3;
-            } else if (attribute.attributeType == "Both") {
-                attributeType = 4;
-            }
+            // var attributeType;
+            // if (attribute.attributeType == "Mandatory") {
+            //     attributeType = 1;
+            // } else if (attribute.attributeType == "Optional") {
+            //     attributeType = 2;
+            // } else if (attribute.attributeType == "Multivalued") {
+            //     attributeType = 3;
+            // } else if (attribute.attributeType == "Both") {
+            //     attributeType = 4;
+            // }
 
             var newAttribute = {
-                "belongObjID": 3718,
-                "belongObjType": 2,
+                "belongObjID": attribute.belongObjID,
+                "belongObjType": attribute.belongObjType,
                 "name": attribute.name,
                 "dataType": attribute.dataType,
                 "isPrimary": attribute.isPrimary,
-                "attributeType": attributeType,
+                "attributeType": attribute.attributeType,
                 "aimPort": -1,
                 "layoutInfo": {
                     "layoutX": newLink.attributes.target.x,
                     "layoutY": newLink.attributes.target.y
                 },
-                "id": 3199, // 后端获取
+                "id": attribute.id,
                 "graphId": newLink.id
             }
 
@@ -3213,13 +3270,13 @@ function transferJSONintoDiagram(JSONObject) {
         }
 
         let newElement = {
-            "schemaID": schemaID,
+            "schemaID": JSONObject.id,
             "name": entity.name,
             "layoutInfo": {
                 "layoutX": newEntity.attributes.position.x,
                 "layoutY": newEntity.attributes.position.y
             },
-            "id": 111,
+            "id": entity.id,
             "graphId": newEntity.id,
             "attributesArray": attributesArray,
         }
@@ -3246,8 +3303,7 @@ function transferJSONintoDiagram(JSONObject) {
         // Connect all entities it can, some entities may not be created now
         for (idx in relation.edgeList) {
             var edge = relation.edgeList[idx];
-            var target = findEntity(edge.entity);
-            // console.log("target: ", target);
+            var target = findEntity(edge.belongObjName);
 
             if (target) {
                 const newLink = new shapes.standard.Link({
@@ -3260,13 +3316,23 @@ function transferJSONintoDiagram(JSONObject) {
                 // remove the target arrow
                 newLink.attributes.attrs.line.targetMarker.d = 'M 0 0 0 0';
 
+                let cardinality;
+                if (edge.cardinality == "1") {
+                    cardinality = "0:1";
+                } else if (edge.cardinality == "2") {
+                    cardinality = "0:N";
+                } else if (edge.cardinality == "3") {
+                    cardinality = "1:1";
+                } else if (edge.cardinality == "4") {
+                    cardinality = "1:N";
+                }
+
                 // set the cardinality
                 newLink.attributes.labels = [];
                 newLink.attributes.labels[0] = {
                     attrs: {
                         text: {
-                            text: edge.cardinality,
-                            // primary: "Yes"
+                            text: cardinality,
                         }
                     },
                     markup: util.svg`<text @selector="text" fill="#FFFFFF"/>`,
@@ -3275,27 +3341,27 @@ function transferJSONintoDiagram(JSONObject) {
                     }
                 }
 
-                let cardinality;
-                if (edge.cardinality == "0:1") {
-                    cardinality = 1;
-                } else if (edge.cardinality == "0:N") {
-                    cardinality = 2;
-                } else if (edge.cardinality == "1:1") {
-                    cardinality = 3;
-                } else if (edge.cardinality == "1:N") {
-                    cardinality = 4;
-                } else {
-                    cardinality = 0; // not a valid cardinality or didn't give a cardinality
-                } 
+                // let cardinality;
+                // if (edge.cardinality == "0:1") {
+                //     cardinality = 1;
+                // } else if (edge.cardinality == "0:N") {
+                //     cardinality = 2;
+                // } else if (edge.cardinality == "1:1") {
+                //     cardinality = 3;
+                // } else if (edge.cardinality == "1:N") {
+                //     cardinality = 4;
+                // } else {
+                //     cardinality = 0; // not a valid cardinality or didn't give a cardinality
+                // } 
 
                 var linkObj = {
-                    "relationshipID": 123,
-                    "belongObjID": target.id, 
-                    "belongObjType": 2, // currently do not support relationship as the belongObj!
-                    "cardinality": cardinality, 
+                    "relationshipID": relation.id,
+                    "belongObjID": edge.belongObjID, 
+                    "belongObjType": edge.belongObjType, // currently do not support relationship as the belongObj!
+                    "cardinality": edge.cardinality, 
                     "portAtRelationship": -1,
                     "portAtEntity": -1,
-                    "edgeID": 123,
+                    "edgeID": edge.id,
                 }
 
                 belongObjWithCardinalityList.push(linkObj);
@@ -3305,13 +3371,13 @@ function transferJSONintoDiagram(JSONObject) {
         }
 
         var newElement = {
-            "schemaID": schemaID,
+            "schemaID": JSONObject.id,
             "name": relation.name,
             "layoutInfo": {
                 "layoutX": newRelationship.attributes.position.x,
                 "layoutY": newRelationship.attributes.position.y
             },
-            "id": 222,
+            "id": relation.id,
             "graphId": newRelationship.id,
             "belongObjWithCardinalityList": belongObjWithCardinalityList,
         }
@@ -3329,6 +3395,7 @@ function transferJSONintoDiagram(JSONObject) {
 function findEntity(name) {
     let target;
     for (idx in entitiesArray) {
+        console.log("entitiesArray[idx]: ", entitiesArray[idx]);
         if (entitiesArray[idx].name == name) {
             target = entitiesArray[idx];
             return target;
