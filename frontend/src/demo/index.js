@@ -38,7 +38,7 @@ let relationshipsArray = [];
 
 // const ip_address = "146.169.162.32";
 // const ip_address = "10.187.204.209";
-const ip_address = "10.248.207.227";
+const ip_address = "146.169.160.96";
 // const ip_address = "10.29.10.219";
 
 // let schemaID = "";
@@ -3171,6 +3171,14 @@ function calculateAttributePosition(sourceX, sourceY) {
     }
 }
 
+function calculateRelationshipAttributePosition(sourceX, sourceY) {
+    return [
+        [sourceX - 50, sourceY - 40],
+        [sourceX, sourceY - 40],
+        [sourceX + 50, sourceY - 40]
+    ]
+}
+
 
 // This is one of the main function which is used to extract the backend JSON string to re-build the ER diagram.
 // This is used for after reverse engineer so that users can easily modify the ER schema which is from a relational database.
@@ -3183,13 +3191,35 @@ function transferJSONintoDiagram(JSONObject) {
     // From the backend we can get the backend JSON string and then we can parse it into this 'JSONObject'
 
     schemaName = JSONObject.name;
+    schemaID = JSONObject.id;
     // invoke api to create a new schema here
 
     var entityList = JSONObject.entityList;
     var relationshipList = JSONObject.relationshipList;
 
-    // The first step is to create all of the strong entities and relationships.
+    var strongEntityList = [];
+    var weakEntityList = [];
+    var subsetEntityList = [];
+    var generalisationEntityList = [];
+
     for (idx in entityList) {
+        var entity = entityList[idx];
+        if (entity.entityType == 1) {
+            strongEntityList.push(entity);
+        } else if (entity.entityType == 2) {
+            // weakEntityList.push(entity);
+
+            // weak entity may have the same situation as the strong entity
+            strongEntityList.push(entity);
+        } else if (entity.entityType == 3) {
+            subsetEntityList.push(entity);
+        } else if (entity.entityType == 4) {
+            generalisationEntityList.push(entity);
+        } 
+    }
+
+    // The first step is to create all of the strong entities and relationships.
+    for (idx in strongEntityList) {
         var entity = entityList[idx];
 
         var newEntity;
@@ -3299,17 +3329,6 @@ function transferJSONintoDiagram(JSONObject) {
                 };
             } 
 
-            // var attributeType;
-            // if (attribute.attributeType == "Mandatory") {
-            //     attributeType = 1;
-            // } else if (attribute.attributeType == "Optional") {
-            //     attributeType = 2;
-            // } else if (attribute.attributeType == "Multivalued") {
-            //     attributeType = 3;
-            // } else if (attribute.attributeType == "Both") {
-            //     attributeType = 4;
-            // }
-
             var newAttribute = {
                 "belongObjID": attribute.belongObjID,
                 "belongObjType": attribute.belongObjType,
@@ -3358,16 +3377,123 @@ function transferJSONintoDiagram(JSONObject) {
             "id": relation.id,
             "graphId": newRelationship.id,
             "belongObjWithCardinalityList": [],
+            "attributesArray": []
         }
         relationshipsArray.push(newElement);
 
-        // var belongObjWithCardinalityList = [];
+        var positionList = calculateRelationshipAttributePosition(location[0], location[1]);
+
+        for (idx in relation.attributeList) {
+            var attribute = relation.attributeList[idx];
+
+            var location = positionList[idx];
+            
+            var newLink = new shapes.standard.Link({
+                attrs: { line: { stroke: '#fbf5d0' }},
+                source: { id: newRelationship.id },
+                // target: { x: attribute.layoutInfo.layoutX, y: attribute.layoutInfo.layoutY }
+                target: { x: location[0], y: location[1] }
+            })
+            newLink.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
+
+            const position = calculateLabelPosition(newLink, attribute.name);
+
+            var attributeType;
+            if (attribute.attributeType == 1) {
+                attributeType = "Mandatory"
+            } else if (attribute.attributeType == 2) {
+                attributeType = "Optional"
+            } else if (attribute.attributeType == 3) {
+                attributeType = "Multivalued"
+            } else if (attribute.attributeType == 4) {
+                attributeType = "Both"
+            }
+
+            newLink.attributes.labels = [];
+
+            if (attribute.isPrimary) {
+                let underline_string = "";
+                for (char in attribute.name) {
+                    underline_string += "_";
+                } 
+
+                newLink.attributes.labels[0] = {
+                    attrs: {
+                        text: {
+                            text: attribute.name,
+                            attributeType: attributeType,
+                            primary: attribute.isPrimary == true ? "Yes" : "No",
+                            fill: "#FFFFFF"
+                        },
+                        outer: {
+                            text: underline_string,
+                            fill: "#FFFFFF"
+                        }
+                    },
+                    markup: util.svg`<text @selector="text"/> <text @selector="outer"/>`,
+                    position: {
+                        distance: 1,
+                        offset: {
+                            x: position.final_x,
+                            y: position.final_y
+                        }
+                    }
+                };
+            } else {
+                newLink.attributes.labels[0] = {
+                    attrs: {
+                        text: {
+                            text: attribute.name,
+                            // optional: "No",
+                            attributeType: attributeType,
+                            primary: attribute.isPrimary == true ? "Yes" : "No",
+                            fill: "#FFFFFF"
+                        },
+                    },
+                    markup: util.svg`<text @selector="text"/>`,
+                    position: {
+                        distance: 1,
+                        offset: {
+                            x: position.final_x,
+                            y: position.final_y
+                        }
+                    }
+                };
+            } 
+
+            var newAttribute = {
+                "belongObjID": attribute.belongObjID,
+                "belongObjType": attribute.belongObjType,
+                "name": attribute.name,
+                "dataType": attribute.dataType,
+                "isPrimary": attribute.isPrimary,
+                "attributeType": attribute.attributeType,
+                "aimPort": -1,
+                "layoutInfo": {
+                    "layoutX": newLink.attributes.target.x,
+                    "layoutY": newLink.attributes.target.y
+                },
+                "id": attribute.id,
+                "graphId": newLink.id
+            }
+
+            newElement.attributesArray.push(newAttribute);
+            graph.addCell(newLink);
+        }
 
         // Connect all entities it can, some entities may not be created now
         for (idx in relation.edgeList) {
             var edge = relation.edgeList[idx];
-            var target = findEntity(edge.belongObjName);
+            var target;
 
+            if (edge.belongObjType == 2) {
+                target = findEntity(edge.belongObjName);
+            } else if (edge.belongObjType == 3) {
+                target = findRelationship(edge.belongObjName);
+            } else {
+                console.log("cannot find target...");
+            }
+            
             if (target) {
                 const newLink = new shapes.standard.Link({
                     attrs: { line: { stroke: '#fbf5d0' }},
@@ -3403,19 +3529,6 @@ function transferJSONintoDiagram(JSONObject) {
                     }
                 }
 
-                // let cardinality;
-                // if (edge.cardinality == "0:1") {
-                //     cardinality = 1;
-                // } else if (edge.cardinality == "0:N") {
-                //     cardinality = 2;
-                // } else if (edge.cardinality == "1:1") {
-                //     cardinality = 3;
-                // } else if (edge.cardinality == "1:N") {
-                //     cardinality = 4;
-                // } else {
-                //     cardinality = 0; // not a valid cardinality or didn't give a cardinality
-                // } 
-
                 var linkObj = {
                     "relationshipID": relation.id,
                     "belongObjID": edge.belongObjID, 
@@ -3434,6 +3547,39 @@ function transferJSONintoDiagram(JSONObject) {
 
     }
 
+    for (idx in subsetEntityList) {
+        var subset = entityList[idx];
+
+        var belongStrongEntityID = subset.belongStrongEntityID;
+        var belongStrongEntity = findEntityById(belongStrongEntityID);
+
+        var targetX = belongStrongEntity.layoutInfo.layoutX;
+        var targetY = belongStrongEntity.layoutInfo.layoutY;
+
+        // var position = findNextEntityPosition();
+        // var location = positionXY[position.x][position.y];
+
+        var newEntity = new StrongEntity({
+            position: { x: targetX, y: targetY + 200 },
+            attrs: { label: { text: subset.name }},
+        });
+
+        var newLink = new shapes.standard.Link({
+            attrs: { line: { stroke: '#fbf5d0' }},
+            source: { id: newEntity.id },
+            // target: { x: attribute.layoutInfo.layoutX, y: attribute.layoutInfo.layoutY }
+            target: { id: belongStrongEntity.graphId }
+        });
+
+        graph.addCell(newEntity);
+        graph.addCell(newLink);
+    }
+
+    // for (idx in weakEntityList) {
+    //     var weakEntity = weakEntityList[idx];
+
+    // }
+
     console.log("entitiesArray: ", entitiesArray);
     console.log("relationshipsArray: ", relationshipsArray);
 
@@ -3445,9 +3591,30 @@ function transferJSONintoDiagram(JSONObject) {
 function findEntity(name) {
     let target;
     for (idx in entitiesArray) {
-        console.log("entitiesArray[idx]: ", entitiesArray[idx]);
         if (entitiesArray[idx].name == name) {
             target = entitiesArray[idx];
+            return target;
+        }
+    }
+    return target;
+}
+
+function findEntityById(id) {
+    let target;
+    for (idx in entitiesArray) {
+        if (entitiesArray[idx].id == id) {
+            target = entitiesArray[idx];
+            return target;
+        }
+    }
+    return target;
+}
+
+function findRelationship(name) {
+    let target;
+    for (idx in relationshipsArray) {
+        if (relationshipsArray[idx].name == name) {
+            target = relationshipsArray[idx];
             return target;
         }
     }
