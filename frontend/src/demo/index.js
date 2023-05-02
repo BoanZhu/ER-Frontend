@@ -831,7 +831,8 @@ paper.on('element:pointerclick', (elementView) => {
             const source = graph.getCell(elementView.model.id);
             const entity = getElement(entitiesArray, source);
             const entity_delete_request = {
-                id: entity.id
+                "id": entity.id,
+                "name": entity.name
             }
             
             // invoke 'er/entity/delete' api
@@ -957,6 +958,7 @@ toolbar.on({
 
         new_ddl_request = {
             "id": schemaID
+            // "id": 1244
         }
 
         $.ajax({
@@ -981,9 +983,23 @@ toolbar.on({
 
         console.log("DDL: \n", ddl);
 
+        var content;
+
+        if (ddl.includes("|")) {
+            var listOfDDL = ddl.split("|");
+            content = "There are three possible cases: \n\n" + "1: " + listOfDDL[0] + "\n" + "2: " + listOfDDL[1] + "\n" + "3: " + listOfDDL[2];
+        } else {
+            content = ddl;
+        }
+        
+        console.log(istOfDDL);
+        console.log("1: ", llistOfDDL[0]);
+        console.log("2: ", llistOfDDL[1]);
+        console.log("3: ", llistOfDDL[2]);
+
         $.confirm({
             title: 'DDL of ' + schemaName,
-            content: ddl,
+            content: content,
             buttons: {
                 confirm: function () {
                     $.alert('Confirmed!');
@@ -1943,7 +1959,8 @@ graph.on('change add', (cell) => {
                     };
 
                     entity_delete_request = {
-                        "id": target_entity_id
+                        "id": target_entity_id,
+                        "name": target_name
                     };
 
                     // invoke 'er/entity/delete' api
@@ -1951,7 +1968,7 @@ graph.on('change add', (cell) => {
 
                     // invoke 'er/entity/create_subset' api
                     entityCreateSubset(subset_create_request);
-                    
+                    console.log(entitiesArray);
                 }
             }
             
@@ -2198,24 +2215,29 @@ paper.on('link:pointerup', (cell, evt) => {
         const source = graph.getCell(source_id);
         const target = graph.getCell(target_id);
 
-        let new_cardinality_name = window.prompt("Please enter the ratio of the new cardinality (Please choose between 0:1, 1:1, 0:N, 1:N):", "");
+        console.log("target: ", target);
+        if (target.attributes.type != "myApp.StrongEntity") {
+            let new_cardinality_name = window.prompt("Please enter the ratio of the new cardinality (Please choose between 0:1, 1:1, 0:N, 1:N):", "");
         
-        while (new_cardinality_name != "0:1" && new_cardinality_name != "0:N" && new_cardinality_name != "1:1" && new_cardinality_name != "1:N") {
-            new_cardinality_name = window.prompt("This ratio is not supperted! Please choose between 0:1, 1:1, 0:N, 1:N.", "");
+            while (new_cardinality_name != "0:1" && new_cardinality_name != "0:N" && new_cardinality_name != "1:1" && new_cardinality_name != "1:N") {
+                new_cardinality_name = window.prompt("This ratio is not supperted! Please choose between 0:1, 1:1, 0:N, 1:N.", "");
+            }
+
+            let cardinality;
+            if (new_cardinality_name == "0:1") {
+                cardinality = 1;
+            } else if (new_cardinality_name == "0:N") {
+                cardinality = 2;
+            } else if (new_cardinality_name == "1:1") {
+                cardinality = 3;
+            } else if (new_cardinality_name == "1:N") {
+                cardinality = 4;
+            } else {
+                cardinality = 0; // not a valid cardinality or didn't give a cardinality
+            } 
         }
         
-        let cardinality;
-        if (new_cardinality_name == "0:1") {
-            cardinality = 1;
-        } else if (new_cardinality_name == "0:N") {
-            cardinality = 2;
-        } else if (new_cardinality_name == "1:1") {
-            cardinality = 3;
-        } else if (new_cardinality_name == "1:N") {
-            cardinality = 4;
-        } else {
-            cardinality = 0; // not a valid cardinality or didn't give a cardinality
-        } 
+        
 
         // need to wrapper the api invoking function later!
         if (checkArray(entitiesArray, source) && checkArray(relationshipsArray, target)) {
@@ -2427,6 +2449,7 @@ paper.on('link:pointerup', (cell, evt) => {
 
                 const entity_delete_request = {
                     "id": targetStrongEntity.id,
+                    "name": targetStrongEntity.name
                 }
                 
                 // invoke 'er/entity/delete' api
@@ -2480,10 +2503,12 @@ paper.on('link:pointerup', (cell, evt) => {
             const belongObjectGraphId = cell.model.attributes.source.id;
             const source = graph.getCell(belongObjectGraphId);
 
+            console.log("source: ", source);
             let belongObject;
             let belongObjType;
 
             if (source.attributes.type == "myApp.StrongEntity") {
+                console.log("123");
                 belongObject = getElement(entitiesArray, source);
                 belongObjType = 2;
             } else if (source.attributes.type == "myApp.Relationship") {
@@ -2500,7 +2525,7 @@ paper.on('link:pointerup', (cell, evt) => {
                 }
             }
             
-
+            console.log("belongObject: ", belongObject);
             
             // if (belongObject.weakEntityName) {
             //     belongObjType = 2;
@@ -2636,7 +2661,7 @@ function getElement(arr, cell) {
     const cell_name = cell.attributes.attrs.label.text;
     let result;
     for (idx in arr) {
-        if (arr[idx].name == cell_name || arr[idx].weakEntityName == cell_name) {
+        if (arr[idx].name == cell_name || arr[idx].weakEntityName == cell_name || arr[idx].subsetName == cell_name) {
             result = arr[idx];
         }
     }
@@ -2809,7 +2834,8 @@ function entityDelete(entity_delete_request) {
         dataType: "json",
         contentType: "application/json",
         success: function(result) {
-            alert("success!");
+            alert("success to delete the entity!");
+            removeElement(entitiesArray, entity_delete_request)
         },
         error: function(result) {
             is_success = false;
@@ -2854,7 +2880,7 @@ function entityCreateSubset(subset_create_request) {
         dataType: "json",
         contentType: "application/json",
         success: function(result) {
-            alert("success!");
+            alert("success to create the subset!");
             subset_create_request.id = result.data.id;
             console.log(subset_create_request);
             entitiesArray.push(subset_create_request);
