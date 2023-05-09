@@ -37,8 +37,8 @@ let entitiesArray = [];
 let relationshipsArray = [];
 
 // const ip_address = "146.169.162.32";
-// const ip_address = "10.187.204.209";
-const ip_address = "146.169.160.96";
+const ip_address = "10.187.204.209";
+// const ip_address = "146.169.162.217";
 // const ip_address = "10.29.10.219";
 
 // let schemaID = "";
@@ -914,17 +914,18 @@ const toolbar = new ui.Toolbar({
     groups: {
         clear: { index: 1 },
         // zoom: { index: 2 },
+        validate: { index: 2 },
         create: { index: 3 },
-        validate: { index: 4 },
+        toJson: { index: 4 },
+        upload: { index: 5 },
+        loadFromJson: { index: 6 },
         // currentSchema: { index: 4 },
         // undoredo: { index: 5 },
-        map: { index: 5 },
-        execute: { index: 6 },
-        render: { index: 7 },
-        toJson: { index: 8 },
-        upload: { index: 9 },
-        loadFromJson: { index: 10 },
-        toBackendJson: { index: 11 },
+        map: { index: 7 },
+        execute: { index: 8 },
+        // render: { index: 7 },
+        
+        // toBackendJson: { index: 11 },
         reverse: { index: 12 },
     },
     tools: [
@@ -935,11 +936,11 @@ const toolbar = new ui.Toolbar({
         { type: 'button', name: 'create', group: 'create', text: 'Create new schema' },
         { type: 'button', name: 'execute', group: 'execute', text: 'Connect to database and execute' },
         { type: 'button', name: 'validate', group: 'validate', text: 'Validate the schema' },
-        { type: 'button', name: 'render', group: 'render', text: 'Render the schema' },
+        // { type: 'button', name: 'render', group: 'render', text: 'Render the schema' },
         { type: 'button', name: 'toJson', group: 'toJson', text: 'To Json' }, 
         { type: 'button', name: 'upload', group: 'upload', text: 'Upload Json' },
         { type: 'button', name: 'loadFromJson', group: 'loadFromJson', text: 'Load from Json' },
-        { type: 'button', name: 'toBackendJson', group: 'toBackendJson', text: 'To backend Json' },
+        // { type: 'button', name: 'toBackendJson', group: 'toBackendJson', text: 'To backend Json' },
         { type: 'button', name: 'reverse', group: 'reverse', text: 'Reverse' },
     ],
     references: {
@@ -984,19 +985,22 @@ toolbar.on({
         console.log("DDL: \n", ddl);
 
         var content;
+        var listOfDDL;
 
         if (ddl.includes("|")) {
-            var listOfDDL = ddl.split("|");
+            listOfDDL = ddl.split("|");
             content = "There are three possible cases: \n\n" + "1: " + listOfDDL[0] + "\n" + "2: " + listOfDDL[1] + "\n" + "3: " + listOfDDL[2];
         } else {
             content = ddl;
         }
         
-        console.log(istOfDDL);
-        console.log("1: ", llistOfDDL[0]);
-        console.log("2: ", llistOfDDL[1]);
-        console.log("3: ", llistOfDDL[2]);
-
+        if (listOfDDL) {
+            console.log(listOfDDL);
+            console.log("1: ", listOfDDL[0]);
+            console.log("2: ", listOfDDL[1]);
+            console.log("3: ", listOfDDL[2]);
+        }
+        
         $.confirm({
             title: 'DDL of ' + schemaName,
             content: content,
@@ -1150,11 +1154,13 @@ toolbar.on({
                                     success: function(result) {
                                         alert("success to execute the ddl!");
                                         console.log("execute the ddl api result: ", result);
+                                        $("#dialog").dialog( "close" );
                                     },
                                     error: function(result) {
                                         is_success = false;
                                         console.log(result.responseText); // It's a string but actually a JSON, so using JSON.parse 
                                         alert(JSON.parse(result.responseText).data);
+                                        $("#dialog").dialog( "close" );
                                     },
                                 });
                             }
@@ -1166,6 +1172,7 @@ toolbar.on({
                             // $("#dialog").css("width", "350px");
                             console.log("dddddd: ", $("#dialog").css("width"));
                             $("#dialog").dialog( "close" );
+                            $("dialog").css("display", "none");
                         }
                     }
                 ]
@@ -2215,15 +2222,17 @@ paper.on('link:pointerup', (cell, evt) => {
         const source = graph.getCell(source_id);
         const target = graph.getCell(target_id);
 
+        let new_cardinality_name;
+        let cardinality;
         console.log("target: ", target);
         if (target.attributes.type != "myApp.StrongEntity") {
-            let new_cardinality_name = window.prompt("Please enter the ratio of the new cardinality (Please choose between 0:1, 1:1, 0:N, 1:N):", "");
+            new_cardinality_name = window.prompt("Please enter the ratio of the new cardinality (Please choose between 0:1, 1:1, 0:N, 1:N):", "");
         
             while (new_cardinality_name != "0:1" && new_cardinality_name != "0:N" && new_cardinality_name != "1:1" && new_cardinality_name != "1:N") {
                 new_cardinality_name = window.prompt("This ratio is not supperted! Please choose between 0:1, 1:1, 0:N, 1:N.", "");
             }
 
-            let cardinality;
+            
             if (new_cardinality_name == "0:1") {
                 cardinality = 1;
             } else if (new_cardinality_name == "0:N") {
