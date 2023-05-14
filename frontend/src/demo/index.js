@@ -962,6 +962,8 @@ toolbar.on({
             // "id": 1244
         }
 
+        ddl = "";
+
         $.ajax({
             async: false,
             type: "POST",
@@ -983,6 +985,10 @@ toolbar.on({
         })
 
         console.log("DDL: \n", ddl);
+
+        if (ddl == "") {
+            return;
+        }
 
         var content;
         var listOfDDL;
