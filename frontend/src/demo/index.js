@@ -44,7 +44,8 @@ const ip_address = "10.187.204.209";
 // let schemaID = "";
 let schemaID = "1133";
 let schemaName = "Test schema";
-let ddl;
+let sql;
+let previousSql;
 let is_validated = false;
 
 let backendJson;
@@ -930,7 +931,7 @@ const toolbar = new ui.Toolbar({
     },
     tools: [
         { type: 'button', name: 'clear', group: 'clear', text: 'Clear Diagram' },
-        { type: 'button', name: 'map', group: 'map', text: 'To DDL' },
+        { type: 'button', name: 'map', group: 'map', text: 'To SQL' },
         // { type: 'zoom-out', name: 'zoom-out', group: 'zoom' },
         // { type: 'zoom-in', name: 'zoom-in', group: 'zoom' },
         { type: 'button', name: 'create', group: 'create', text: 'Create new schema' },
@@ -962,7 +963,7 @@ toolbar.on({
             // "id": 1244
         }
 
-        ddl = "";
+        sql = "";
 
         $.ajax({
             async: false,
@@ -976,7 +977,8 @@ toolbar.on({
             contentType: "application/json",
             success: function(result) {
                 alert("success!");
-                ddl = result.data.schemaDDL;
+                sql = result.data.schemaDDL;
+                previousSql = sql;
             },
             error: function(result) {
                 is_success = false;
@@ -984,20 +986,20 @@ toolbar.on({
             },
         })
 
-        console.log("DDL: \n", ddl);
+        console.log("SQL: \n", sql);
 
-        if (ddl == "") {
+        if (sql == "") {
             return;
         }
 
         var content;
         var listOfDDL;
 
-        if (ddl.includes("|")) {
-            listOfDDL = ddl.split("|");
+        if (sql.includes("|")) {
+            listOfDDL = sql.split("|");
             content = "There are three possible cases: \n\n" + "1: " + listOfDDL[0] + "\n" + "2: " + listOfDDL[1] + "\n" + "3: " + listOfDDL[2];
         } else {
-            content = ddl;
+            content = sql;
         }
         
         if (listOfDDL) {
@@ -1008,7 +1010,7 @@ toolbar.on({
         }
         
         $.confirm({
-            title: 'DDL of ' + schemaName,
+            title: 'SQL of ' + schemaName,
             content: content,
             buttons: {
                 confirm: function () {
@@ -1023,7 +1025,7 @@ toolbar.on({
                     keys: ['enter', 'shift'],
                     action: function(){
                         console.log("try to download!");
-                        const blob = new Blob([JSON.stringify(ddl)])
+                        const blob = new Blob([JSON.stringify(sql)])
                         util.downloadBlob(blob, schemaName + ".json");
                     }
                 }
@@ -1144,7 +1146,7 @@ toolbar.on({
                                     "databaseName": databaseName,
                                     "username": username,
                                     "password": password,
-                                    "ddl": ddl,
+                                    "ddl": previousSql,
                                 }
 
                                 $.ajax({
@@ -1158,8 +1160,8 @@ toolbar.on({
                                     dataType: "json",
                                     contentType: "application/json",
                                     success: function(result) {
-                                        alert("success to execute the ddl!");
-                                        console.log("execute the ddl api result: ", result);
+                                        alert("success to execute the SQL statements!");
+                                        console.log("execute the SQL api result: ", result);
                                         $("#dialog").dialog( "close" );
                                     },
                                     error: function(result) {
