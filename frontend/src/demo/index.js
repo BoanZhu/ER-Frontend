@@ -3237,6 +3237,8 @@ function transferJSONintoDiagram(JSONObject) {
     schemaID = JSONObject.id;
     // invoke api to create a new schema here
 
+    console.log(JSONObject);
+
     var entityList = JSONObject.entityList;
     var relationshipList = JSONObject.relationshipList;
 
@@ -3270,6 +3272,11 @@ function transferJSONintoDiagram(JSONObject) {
         var position = findNextEntityPosition();
 
         var location = positionXY[position.x][position.y];
+
+        if (entity.layoutInfo) {
+            location[0] = entity.layoutInfo.layoutX;
+            location[1] = entity.layoutInfo.layoutY;
+        }
 
         newEntity = new StrongEntity({
             position: { x: location[0], y: location[1] },
@@ -3402,6 +3409,11 @@ function transferJSONintoDiagram(JSONObject) {
         var position = findNextRelationshipPosition();
 
         var location = positionXY[position.x][position.y];
+
+        if (relation.layoutInfo) {
+            location[0] = relation.layoutInfo.layoutX;
+            location[1] = relation.layoutInfo.layoutY;
+        }
 
         const newRelationship = new relationship({
             position: { x: location[0], y: location[1] },
