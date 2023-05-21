@@ -3271,7 +3271,8 @@ function transferJSONintoDiagram(JSONObject) {
         
         var position = findNextEntityPosition();
 
-        var location = positionXY[position.x][position.y];
+        // var location = positionXY[position.x][position.y];
+        var location = [];
 
         if (entity.layoutInfo) {
             location[0] = entity.layoutInfo.layoutX;
@@ -3408,7 +3409,8 @@ function transferJSONintoDiagram(JSONObject) {
         
         var position = findNextRelationshipPosition();
 
-        var location = positionXY[position.x][position.y];
+        // var location = positionXY[position.x][position.y];
+        var location = [];
 
         if (relation.layoutInfo) {
             location[0] = relation.layoutInfo.layoutX;
