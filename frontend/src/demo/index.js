@@ -37,7 +37,8 @@ let entitiesArray = [];
 let relationshipsArray = [];
 
 // const ip_address = "146.169.162.32";
-const ip_address = "10.187.204.209";
+// const ip_address = "10.187.204.209";
+const ip_address = "146.169.172.111";
 // const ip_address = "146.169.162.217";
 // const ip_address = "10.29.10.219";
 
@@ -1340,6 +1341,14 @@ toolbar.on({
             "username": "boanzhu",
             "password": "",
         }
+        // const reverse_engineer_request = {
+        //     "databaseType": "postgresql",
+        //     "hostname": "db.doc.ic.ac.uk",
+        //     "portNumber": 5432,
+        //     "databaseName": "films",
+        //     "username": "lab",
+        //     "password": "lab",
+        // }
 
         $.ajax({
             async: false,
@@ -3197,29 +3206,130 @@ function findNextRelationshipPosition() {
     return result;
 }
 
-function calculateAttributePosition(sourceX, sourceY) {
+function calculateAttributePosition(sourceX, sourceY, length) {
 
     if (sourceX < 500) {
-        return [
-            [sourceX - 80, sourceY - 20],
-            [sourceX - 80, sourceY + 20],
-            [sourceX - 80, sourceY + 60]
-        ];
+        if (length <= 3) {
+            return [
+                [sourceX - 80, sourceY - 20],
+                [sourceX - 80, sourceY + 20],
+                [sourceX - 80, sourceY + 60]
+            ];
+        } else if (3 < length && length <= 5) {
+            return [
+                [sourceX - 80, sourceY - 20],
+                [sourceX - 80, sourceY],
+                [sourceX - 80, sourceY + 20],
+                [sourceX - 80, sourceY + 40],
+                [sourceX - 80, sourceY + 60]
+            ];
+        } else if (5 < length && length <= 7) {
+            return [
+                [sourceX - 80, sourceY - 40],
+                [sourceX - 80, sourceY - 20],
+                [sourceX - 80, sourceY],
+                [sourceX - 80, sourceY + 20],
+                [sourceX - 80, sourceY + 40],
+                [sourceX - 80, sourceY + 60],
+                [sourceX - 80, sourceY + 80]
+            ]
+        } else {
+            return [
+                [sourceX - 80, sourceY - 60],
+                [sourceX - 80, sourceY - 40],
+                [sourceX - 80, sourceY - 20],
+                [sourceX - 80, sourceY],
+                [sourceX - 80, sourceY + 20],
+                [sourceX - 80, sourceY + 40],
+                [sourceX - 80, sourceY + 60],
+                [sourceX - 80, sourceY + 80],
+                [sourceX - 80, sourceY + 100],
+                [sourceX - 80, sourceY + 120],
+            ]
+        }
+        
     } else {
-        return [
-            [sourceX + 100 + 80, sourceY - 20],
-            [sourceX + 100 + 80, sourceY + 20],
-            [sourceX + 100 + 80, sourceY + 60]
-        ]
+        if (length <= 3) {
+            return [
+                [sourceX + 100 + 80, sourceY - 20],
+                [sourceX + 100 + 80, sourceY + 20],
+                [sourceX + 100 + 80, sourceY + 60]
+            ]
+        } else if (3 < length && length <= 5) {
+            return [
+                [sourceX + 100 + 80, sourceY - 20],
+                [sourceX + 100 + 80, sourceY],
+                [sourceX + 100 + 80, sourceY + 20],
+                [sourceX + 100 + 80, sourceY + 40],
+                [sourceX + 100 + 80, sourceY + 60]
+            ]
+        } else if (5 < length && length <= 7) {
+            return [
+                [sourceX + 100 + 80, sourceY - 40],
+                [sourceX + 100 + 80, sourceY - 20],
+                [sourceX + 100 + 80, sourceY],
+                [sourceX + 100 + 80, sourceY + 20],
+                [sourceX + 100 + 80, sourceY + 40],
+                [sourceX + 100 + 80, sourceY + 60],
+                [sourceX + 100 + 80, sourceY + 80]
+            ]
+        } else {
+            return [
+                [sourceX + 100 + 80, sourceY - 60],
+                [sourceX + 100 + 80, sourceY - 40],
+                [sourceX + 100 + 80, sourceY - 20],
+                [sourceX + 100 + 80, sourceY],
+                [sourceX + 100 + 80, sourceY + 20],
+                [sourceX + 100 + 80, sourceY + 40],
+                [sourceX + 100 + 80, sourceY + 60],
+                [sourceX + 100 + 80, sourceY + 80],
+                [sourceX + 100 + 80, sourceY + 100],
+                [sourceX + 100 + 80, sourceY + 120]
+            ]
+        }
+        
     }
 }
 
-function calculateRelationshipAttributePosition(sourceX, sourceY) {
-    return [
-        [sourceX - 50, sourceY - 40],
-        [sourceX, sourceY - 40],
-        [sourceX + 50, sourceY - 40]
-    ]
+function calculateRelationshipAttributePosition(sourceX, sourceY, length) {
+    if (length <= 3) {
+        return [
+            [sourceX - 50, sourceY - 40],
+            [sourceX, sourceY - 40],
+            [sourceX + 50, sourceY - 40]
+        ]
+    } else if (3 < length && length <= 5) {
+        return [
+            [sourceX - 50, sourceY - 40],
+            [sourceX - 25, sourceY - 40],
+            [sourceX, sourceY - 40],
+            [sourceX + 25, sourceY - 40],
+            [sourceX + 50, sourceY - 40]
+        ]
+    } else if (5 < length && length <= 7) {
+        return [
+            [sourceX - 75, sourceY - 40],
+            [sourceX - 50, sourceY - 40],
+            [sourceX - 25, sourceY - 40],
+            [sourceX, sourceY - 40],
+            [sourceX + 25, sourceY - 40],
+            [sourceX + 50, sourceY - 40],
+            [sourceX + 75, sourceY - 40],
+        ]
+    } else {
+        return [
+            [sourceX - 100, sourceY - 40],
+            [sourceX - 75, sourceY - 40],
+            [sourceX - 50, sourceY - 40],
+            [sourceX - 25, sourceY - 40],
+            [sourceX, sourceY - 40],
+            [sourceX + 25, sourceY - 40],
+            [sourceX + 50, sourceY - 40],
+            [sourceX + 75, sourceY - 40],
+            [sourceX + 100, sourceY - 40],
+        ]
+    }
+    
 }
 
 
@@ -3249,6 +3359,7 @@ function transferJSONintoDiagram(JSONObject) {
 
     for (idx in entityList) {
         var entity = entityList[idx];
+        console.log("entity: ", entity);
         if (entity.entityType == 1) {
             strongEntityList.push(entity);
         } else if (entity.entityType == 2) {
@@ -3263,13 +3374,18 @@ function transferJSONintoDiagram(JSONObject) {
         } 
     }
 
+    for (idx in strongEntityList) {
+        var entity = entityList[idx];
+        console.log("each entity: ", entity);
+    }
+
     // The first step is to create all of the strong entities and relationships.
     for (idx in strongEntityList) {
         var entity = entityList[idx];
 
         var newEntity;
         
-        var position = findNextEntityPosition();
+        // var position = findNextEntityPosition();
 
         // var location = positionXY[position.x][position.y];
         var location = [];
@@ -3279,11 +3395,18 @@ function transferJSONintoDiagram(JSONObject) {
             location[1] = entity.layoutInfo.layoutY;
         }
 
-        newEntity = new StrongEntity({
-            position: { x: location[0], y: location[1] },
-            attrs: { label: { text: entity.name }},
-        })
-
+        if (entity.entityType == 1) {
+            newEntity = new StrongEntity({
+                position: { x: location[0], y: location[1] },
+                attrs: { label: { text: entity.name }},
+            })
+        } else if (entity.entityType == 2) {
+            newEntity = new WeakEntity({
+                position: { x: location[0], y: location[1] },
+                attrs: { label: { text: entity.name }},
+            })
+        }
+        
         graph.addCell(newEntity);
 
         let newElement = {
@@ -3300,12 +3423,14 @@ function transferJSONintoDiagram(JSONObject) {
 
         entitiesArray.push(newElement);
 
-        var positionList = calculateAttributePosition(location[0], location[1]);
+        var positionList = calculateAttributePosition(location[0], location[1], entity.attributeList.length);
+        console.log("positionListttttt: ", positionList);
 
         for (idx in entity.attributeList) {
 
             var attribute = entity.attributeList[idx];
             var location = positionList[idx];
+            console.log("locationnnnnn: ", location);
 
             var newLink = new shapes.standard.Link({
                 attrs: { line: { stroke: '#fbf5d0' }},
@@ -3406,8 +3531,10 @@ function transferJSONintoDiagram(JSONObject) {
 
     for (idx in relationshipList) {
         var relation = relationshipList[idx];
+
+        console.log("relationshipppppp: ", relation);
         
-        var position = findNextRelationshipPosition();
+        // var position = findNextRelationshipPosition();
 
         // var location = positionXY[position.x][position.y];
         var location = [];
@@ -3438,7 +3565,7 @@ function transferJSONintoDiagram(JSONObject) {
         }
         relationshipsArray.push(newElement);
 
-        var positionList = calculateRelationshipAttributePosition(location[0], location[1]);
+        var positionList = calculateRelationshipAttributePosition(location[0], location[1], relation.attributeList);
 
         for (idx in relation.attributeList) {
             var attribute = relation.attributeList[idx];
