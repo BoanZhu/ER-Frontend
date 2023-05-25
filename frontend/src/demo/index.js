@@ -38,7 +38,7 @@ let relationshipsArray = [];
 
 // const ip_address = "146.169.162.32";
 // const ip_address = "10.187.204.209";
-const ip_address = "146.169.172.111";
+const ip_address = "10.187.204.209";
 // const ip_address = "146.169.162.217";
 // const ip_address = "10.29.10.219";
 
@@ -3376,7 +3376,7 @@ function transferJSONintoDiagram(JSONObject) {
 
     for (idx in strongEntityList) {
         var entity = entityList[idx];
-        console.log("each entity: ", entity);
+        // console.log("each entity: ", entity);
     }
 
     // The first step is to create all of the strong entities and relationships.
@@ -3424,19 +3424,25 @@ function transferJSONintoDiagram(JSONObject) {
         entitiesArray.push(newElement);
 
         var positionList = calculateAttributePosition(location[0], location[1], entity.attributeList.length);
-        console.log("positionListttttt: ", positionList);
+        // console.log("positionListttttt: ", positionList);
 
         for (idx in entity.attributeList) {
 
             var attribute = entity.attributeList[idx];
-            var location = positionList[idx];
-            console.log("locationnnnnn: ", location);
+
+            var location;
+            if (attribute.layoutInfo) {
+                location = attribute.layoutInfo;
+            } else {
+                location = positionList[idx];
+            }
+            // console.log("locationnnnnn: ", location);
 
             var newLink = new shapes.standard.Link({
                 attrs: { line: { stroke: '#fbf5d0' }},
                 source: { id: newEntity.id },
                 // target: { x: attribute.layoutInfo.layoutX, y: attribute.layoutInfo.layoutY }
-                target: { x: location[0], y: location[1] }
+                target: { x: location.layoutX, y: location.layoutY }
             })
             newLink.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
 
@@ -3532,7 +3538,7 @@ function transferJSONintoDiagram(JSONObject) {
     for (idx in relationshipList) {
         var relation = relationshipList[idx];
 
-        console.log("relationshipppppp: ", relation);
+        // console.log("relationshipppppp: ", relation);
         
         // var position = findNextRelationshipPosition();
 
@@ -3570,13 +3576,19 @@ function transferJSONintoDiagram(JSONObject) {
         for (idx in relation.attributeList) {
             var attribute = relation.attributeList[idx];
 
-            var location = positionList[idx];
+            var location;
+            if (attribute.layoutInfo) {
+                location = attribute.layoutInfo;
+            } else {
+                location = positionList[idx];
+            }
             
             var newLink = new shapes.standard.Link({
                 attrs: { line: { stroke: '#fbf5d0' }},
                 source: { id: newRelationship.id },
                 // target: { x: attribute.layoutInfo.layoutX, y: attribute.layoutInfo.layoutY }
-                target: { x: location[0], y: location[1] }
+                // target: { x: location[0], y: location[1] }
+                target: { x: location.layoutX, y: location.layoutY }
             })
             newLink.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
 
