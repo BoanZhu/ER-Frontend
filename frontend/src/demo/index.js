@@ -1161,8 +1161,13 @@ toolbar.on({
                                     dataType: "json",
                                     contentType: "application/json",
                                     success: function(result) {
-                                        alert("success to execute the SQL statements!");
-                                        console.log("execute the SQL api result: ", result);
+                                        if (result.data.result) {
+                                            alert("success to execute the SQL statements!");
+                                            console.log("execute the SQL api result: ", result);
+                                        } else {
+                                            alert("Fail to execute the SQL statements. ", result.data.response);
+                                            console.log("execute the SQL api result: ", result);
+                                        }
                                         $("#dialog").dialog( "close" );
                                     },
                                     error: function(result) {
