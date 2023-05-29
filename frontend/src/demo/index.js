@@ -3557,6 +3557,93 @@ function transferJSONintoDiagram(JSONObject) {
         console.log("newElementttttttt: ", newElement);
     }
 
+    var subsetRelyOnNonStrongEntity = [];
+
+    for (idx in subsetEntityList) {
+        var subset = subsetEntityList[idx];
+
+        console.log("new subset: ", subset);
+
+        var belongStrongEntityID = subset.belongStrongEntityID;
+        var belongStrongEntity = findEntityById(belongStrongEntityID);
+
+        if (!belongStrongEntity) {
+            subsetRelyOnNonStrongEntity.push(subset);
+        } else {
+            var targetX = belongStrongEntity.layoutInfo.layoutX;
+            var targetY = belongStrongEntity.layoutInfo.layoutY;
+
+            // var position = findNextEntityPosition();
+            // var location = positionXY[position.x][position.y];
+
+            var newEntity = new StrongEntity({
+                // position: { x: targetX, y: targetY + 200 },
+                position: { x: subset.layoutInfo.layoutX, y: subset.layoutInfo.layoutY },
+                attrs: { label: { text: subset.name }},
+            });
+
+            var newLink = new shapes.standard.Link({
+                attrs: { line: { stroke: '#fbf5d0' }},
+                source: { id: newEntity.id },
+                // target: { x: attribute.layoutInfo.layoutX, y: attribute.layoutInfo.layoutY }
+                target: { id: belongStrongEntity.graphId }
+            });
+
+            subset.graphId = newEntity.id;
+            
+            entitiesArray.push(subset);
+
+            graph.addCell(newEntity);
+            graph.addCell(newLink);
+        }
+
+    }
+
+    // for (idx in entitiesArray) {
+    //     var entity = entitiesArray[idx];
+    //     console.log(entity.id + " ,,, " + entity);
+    // }
+
+    while (subsetRelyOnNonStrongEntity.length > 0) {
+        var tempList = [];
+
+        for (idx in subsetRelyOnNonStrongEntity) {
+            var subset = subsetRelyOnNonStrongEntity[idx];
+
+            var belongStrongEntityID = subset.belongStrongEntityID;
+            var belongStrongEntity = findEntityById(belongStrongEntityID);
+
+            if (!belongStrongEntity) {
+                tempList.push(subset);
+            } else {
+                // var targetX = belongStrongEntity.layoutInfo.layoutX;
+                // var targetY = belongStrongEntity.layoutInfo.layoutY;
+    
+                // var position = findNextEntityPosition();
+                // var location = positionXY[position.x][position.y];
+    
+                var newEntity = new StrongEntity({
+                    // position: { x: targetX, y: targetY + 200 },
+                    position: { x: subset.layoutInfo.layoutX, y: subset.layoutInfo.layoutY },
+                    attrs: { label: { text: subset.name }},
+                });
+    
+                var newLink = new shapes.standard.Link({
+                    attrs: { line: { stroke: '#fbf5d0' }},
+                    source: { id: newEntity.id },
+                    // target: { x: attribute.layoutInfo.layoutX, y: attribute.layoutInfo.layoutY }
+                    target: { id: belongStrongEntity.graphId }
+                });
+    
+                entitiesArray.push(subset);
+    
+                graph.addCell(newEntity);
+                graph.addCell(newLink);
+            }
+        }
+        subsetRelyOnNonStrongEntity = tempList;
+    }
+
     for (idx in relationshipList) {
         var relation = relationshipList[idx];
 
@@ -3706,6 +3793,7 @@ function transferJSONintoDiagram(JSONObject) {
 
             if (edge.belongObjType == 2) {
                 target = findEntity(edge.belongObjName);
+                console.log("11111111: ", target);
             } else if (edge.belongObjType == 3) {
                 target = findRelationship(edge.belongObjName);
             } else {
@@ -3763,98 +3851,6 @@ function transferJSONintoDiagram(JSONObject) {
             }
         }
 
-    }
-
-    var subsetRelyOnNonStrongEntity = [];
-
-    for (idx in subsetEntityList) {
-        var subset = subsetEntityList[idx];
-
-        console.log("new subset: ", subset);
-
-        var belongStrongEntityID = subset.belongStrongEntityID;
-        var belongStrongEntity = findEntityById(belongStrongEntityID);
-
-        if (!belongStrongEntity) {
-            subsetRelyOnNonStrongEntity.push(subset);
-        } else {
-            var targetX = belongStrongEntity.layoutInfo.layoutX;
-            var targetY = belongStrongEntity.layoutInfo.layoutY;
-
-            // var position = findNextEntityPosition();
-            // var location = positionXY[position.x][position.y];
-
-            var newEntity = new StrongEntity({
-                // position: { x: targetX, y: targetY + 200 },
-                position: { x: subset.layoutInfo.layoutX, y: subset.layoutInfo.layoutY },
-                attrs: { label: { text: subset.name }},
-            });
-
-            var newLink = new shapes.standard.Link({
-                attrs: { line: { stroke: '#fbf5d0' }},
-                source: { id: newEntity.id },
-                // target: { x: attribute.layoutInfo.layoutX, y: attribute.layoutInfo.layoutY }
-                target: { id: belongStrongEntity.graphId }
-            });
-
-            entitiesArray.push(subset);
-
-            graph.addCell(newEntity);
-            graph.addCell(newLink);
-        }
-
-    }
-
-    for (idx in entitiesArray) {
-        var entity = entitiesArray[idx];
-        console.log(entity.id + " ,,, " + entity);
-    }
-
-    console.log("length: ", subsetRelyOnNonStrongEntity.length);
-
-    while (subsetRelyOnNonStrongEntity.length > 0) {
-        var tempList = [];
-
-        for (idx in subsetRelyOnNonStrongEntity) {
-            var subset = subsetRelyOnNonStrongEntity[idx];
-
-            console.log("recursive subset: ", subset);
-
-            var belongStrongEntityID = subset.belongStrongEntityID;
-            var belongStrongEntity = findEntityById(belongStrongEntityID);
-
-            console.log("belongStrongEntity: ", belongStrongEntity);
-
-            if (!belongStrongEntity) {
-                tempList.push(subset);
-            } else {
-                // var targetX = belongStrongEntity.layoutInfo.layoutX;
-                // var targetY = belongStrongEntity.layoutInfo.layoutY;
-    
-                // var position = findNextEntityPosition();
-                // var location = positionXY[position.x][position.y];
-    
-                var newEntity = new StrongEntity({
-                    // position: { x: targetX, y: targetY + 200 },
-                    position: { x: subset.layoutInfo.layoutX, y: subset.layoutInfo.layoutY },
-                    attrs: { label: { text: subset.name }},
-                });
-    
-                var newLink = new shapes.standard.Link({
-                    attrs: { line: { stroke: '#fbf5d0' }},
-                    source: { id: newEntity.id },
-                    // target: { x: attribute.layoutInfo.layoutX, y: attribute.layoutInfo.layoutY }
-                    target: { id: belongStrongEntity.graphId }
-                });
-    
-                entitiesArray.push(subset);
-    
-                graph.addCell(newEntity);
-                graph.addCell(newLink);
-            }
-        }
-        subsetRelyOnNonStrongEntity = tempList;
-        console.log("1111111111: ", subsetRelyOnNonStrongEntity.length);
     }
 
     // for (idx in weakEntityList) {
