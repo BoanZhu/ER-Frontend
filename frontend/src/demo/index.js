@@ -915,7 +915,7 @@ paper.on('link:pointerclick', (linkView) => {
 const toolbar = new ui.Toolbar({
     groups: {
         clear: { index: 1 },
-        // zoom: { index: 2 },
+        zoom: { index: 2 },
         validate: { index: 2 },
         create: { index: 3 },
         toJson: { index: 4 },
@@ -933,8 +933,8 @@ const toolbar = new ui.Toolbar({
     tools: [
         { type: 'button', name: 'clear', group: 'clear', text: 'Clear Diagram' },
         { type: 'button', name: 'map', group: 'map', text: 'To SQL' },
-        // { type: 'zoom-out', name: 'zoom-out', group: 'zoom' },
-        // { type: 'zoom-in', name: 'zoom-in', group: 'zoom' },
+        { type: 'zoom-out', name: 'zoom-out', group: 'zoom' },
+        { type: 'zoom-in', name: 'zoom-in', group: 'zoom' },
         { type: 'button', name: 'create', group: 'create', text: 'Create new schema' },
         { type: 'button', name: 'execute', group: 'execute', text: 'Connect to database and execute' },
         { type: 'button', name: 'validate', group: 'validate', text: 'Validate the schema' },
@@ -1401,7 +1401,7 @@ graph.addCell(myShape);
 const newShape = new MyShape({
     size: { width: 100, height: 100 },
     position: { x: 500, y: 500 },
-    attrs: { label: { text: 'My Shape' }},
+    attrs: { label: { text: 'My \nShape' }},
     level: 3,
     ports: { items: [{ id: 'in1', group: 'in' }, { group: 'out', id: 'out1' }] }
 });
@@ -2690,10 +2690,10 @@ function checkArray(arr, cell) {
 
 function getElement(arr, cell) {
     const cell_name = cell.attributes.attrs.label.text;
-    console.log("cell_nameeeeee: ", cell_name);
+    cellName = cell_name.replace("\n", "_");
     let result;
     for (idx in arr) {
-        if (arr[idx].name == cell_name || arr[idx].weakEntityName == cell_name || arr[idx].subsetName == cell_name) {
+        if (arr[idx].name == cellName || arr[idx].weakEntityName == cellName || arr[idx].subsetName == cellName) {
             result = arr[idx];
         }
     }
@@ -3414,15 +3414,23 @@ function transferJSONintoDiagram(JSONObject) {
             location[1] = entity.layoutInfo.layoutY;
         }
 
+        var entityNameArr = entity.name.split("_");
+        var entityName = "";
+        for (idx in entityNameArr) {
+            entityName += entityNameArr[idx];
+            entityName += "\n";
+        }
+        entityName = entityName.substring(0, entityName.length - 1);
+
         if (entity.entityType == 1) {
             newEntity = new StrongEntity({
                 position: { x: location[0], y: location[1] },
-                attrs: { label: { text: entity.name }},
+                attrs: { label: { text: entityName }},
             })
         } else if (entity.entityType == 2) {
             newEntity = new WeakEntity({
                 position: { x: location[0], y: location[1] },
-                attrs: { label: { text: entity.name }},
+                attrs: { label: { text: entityName }},
             })
         }
         
@@ -3576,10 +3584,18 @@ function transferJSONintoDiagram(JSONObject) {
             // var position = findNextEntityPosition();
             // var location = positionXY[position.x][position.y];
 
+            var entityNameArr = subset.name.split("_");
+            var entityName = "";
+            for (idx in entityNameArr) {
+                entityName += entityNameArr[idx];
+                entityName += "\n";
+            }
+            entityName = entityName.substring(0, entityName.length - 1);
+
             var newEntity = new StrongEntity({
                 // position: { x: targetX, y: targetY + 200 },
                 position: { x: subset.layoutInfo.layoutX, y: subset.layoutInfo.layoutY },
-                attrs: { label: { text: subset.name }},
+                attrs: { label: { text: entityName }},
             });
 
             var newLink = new shapes.standard.Link({
@@ -3621,11 +3637,19 @@ function transferJSONintoDiagram(JSONObject) {
     
                 // var position = findNextEntityPosition();
                 // var location = positionXY[position.x][position.y];
+
+                var entityNameArr = subset.name.split("_");
+                var entityName = "";
+                for (idx in entityNameArr) {
+                    entityName += entityNameArr[idx];
+                    entityName += "\n";
+                }
+                entityName = entityName.substring(0, entityName.length - 1);
     
                 var newEntity = new StrongEntity({
                     // position: { x: targetX, y: targetY + 200 },
                     position: { x: subset.layoutInfo.layoutX, y: subset.layoutInfo.layoutY },
-                    attrs: { label: { text: subset.name }},
+                    attrs: { label: { text: entityName }},
                 });
     
                 var newLink = new shapes.standard.Link({
@@ -3647,7 +3671,7 @@ function transferJSONintoDiagram(JSONObject) {
     for (idx in relationshipList) {
         var relation = relationshipList[idx];
 
-        console.log("new relationship: ", relation);
+        // console.log("new relationship: ", relation);
         
         // var position = findNextRelationshipPosition();
 
@@ -3659,9 +3683,17 @@ function transferJSONintoDiagram(JSONObject) {
             location[1] = relation.layoutInfo.layoutY;
         }
 
+        var relationshipNameArr = relation.name.split("_");
+        var relationshipName = "";
+        for (idx in relationshipNameArr) {
+            relationshipName += relationshipNameArr[idx];
+            relationshipName += "\n";
+        }
+        relationshipName = relationshipName.substring(0, relationshipName.length - 1);
+
         const newRelationship = new relationship({
             position: { x: location[0], y: location[1] },
-            attrs: { label: { text: relation.name }},
+            attrs: { label: { text: relationshipName }},
         })
 
         graph.addCell(newRelationship);
