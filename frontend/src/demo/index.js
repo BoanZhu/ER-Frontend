@@ -303,7 +303,7 @@ const relationship = dia.Element.define('myApp.Relationship', {
         },
         text: {
             // text: 'Relation',
-            x: '25',
+            x: '50',
             y: '25',
             fontSize: 14,
             textAnchor: 'middle',
@@ -316,8 +316,9 @@ const relationship = dia.Element.define('myApp.Relationship', {
     },
 }, {
     // <path d="M 10,30 A 20,20 0,0,1 50,30 A 20,20 0,0,1 90,30 Q 90,60 50,90 Q 10,60 10,30 z" />
+    // <rect @selector="body" transform='rotate(45, 25, 25)' />
     markup: util.svg`
-        <rect @selector="body" transform='rotate(45, 25, 25)' />
+        <path @selector="body" d="M 50 0 L 100 25 L 50 50 L 0 25 L 50 0" />
         <text @selector="label" x="0" y="15" fill="red" />
     `
 })
@@ -334,7 +335,8 @@ const generalization = dia.Element.define('myApp.Generalization', {
         },
         text: {
             // text: 'Relation',
-            x: '80',
+            // x: '80',
+            x: '60',
             y: '40',
             fontSize: 14,
             textAnchor: 'middle',
@@ -363,7 +365,8 @@ const generalization = dia.Element.define('myApp.Generalization', {
                 position: { 
                     name: 'inPort',
                     args: {
-                        x: 80,
+                        // x: 80,
+                        x: 60,
                         y: 0
                     }
                 },
@@ -382,7 +385,8 @@ const generalization = dia.Element.define('myApp.Generalization', {
                 position: { 
                     name: 'outPort1',
                     args: {
-                        x: 0,
+                        // x: 0,
+                        x: -20,
                         y: 100
                     }
                 },
@@ -401,7 +405,8 @@ const generalization = dia.Element.define('myApp.Generalization', {
                 position: { 
                     name: 'right',
                     args: {
-                        x: 160,
+                        // x: 160,
+                        x: 140,
                         y: 100
                     }
                 },
@@ -411,8 +416,12 @@ const generalization = dia.Element.define('myApp.Generalization', {
     }
 }, {
     // <path @selector="body" d="M 10,30 A 20,20 0,0,1 50,30 A 20,20 0,0,1 90,30 Q 90,60 50,90 Q 10,60 10,30 z" />
+    // markup: util.svg`
+    //     <path @selector="body" d="M 80 0 V 0 H 80 V 20 L 60 20 L 40 40 L 60 60 H 100 L 120 40 L 100 20 H 80 M 80 60 V 80 M 80 80 H 160 H 0 M 160 100 V 80 M 0 100 V 80" stroke="blue" />
+    //     <text @selector="label" x="0" y="15" fill="red" />
+    // `
     markup: util.svg`
-        <path @selector="body" d="M 80 0 V 0 H 80 V 20 L 60 20 L 40 40 L 60 60 H 100 L 120 40 L 100 20 H 80 M 80 60 V 80 M 80 80 H 160 H 0 M 160 100 V 80 M 0 100 V 80" stroke="blue" />
+        <path @selector="body" d="M 60 0 V 0 H 60 V 20 L 40 20 L 20 40 L 40 60 H 80 L 100 40 L 80 20 H 60 M 60 60 V 80 M 60 80 H 140 H -20 M 140 100 V 80 M -20 100 V 80" stroke="blue" />
         <text @selector="label" x="0" y="15" fill="red" />
     `
 })
@@ -459,7 +468,7 @@ stencil.render().load({
         type: 'myApp.Relationship',
         attrs: { 
             label: { 
-                text: 'Relation' 
+                text: 'Relationship' 
             } 
         },
     }, {
