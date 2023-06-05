@@ -38,7 +38,7 @@ let relationshipsArray = [];
 
 // const ip_address = "146.169.162.32";
 // const ip_address = "10.187.204.209";
-const ip_address = "10.187.204.209";
+const ip_address = "146.169.160.15";
 // const ip_address = "146.169.162.217";
 // const ip_address = "10.29.10.219";
 
@@ -2650,7 +2650,9 @@ function checkStrongEntityNameModified(original_text) {
 function checkRelationshipNameModified(original_text) {
     let modified = true;
     for (idx in relationshipsArray) {
-        if (relationshipsArray[idx].name == original_text) {
+        var original_name = relationshipsArray[idx].name;
+        original_name = original_name.replaceAll("_", "\n");
+        if (original_name == original_text) {
             modified = false;
         }
     }
@@ -2699,9 +2701,12 @@ function checkArray(arr, cell) {
 
 function getElement(arr, cell) {
     const cell_name = cell.attributes.attrs.label.text;
-    cellName = cell_name.replace("\n", "_");
+    // console.log("cell_name: ", cell_name);
+    cellName = cell_name.replaceAll("\n", "_");
+    // console.log("cellName: ", cellName);
     let result;
     for (idx in arr) {
+        // console.log("arr[idx]: ", arr[idx]);
         if (arr[idx].name == cellName || arr[idx].weakEntityName == cellName || arr[idx].subsetName == cellName) {
             result = arr[idx];
         }
@@ -3620,6 +3625,119 @@ function transferJSONintoDiagram(JSONObject) {
 
             graph.addCell(newEntity);
             graph.addCell(newLink);
+
+            subset.attributesArray = [];
+
+            if (subset.attributeList) {
+                for (idx in subset.attributeList) {
+
+                    var attribute = subset.attributeList[idx];
+        
+                    console.log("subset attribute: ", attribute);
+        
+                    var location;
+                    if (attribute.layoutInfo) {
+                        location = attribute.layoutInfo;
+                    } else {
+                        location = positionList[idx];
+                    }
+                    // console.log("locationnnnnn: ", location);
+        
+                    var newLink = new shapes.standard.Link({
+                        attrs: { line: { stroke: '#fbf5d0' }},
+                        source: { id: newEntity.id },
+                        // target: { x: attribute.layoutInfo.layoutX, y: attribute.layoutInfo.layoutY }
+                        target: { x: location.layoutX, y: location.layoutY }
+                    })
+                    newLink.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
+        
+                    const position = calculateLabelPosition(newLink, attribute.name);
+        
+                    var attributeType;
+                    if (attribute.attributeType == 1) {
+                        attributeType = "Mandatory"
+                    } else if (attribute.attributeType == 2) {
+                        attributeType = "Optional"
+                    } else if (attribute.attributeType == 3) {
+                        attributeType = "Multivalued"
+                    } else if (attribute.attributeType == 4) {
+                        attributeType = "Both"
+                    }
+        
+                    newLink.attributes.labels = [];
+        
+                    if (attribute.isPrimary) {
+                        let underline_string = "";
+                        for (char in attribute.name) {
+                            underline_string += "_";
+                        } 
+        
+                        newLink.attributes.labels[0] = {
+                            attrs: {
+                                text: {
+                                    text: attribute.name,
+                                    attributeType: attributeType,
+                                    primary: attribute.isPrimary == true ? "Yes" : "No",
+                                    fill: "#FFFFFF"
+                                },
+                                outer: {
+                                    text: underline_string,
+                                    fill: "#FFFFFF"
+                                }
+                            },
+                            markup: util.svg`<text @selector="text"/> <text @selector="outer"/>`,
+                            position: {
+                                distance: 1,
+                                offset: {
+                                    x: position.final_x,
+                                    y: position.final_y
+                                }
+                            }
+                        };
+                    } else {
+                        newLink.attributes.labels[0] = {
+                            attrs: {
+                                text: {
+                                    text: attribute.name,
+                                    // optional: "No",
+                                    attributeType: attributeType,
+                                    primary: attribute.isPrimary == true ? "Yes" : "No",
+                                    fill: "#FFFFFF"
+                                },
+                            },
+                            markup: util.svg`<text @selector="text"/>`,
+                            position: {
+                                distance: 1,
+                                offset: {
+                                    x: position.final_x,
+                                    y: position.final_y
+                                }
+                            }
+                        };
+                    } 
+        
+                    var newAttribute = {
+                        "belongObjID": attribute.belongObjID,
+                        "belongObjType": attribute.belongObjType,
+                        "name": attribute.name,
+                        "dataType": attribute.dataType,
+                        "isPrimary": attribute.isPrimary,
+                        "attributeType": attribute.attributeType,
+                        "aimPort": -1,
+                        "layoutInfo": {
+                            "layoutX": newLink.attributes.target.x,
+                            "layoutY": newLink.attributes.target.y
+                        },
+                        "id": attribute.id,
+                        "graphId": newLink.id
+                    }
+        
+                    subset.attributesArray.push(newAttribute);
+        
+                    graph.addCell(newLink);
+                }
+            }
+            
         }
 
     }
@@ -3672,6 +3790,119 @@ function transferJSONintoDiagram(JSONObject) {
     
                 graph.addCell(newEntity);
                 graph.addCell(newLink);
+
+                subset.attributesArray = [];
+
+                if (subset.attributeList) {
+                    for (idx in subset.attributeList) {
+
+                        var attribute = subset.attributeList[idx];
+            
+                        console.log("subset attribute2: ", attribute);
+            
+                        var location;
+                        if (attribute.layoutInfo) {
+                            location = attribute.layoutInfo;
+                        } else {
+                            location = positionList[idx];
+                        }
+                        // console.log("locationnnnnn: ", location);
+            
+                        var newLink = new shapes.standard.Link({
+                            attrs: { line: { stroke: '#fbf5d0' }},
+                            source: { id: newEntity.id },
+                            // target: { x: attribute.layoutInfo.layoutX, y: attribute.layoutInfo.layoutY }
+                            target: { x: location.layoutX, y: location.layoutY }
+                        })
+                        newLink.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
+            
+                        const position = calculateLabelPosition(newLink, attribute.name);
+            
+                        var attributeType;
+                        if (attribute.attributeType == 1) {
+                            attributeType = "Mandatory"
+                        } else if (attribute.attributeType == 2) {
+                            attributeType = "Optional"
+                        } else if (attribute.attributeType == 3) {
+                            attributeType = "Multivalued"
+                        } else if (attribute.attributeType == 4) {
+                            attributeType = "Both"
+                        }
+            
+                        newLink.attributes.labels = [];
+            
+                        if (attribute.isPrimary) {
+                            let underline_string = "";
+                            for (char in attribute.name) {
+                                underline_string += "_";
+                            } 
+            
+                            newLink.attributes.labels[0] = {
+                                attrs: {
+                                    text: {
+                                        text: attribute.name,
+                                        attributeType: attributeType,
+                                        primary: attribute.isPrimary == true ? "Yes" : "No",
+                                        fill: "#FFFFFF"
+                                    },
+                                    outer: {
+                                        text: underline_string,
+                                        fill: "#FFFFFF"
+                                    }
+                                },
+                                markup: util.svg`<text @selector="text"/> <text @selector="outer"/>`,
+                                position: {
+                                    distance: 1,
+                                    offset: {
+                                        x: position.final_x,
+                                        y: position.final_y
+                                    }
+                                }
+                            };
+                        } else {
+                            newLink.attributes.labels[0] = {
+                                attrs: {
+                                    text: {
+                                        text: attribute.name,
+                                        // optional: "No",
+                                        attributeType: attributeType,
+                                        primary: attribute.isPrimary == true ? "Yes" : "No",
+                                        fill: "#FFFFFF"
+                                    },
+                                },
+                                markup: util.svg`<text @selector="text"/>`,
+                                position: {
+                                    distance: 1,
+                                    offset: {
+                                        x: position.final_x,
+                                        y: position.final_y
+                                    }
+                                }
+                            };
+                        } 
+            
+                        var newAttribute = {
+                            "belongObjID": attribute.belongObjID,
+                            "belongObjType": attribute.belongObjType,
+                            "name": attribute.name,
+                            "dataType": attribute.dataType,
+                            "isPrimary": attribute.isPrimary,
+                            "attributeType": attribute.attributeType,
+                            "aimPort": -1,
+                            "layoutInfo": {
+                                "layoutX": newLink.attributes.target.x,
+                                "layoutY": newLink.attributes.target.y
+                            },
+                            "id": attribute.id,
+                            "graphId": newLink.id
+                        }
+            
+                        subset.attributesArray.push(newAttribute);
+            
+                        graph.addCell(newLink);
+                    }
+                }
+                
             }
         }
         subsetRelyOnNonStrongEntity = tempList;
@@ -3690,6 +3921,14 @@ function transferJSONintoDiagram(JSONObject) {
         if (relation.layoutInfo) {
             location[0] = relation.layoutInfo.layoutX;
             location[1] = relation.layoutInfo.layoutY;
+        } else {
+            var edge1 = relation.edgeList[0];
+            var edge2 = relation.edgeList[1];
+            var fisrtSubset = findEntity(edge1.belongObjName);
+            var secondSubset = findEntity(edge2.belongObjName);
+            console.log("fisrtSubset: ", fisrtSubset);
+            console.log("secondSubset: ", secondSubset);
+            // get the mid point of the two subsets, set to location[0] and location[1].
         }
 
         var relationshipNameArr = relation.name.split("_");
