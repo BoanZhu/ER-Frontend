@@ -22,10 +22,10 @@ const { setTheme, dia, shapes, ui, util, linkTools } = joint;
 // Set a theme (optional - use a theme or custom-style)
 // ----------------------------------------------------
 
-setTheme('dark');
-//setTheme('material');
-//setTheme('modern');
-//setTheme('default');
+// setTheme('dark');
+// setTheme('material');
+setTheme('modern');
+// setTheme('default');
 
 // Graph
 // -----
@@ -38,7 +38,7 @@ let relationshipsArray = [];
 
 // const ip_address = "146.169.162.32";
 // const ip_address = "10.187.204.209";
-const ip_address = "146.169.160.15";
+const ip_address = "10.187.204.209";
 // const ip_address = "146.169.162.217";
 // const ip_address = "10.29.10.219";
 
@@ -66,10 +66,11 @@ const paper = new dia.Paper({
             attrs: { 
                 // markup: util.svg`<rect @selector="body" />`,
                 line: { 
-                    stroke: '#fbf5d0',
+                    stroke: '#000000', 
+                    // #fbf5d0
                     targetMarker: {
                         'type': 'path',
-                        'stroke': 'red',
+                        'stroke': 'black',
                         'strokeWidth': 5,
                         'fill': 'white',
                         'd': 'M 10 -5 0 0 10 5 Z'
@@ -117,7 +118,8 @@ const MyShape = dia.Element.define('myApp.MyShape', {
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
             fontSize: 14,
-            fill: '#00879b',
+            fill: '#000000',
+            // #00879b
             level: 1,
         },
         root: {
@@ -226,7 +228,7 @@ const StrongEntity = dia.Element.define('myApp.StrongEntity', {
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
             fontSize: 14,
-            fill: '#00879b',
+            fill: '#000000',
             level: 2,
             event: 'StrongEntity:delete',
         },
@@ -267,7 +269,7 @@ const WeakEntity = dia.Element.define('myApp.WeakEntity', {
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
             fontSize: 14,
-            fill: '#00879b',
+            fill: '#000000',
             event: 'WeakEntity:changeLabel',
         },
     },
@@ -310,7 +312,7 @@ const relationship = dia.Element.define('myApp.Relationship', {
             textVerticalAnchor: 'middle',
             fontFamily: 'Roboto Condensed',
             fontWeight: 'Normal',
-            fill: '#00879b',
+            fill: '#000000',
             strokeWidth: 0
         }
     },
@@ -343,7 +345,7 @@ const generalization = dia.Element.define('myApp.Generalization', {
             textVerticalAnchor: 'middle',
             fontFamily: 'Roboto Condensed',
             fontWeight: 'Normal',
-            fill: '#00879b',
+            fill: '#000000',
             strokeWidth: 0
         },
         label: {
@@ -1434,7 +1436,7 @@ graph.addCell(myShape3);
 
 // Create a link that connects two elements.
 const myLink = new shapes.standard.Link({
-    attrs: { line: { stroke: '#fbf5d0' }},
+    attrs: { line: { stroke: '#000000' }},
     source: { id: myShape.id, port: 'out1' },
     target: { id: myShape2.id, port: 'in1' }
 });
@@ -1448,7 +1450,7 @@ graph.addCell(myLink);
 // React on changes in the graph.
 // graph.on('change add remove', (cell) => {
 graph.on('change add', (cell) => {
-    // console.log("123456789", cell);
+    console.log("123456789", cell);
     // console.log("is_transfered: ", is_transfered);
     // if (is_transfered) {
     //     return;
@@ -1951,6 +1953,7 @@ graph.on('change add', (cell) => {
             }
             
             cell.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
+            cell.attributes.attrs.line.targetMarker.fill = 'white';
         } else {
             if (is_transfered) {
                 return;
@@ -2099,6 +2102,86 @@ graph.on('change add', (cell) => {
 
     // Weak entity的更新必须依赖在一个已经和Strong entity连接的合法情况下，暂时不做考虑，后面需要优化处理Weak entity的问题。
 });
+
+// This function is used for changing the attributes position with the entity or relationship.
+graph.on('change', (cell) => {
+    if (cell.attributes.type == 'myApp.StrongEntity' || cell.attributes.type == 'myApp.WeakEntity') {
+        console.log(cell.changed);
+        if (cell.changed.position) {
+
+            var newX = cell.changed.position.x;
+            var newY = cell.changed.position.y;
+
+            var entityName = cell.attributes.attrs.label.text;
+            entityName = entityName.replaceAll("\n", "_");
+
+            var entity = findEntity(entityName);
+            var oldX = entity.layoutInfo.layoutX;
+            var oldY = entity.layoutInfo.layoutY;
+
+            var diffX = newX - oldX;
+            var diffY = newY - oldY;
+            
+            // var entityInGraph = graph.getCell(cell.id);
+            entity.layoutInfo.layoutX = newX;
+            entity.layoutInfo.layoutY = newY;
+
+            // need to find all its attributes and move them as well.
+            if (entity.attributesArray) {
+                for (idx in entity.attributesArray) {
+                    var attribute = entity.attributesArray[idx];
+                    var attributeInGraph = graph.getCell(attribute.graphId);
+                    // console.log("attributeInGraph: ", attributeInGraph);
+                    // console.log("diffX: ", diffX);
+                    // console.log("diffY: ", diffY);
+                    attributeInGraph.attributes.target.x += diffX;
+                    attributeInGraph.attributes.target.y += diffY;
+                    // console.log("attributeInGraph.attributes.target.x: ", attributeInGraph.attributes.target.x);
+                    // console.log("attributeInGraph.attributes.target.y: ", attributeInGraph.attributes.target.y);
+                }
+            }
+
+            // console.log("entityInGraph: ", entityInGraph);
+            // console.log("entity: ", entity);
+            // console.log("newX: ", newX);
+            // console.log("newY: ", newY);
+        }
+
+    } else if (cell.attributes.type == 'myApp.Relationship') {
+        console.log(cell.changed);
+        if (cell.changed.position) {
+
+            var newX = cell.changed.position.x;
+            var newY = cell.changed.position.y;
+
+            var relationshipName = cell.attributes.attrs.label.text;
+            relationshipName = relationshipName.replaceAll("\n", "_");
+
+            var relationship = findRelationship(relationshipName);
+            var oldX = relationship.layoutInfo.layoutX;
+            var oldY = relationship.layoutInfo.layoutY;
+
+            var diffX = newX - oldX;
+            var diffY = newY - oldY;
+            
+            // var relationshipInGraph = graph.getCell(cell.id);
+            relationship.layoutInfo.layoutX = newX;
+            relationship.layoutInfo.layoutY = newY;
+
+            // need to find all its attributes and move them as well.
+            if (relationship.attributesArray) {
+                for (idx in relationship.attributesArray) {
+                    var attribute = relationship.attributesArray[idx];
+                    var attributeInGraph = graph.getCell(attribute.graphId);
+                    attributeInGraph.attributes.target.x += diffX;
+                    attributeInGraph.attributes.target.y += diffY;
+                }
+            }
+
+        }
+
+    }
+})
 
 paper.on('blank:pointerdown', (evt) => {
     paper.removeTools();
@@ -2297,7 +2380,7 @@ paper.on('link:pointerup', (cell, evt) => {
                     },
                 },
                 // markup: util.svg`<text @selector="text" fill="#FFFFFF"/> <rect @selector="outer" fill="#f6f6f6"/>`,
-                markup: util.svg`<text @selector="text" fill="#FFFFFF"/>`,
+                markup: util.svg`<text @selector="text" fill="#000000"/>`,
                 position: {
                     offset: -15
                 }
@@ -2340,7 +2423,7 @@ paper.on('link:pointerup', (cell, evt) => {
                     },
                 },
                 // markup: util.svg`<text @selector="text" fill="#FFFFFF"/> <rect @selector="outer" fill="#f6f6f6"/>`,
-                markup: util.svg`<text @selector="text" fill="#FFFFFF"/>`,
+                markup: util.svg`<text @selector="text" fill="#000000"/>`,
                 position: {
                     offset: 0
                 }
@@ -2373,11 +2456,11 @@ paper.on('link:pointerup', (cell, evt) => {
                         text: new_cardinality_name,
                     },
                     outer: {
-                        stroke: '#FFFFFF',
+                        stroke: '#000000',
                     },
                 },
                 // markup: util.svg`<text @selector="text" fill="#FFFFFF"/> <rect @selector="outer" fill="#f6f6f6"/>`,
-                markup: util.svg`<text @selector="text" fill="#FFFFFF"/>`,
+                markup: util.svg`<text @selector="text" fill="#000000"/>`,
                 position: {
                     offset: 0
                 }
@@ -2527,7 +2610,7 @@ paper.on('link:pointerup', (cell, evt) => {
                         // optional: "No",
                         attributeType: 'Mandatory',
                         primary: "No",
-                        fill: "#FFFFFF"
+                        fill: "#000000"
                     },
                 },
                 markup: util.svg`<text @selector="text"/>`,
@@ -3482,12 +3565,13 @@ function transferJSONintoDiagram(JSONObject) {
             // console.log("locationnnnnn: ", location);
 
             var newLink = new shapes.standard.Link({
-                attrs: { line: { stroke: '#fbf5d0' }},
+                attrs: { line: { stroke: '#000000' }},
                 source: { id: newEntity.id },
                 // target: { x: attribute.layoutInfo.layoutX, y: attribute.layoutInfo.layoutY }
                 target: { x: location.layoutX, y: location.layoutY }
             })
             newLink.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
+            newLink.attributes.attrs.line.targetMarker.fill = 'white';
 
             const position = calculateLabelPosition(newLink, attribute.name);
 
@@ -3516,11 +3600,11 @@ function transferJSONintoDiagram(JSONObject) {
                             text: attribute.name,
                             attributeType: attributeType,
                             primary: attribute.isPrimary == true ? "Yes" : "No",
-                            fill: "#FFFFFF"
+                            fill: "#000000"
                         },
                         outer: {
                             text: underline_string,
-                            fill: "#FFFFFF"
+                            fill: "#000000"
                         }
                     },
                     markup: util.svg`<text @selector="text"/> <text @selector="outer"/>`,
@@ -3540,7 +3624,7 @@ function transferJSONintoDiagram(JSONObject) {
                             // optional: "No",
                             attributeType: attributeType,
                             primary: attribute.isPrimary == true ? "Yes" : "No",
-                            fill: "#FFFFFF"
+                            fill: "#000000"
                         },
                     },
                     markup: util.svg`<text @selector="text"/>`,
@@ -3613,7 +3697,7 @@ function transferJSONintoDiagram(JSONObject) {
             });
 
             var newLink = new shapes.standard.Link({
-                attrs: { line: { stroke: '#fbf5d0' }},
+                attrs: { line: { stroke: '#000000' }},
                 source: { id: newEntity.id },
                 // target: { x: attribute.layoutInfo.layoutX, y: attribute.layoutInfo.layoutY }
                 target: { id: belongStrongEntity.graphId }
@@ -3644,13 +3728,14 @@ function transferJSONintoDiagram(JSONObject) {
                     // console.log("locationnnnnn: ", location);
         
                     var newLink = new shapes.standard.Link({
-                        attrs: { line: { stroke: '#fbf5d0' }},
+                        attrs: { line: { stroke: '#000000' }},
                         source: { id: newEntity.id },
                         // target: { x: attribute.layoutInfo.layoutX, y: attribute.layoutInfo.layoutY }
                         target: { x: location.layoutX, y: location.layoutY }
                     })
                     newLink.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
-        
+                    newLink.attributes.attrs.line.targetMarker.fill = 'white';
+
                     const position = calculateLabelPosition(newLink, attribute.name);
         
                     var attributeType;
@@ -3678,11 +3763,11 @@ function transferJSONintoDiagram(JSONObject) {
                                     text: attribute.name,
                                     attributeType: attributeType,
                                     primary: attribute.isPrimary == true ? "Yes" : "No",
-                                    fill: "#FFFFFF"
+                                    fill: "#000000"
                                 },
                                 outer: {
                                     text: underline_string,
-                                    fill: "#FFFFFF"
+                                    fill: "#000000"
                                 }
                             },
                             markup: util.svg`<text @selector="text"/> <text @selector="outer"/>`,
@@ -3702,7 +3787,7 @@ function transferJSONintoDiagram(JSONObject) {
                                     // optional: "No",
                                     attributeType: attributeType,
                                     primary: attribute.isPrimary == true ? "Yes" : "No",
-                                    fill: "#FFFFFF"
+                                    fill: "#000000"
                                 },
                             },
                             markup: util.svg`<text @selector="text"/>`,
@@ -3780,7 +3865,7 @@ function transferJSONintoDiagram(JSONObject) {
                 });
     
                 var newLink = new shapes.standard.Link({
-                    attrs: { line: { stroke: '#fbf5d0' }},
+                    attrs: { line: { stroke: '#000000' }},
                     source: { id: newEntity.id },
                     // target: { x: attribute.layoutInfo.layoutX, y: attribute.layoutInfo.layoutY }
                     target: { id: belongStrongEntity.graphId }
@@ -3809,12 +3894,13 @@ function transferJSONintoDiagram(JSONObject) {
                         // console.log("locationnnnnn: ", location);
             
                         var newLink = new shapes.standard.Link({
-                            attrs: { line: { stroke: '#fbf5d0' }},
+                            attrs: { line: { stroke: '#000000' }},
                             source: { id: newEntity.id },
                             // target: { x: attribute.layoutInfo.layoutX, y: attribute.layoutInfo.layoutY }
                             target: { x: location.layoutX, y: location.layoutY }
                         })
                         newLink.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
+                        newLink.attributes.attrs.line.targetMarker.fill = 'white';
             
                         const position = calculateLabelPosition(newLink, attribute.name);
             
@@ -3843,11 +3929,11 @@ function transferJSONintoDiagram(JSONObject) {
                                         text: attribute.name,
                                         attributeType: attributeType,
                                         primary: attribute.isPrimary == true ? "Yes" : "No",
-                                        fill: "#FFFFFF"
+                                        fill: "#000000"
                                     },
                                     outer: {
                                         text: underline_string,
-                                        fill: "#FFFFFF"
+                                        fill: "#000000"
                                     }
                                 },
                                 markup: util.svg`<text @selector="text"/> <text @selector="outer"/>`,
@@ -3867,7 +3953,7 @@ function transferJSONintoDiagram(JSONObject) {
                                         // optional: "No",
                                         attributeType: attributeType,
                                         primary: attribute.isPrimary == true ? "Yes" : "No",
-                                        fill: "#FFFFFF"
+                                        fill: "#000000"
                                     },
                                 },
                                 markup: util.svg`<text @selector="text"/>`,
@@ -3973,13 +4059,14 @@ function transferJSONintoDiagram(JSONObject) {
             }
             
             var newLink = new shapes.standard.Link({
-                attrs: { line: { stroke: '#fbf5d0' }},
+                attrs: { line: { stroke: '#000000' }},
                 source: { id: newRelationship.id },
                 // target: { x: attribute.layoutInfo.layoutX, y: attribute.layoutInfo.layoutY }
                 // target: { x: location[0], y: location[1] }
                 target: { x: location.layoutX, y: location.layoutY }
             })
             newLink.attributes.attrs.line.targetMarker.d = 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0';
+            newLink.attributes.attrs.line.targetMarker.fill = 'white';
 
             const position = calculateLabelPosition(newLink, attribute.name);
 
@@ -4008,11 +4095,11 @@ function transferJSONintoDiagram(JSONObject) {
                             text: attribute.name,
                             attributeType: attributeType,
                             primary: attribute.isPrimary == true ? "Yes" : "No",
-                            fill: "#FFFFFF"
+                            fill: "#000000"
                         },
                         outer: {
                             text: underline_string,
-                            fill: "#FFFFFF"
+                            fill: "#000000"
                         }
                     },
                     markup: util.svg`<text @selector="text"/> <text @selector="outer"/>`,
@@ -4032,7 +4119,7 @@ function transferJSONintoDiagram(JSONObject) {
                             // optional: "No",
                             attributeType: attributeType,
                             primary: attribute.isPrimary == true ? "Yes" : "No",
-                            fill: "#FFFFFF"
+                            fill: "#000000"
                         },
                     },
                     markup: util.svg`<text @selector="text"/>`,
@@ -4082,7 +4169,7 @@ function transferJSONintoDiagram(JSONObject) {
             
             if (target) {
                 const newLink = new shapes.standard.Link({
-                    attrs: { line: { stroke: '#fbf5d0' }},
+                    attrs: { line: { stroke: '#000000' }},
                     source: { id: newRelationship.id },
                     target: { id: target.graphId }
                 });
@@ -4109,7 +4196,7 @@ function transferJSONintoDiagram(JSONObject) {
                             text: cardinality,
                         }
                     },
-                    markup: util.svg`<text @selector="text" fill="#FFFFFF"/>`,
+                    markup: util.svg`<text @selector="text" fill="#000000"/>`,
                     position: {
                         offset: -15
                     }
