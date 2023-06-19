@@ -10,6 +10,8 @@ This Source Code Form is subject to the terms of the JointJS+ Trial License
 file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
  or from the JointJS+ archive as was distributed by client IO. See the LICENSE file.*/
 
+// import { get } from "jquery";
+
 // import { CloudLightning } from "react-bootstrap-icons";
 
 // import { config } from "process";
@@ -887,30 +889,67 @@ paper.on('link:pointerclick', (linkView) => {
                 distance: 40, 
                 action: function(evt, linkView, toolView) {
                     linkView.model.remove({ ui: true, tool: toolView.cid });
-                    
-                    let attribute_name = linkView.model.attributes.labels[0].attrs.text.text;
+
                     const source_graph_id = linkView.model.attributes.source.id;
-                    const result = graph.getCell(source_graph_id);
-                    let source;
-                    if (result.attributes.type == "myApp.StrongEntity" || result.attributes.type == "myApp.WeakEntity") {
-                        source = getElement(entitiesArray, result);
-                    } else if (result.attributes.type == "myApp.Relationship") {
-                        source = getElement(relationshipsArray, result);
+                    const target_graph_id = linkView.model.attributes.target.id;
+                    const graph_source = graph.getCell(source_graph_id);
+
+                    if (target_graph_id) {
+                        const graph_target = graph.getCell(target_graph_id);
+                        let entity;
+                        let relationship;
+                        if (graph_target.attributes.type == "myApp.Relationship") {
+                            relationship = getElement(relationshipsArray, graph_target);
+                            entity = getElement(entitiesArray, graph_source);
+                        } else {
+                            relationship = getElement(relationshipsArray, graph_source);
+                            entity = getElement(entitiesArray, graph_target);
+                        }
+
+                        var edgeList = relationship.belongObjWithCardinalityList;
+                        var result;
+                        for (idx in edgeList) {
+                            var edge = edgeList[idx];
+                            if (edge.graphId == linkView.model.id) {
+                                result = edge;
+                            }
+                        }
+
+                        let relationshipEdge_delete_request = {
+                            edgeID: result.edgeID
+                        }
+
+                        // invoke 'er/relationship/delete_edge' api
+                        relationshipEdgeDelete(relationshipEdge_delete_request, relationship, result);
+                    } else {
+                        let attribute_name = linkView.model.attributes.labels[0].attrs.text.text;
+                        let source;
+                        if (graph_source.attributes.type == "myApp.StrongEntity" || graph_source.attributes.type == "myApp.WeakEntity") {
+                            source = getElement(entitiesArray, graph_source);
+                        } else if (graph_source.attributes.type == "myApp.Relationship") {
+                            source = getElement(relationshipsArray, graph_source);
+                        }
+
+                        console.log("edge: " + source);
+                        // const source = getElement(entitiesArray, result);
+
+                        if (attribute_name.includes("?") || attribute_name.includes("+") || attribute_name.includes("*")){
+                            attribute_name = attribute_name.substring(0, attribute_name.length - 1);
+                        }
+
+                        const attribute = getAttribute(source, attribute_name);
+                        const attribute_delete_request = {
+                            id: attribute.id
+                        }
+                        
+                        // invoke 'er/attribute/delete' api
+                        attributeDelete(attribute_delete_request, source, attribute);
                     }
 
-                    // const source = getElement(entitiesArray, result);
-
-                    if (attribute_name.includes("?") || attribute_name.includes("+") || attribute_name.includes("*")){
-                        attribute_name = attribute_name.substring(0, attribute_name.length - 1);
-                    }
-
-                    const attribute = getAttribute(source, attribute_name);
-                    const attribute_delete_request = {
-                        id: attribute.id
-                    }
                     
-                    // invoke 'er/attribute/delete' api
-                    attributeDelete(attribute_delete_request, source, attribute);
+                    // const source_graph_id = linkView.model.attributes.source.id;
+                    // const result = graph.getCell(source_graph_id);
+                    
             }})
         ]
     });
@@ -1825,7 +1864,8 @@ graph.on('change add', (cell) => {
 
                             cell.attributes.labels[0].attrs.outer = {
                                 text: underline_string,
-                                fill: "#FFFFFF"
+                                // fill: "#FFFFFF" 
+                                fill: "#000000" 
                             }
 
                             // cell.attributes.labels[0].position = {
@@ -1884,7 +1924,8 @@ graph.on('change add', (cell) => {
                                 text: new_attribute_name,
                                 primary: "No",
                                 optional: "No",
-                                fill: "#FFFFFF"
+                                // fill: "#FFFFFF" //
+                                fill: "#000000" 
                             },
                         }
 
@@ -2281,6 +2322,9 @@ paper.on('cell:pointerdblclick', function(elementView, evt) {
     if (elementView.model.attributes.type === 'myApp.WeakEntity') {
         // window.confirm();
         let new_weak_entity_name = window.prompt("Please enter the new name of the weak entity:", "");
+        if (new_weak_entity_name == null) {
+            return;
+        } 
         const entity = getElement(entitiesArray, source);
 
         entity_update_request = {
@@ -2293,6 +2337,9 @@ paper.on('cell:pointerdblclick', function(elementView, evt) {
         
     } else if (elementView.model.attributes.type === 'myApp.StrongEntity') {
         let new_strong_entity_name = window.prompt("Please enter the new name of the strong entity:", "");
+        if (new_strong_entity_name == null) {
+            return;
+        }
         const entity = getElement(entitiesArray, source);
 
         entity_update_request = {
@@ -2306,6 +2353,9 @@ paper.on('cell:pointerdblclick', function(elementView, evt) {
     } else if (elementView.model.attributes.type === 'myApp.Relationship') {
         let new_relationship_name = window.prompt("Please enter the new name of the relationship entity:", "");
         const relationship = getElement(relationshipsArray, source);
+        if (new_relationship_name == null) {
+            return;
+        }
 
         relationship_update_request = {
             "relationshipID": relationship.id,
@@ -2382,7 +2432,8 @@ paper.on('link:pointerup', (cell, evt) => {
                 // markup: util.svg`<text @selector="text" fill="#FFFFFF"/> <rect @selector="outer" fill="#f6f6f6"/>`,
                 markup: util.svg`<text @selector="text" fill="#000000"/>`,
                 position: {
-                    offset: -15
+                    // offset: -15,
+                    distance: 0.2
                 }
             }
 
@@ -2399,7 +2450,7 @@ paper.on('link:pointerup', (cell, evt) => {
                 }
 
                 // invoke 'er/relationship/link_obj' api
-                relationshipLinkObj(link_obj_request, relation);
+                relationshipLinkObj(link_obj_request, relation, cell.model.id);
                 
             }
             
@@ -2425,7 +2476,8 @@ paper.on('link:pointerup', (cell, evt) => {
                 // markup: util.svg`<text @selector="text" fill="#FFFFFF"/> <rect @selector="outer" fill="#f6f6f6"/>`,
                 markup: util.svg`<text @selector="text" fill="#000000"/>`,
                 position: {
-                    offset: 0
+                    offset: 0,
+                    distance: 0.2
                 }
             }
 
@@ -2442,7 +2494,7 @@ paper.on('link:pointerup', (cell, evt) => {
                 }
 
                 // invoke 'er/relationship/link_obj' api
-                relationshipLinkObj(link_obj_request, relation);
+                relationshipLinkObj(link_obj_request, relation, cell.model.id);
                 
             }
         } else if (checkArray(relationshipsArray, source) && checkArray(relationshipsArray, target)) {
@@ -2478,7 +2530,7 @@ paper.on('link:pointerup', (cell, evt) => {
             }
 
             // invoke 'er/relationship/link_obj' api
-            relationshipLinkObj(link_obj_request, relationship1);
+            relationshipLinkObj(link_obj_request, relationship1, cell.model.id);
         }
 
         // Checking every sides of the link, if one side is a weak entity and the other side is a relationship, then
@@ -2696,6 +2748,7 @@ graph.on('change:level', (cell, level) => {
 
 function getAttribute(belongObject, attribute_name) {
     const attributesArray = belongObject.attributesArray;
+    console.log("array: " + attributesArray);
     let result;
     for (idx in attributesArray) {
         if (attributesArray[idx].name == attribute_name) {
@@ -2746,7 +2799,7 @@ function removeAttribute(attributesArray, attribute) {
     for (idx in attributesArray) {
         if (attributesArray[idx].name == attribute.name) {
             // delete attributesArray[idx];
-            attributesArray.splice(idx, idx);
+            attributesArray.splice(idx, 1);
         }
     }
 }
@@ -2786,7 +2839,7 @@ function getElement(arr, cell) {
     const cell_name = cell.attributes.attrs.label.text;
     // console.log("cell_name: ", cell_name);
     cellName = cell_name.replaceAll("\n", "_");
-    // console.log("cellName: ", cellName);
+    console.log("cellName: ", cellName);
     let result;
     for (idx in arr) {
         // console.log("arr[idx]: ", arr[idx]);
@@ -2927,6 +2980,36 @@ function attributeUpdate(attribute_update_request, attribute, cell) {
             alert(JSON.parse(result.responseText).data);
         },
     });
+}
+
+function relationshipEdgeDelete(relationshipEdge_delete_request, relationship, edgee) {
+    $.ajax({
+        async: false,
+        type: "POST",
+        url: "http://" + ip_address + ":8080/er/relationship/delete_edge",
+        headers: { "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+        traditional : true,
+        data: JSON.stringify(relationshipEdge_delete_request),
+        dataType: "json",
+        contentType: "application/json",
+        success: function(result) {
+            alert("success to delete the attribute!");
+            var edgeList = relationship.belongObjWithCardinalityList;
+            for (idx in edgeList) {
+                var edge = edgeList[idx];
+                if (edge.graphId == edgee.graphId) {
+                    edgeList.splice(idx, 1);
+                }
+            }
+            relationship.belongObjWithCardinalityList = edgeList;
+        },
+        error: function(result) {
+            is_success = false;
+            alert("fail to delete the relationship edge!");
+            alert(JSON.parse(result.responseText).data);
+        },
+    })
 }
 
 function attributeDelete(attribute_delete_request, source, attribute) {
@@ -3125,7 +3208,7 @@ function relationshipUpdate(update_relationship_request, relationship, new_relat
     })
 }
 
-function relationshipLinkObj(link_obj_request, relationship) {
+function relationshipLinkObj(link_obj_request, relationship, graphId) {
     $.ajax({
         async: false,
         type: "POST",
@@ -3140,6 +3223,7 @@ function relationshipLinkObj(link_obj_request, relationship) {
             alert("success!");
             link_obj_request.edgeID = result.data.edgeID;
             console.log("api result: ", result);
+            link_obj_request.graphId = graphId;
             relationship.belongObjWithCardinalityList.push(link_obj_request);
         },
         error: function(result) {
