@@ -10,6 +10,8 @@ This Source Code Form is subject to the terms of the JointJS+ Trial License
 file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
  or from the JointJS+ archive as was distributed by client IO. See the LICENSE file.*/
 
+// import { off } from "process";
+
 // import { get } from "jquery";
 
 // import { CloudLightning } from "react-bootstrap-icons";
@@ -598,12 +600,6 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                                 }
                                             }
                                         },
-                                        fill: {
-                                            type: 'color-palette',
-                                            options: options.colorPaletteReset,
-                                            label: 'Text Color',
-                                            index: 6
-                                        },
                                         primary: {
                                             type: 'select-box',
                                             defaultValue: 'No',
@@ -622,7 +618,7 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                             type: 'select-box',
                                             defaultValue: 'Mandatory',
                                             options: options.attributeType || [],
-                                            label: 'attributeType',
+                                            label: 'Attribute Type',
                                             index: 3,
                                         },
                                         dataType: {
@@ -631,7 +627,13 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                             options: options.dataType || [],
                                             label: 'Data Type',
                                             index: 4,
-                                        }
+                                        },
+                                        fill: {
+                                            type: 'color-palette',
+                                            options: options.colorPaletteReset,
+                                            label: 'Text Color',
+                                            index: 5
+                                        },
                                     },
                                     // rect: {
                                     //     fill: {
@@ -655,7 +657,7 @@ paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
                                     offset: 200,
                                     label: 'Position',
                                     placeholder: 'Custom',
-                                    index: 4,
+                                    index: 6,
                                     attrs: {
                                         label: {
                                             'data-tooltip': 'Position the label relative to the source of the link',
@@ -2388,28 +2390,46 @@ paper.on('link:pointerup', (cell, evt) => {
 
         let new_cardinality_name;
         let cardinality;
-        // console.log("target: ", target);
-        if (target.attributes.type != "myApp.StrongEntity") {
-            new_cardinality_name = window.prompt("Please enter the ratio of the new cardinality (Please choose between 0:1, 1:1, 0:N, 1:N):", "");
-        
-            while (new_cardinality_name != "0:1" && new_cardinality_name != "0:N" && new_cardinality_name != "1:1" && new_cardinality_name != "1:N") {
-                new_cardinality_name = window.prompt("This ratio is not supperted! Please choose between 0:1, 1:1, 0:N, 1:N.", "");
-            }
 
-            
-            if (new_cardinality_name == "0:1") {
-                cardinality = 1;
-            } else if (new_cardinality_name == "0:N") {
-                cardinality = 2;
-            } else if (new_cardinality_name == "1:1") {
-                cardinality = 3;
-            } else if (new_cardinality_name == "1:N") {
-                cardinality = 4;
-            } else {
-                cardinality = 0; // not a valid cardinality or didn't give a cardinality
-            } 
+        new_cardinality_name = window.prompt("Please enter the ratio of the new cardinality (Please choose between 0:1, 1:1, 0:N, 1:N):", "");
+        
+        while (new_cardinality_name != "0:1" && new_cardinality_name != "0:N" && new_cardinality_name != "1:1" && new_cardinality_name != "1:N") {
+            new_cardinality_name = window.prompt("This ratio is not supperted! Please choose between 0:1, 1:1, 0:N, 1:N.", "");
         }
         
+        if (new_cardinality_name == "0:1") {
+            cardinality = 1;
+        } else if (new_cardinality_name == "0:N") {
+            cardinality = 2;
+        } else if (new_cardinality_name == "1:1") {
+            cardinality = 3;
+        } else if (new_cardinality_name == "1:N") {
+            cardinality = 4;
+        } else {
+            cardinality = 0; // not a valid cardinality or didn't give a cardinality
+        } 
+        // console.log("target: ", target);
+
+        // if (target.attributes.type != "myApp.StrongEntity") {
+        //     new_cardinality_name = window.prompt("Please enter the ratio of the new cardinality (Please choose between 0:1, 1:1, 0:N, 1:N):", "");
+        
+        //     while (new_cardinality_name != "0:1" && new_cardinality_name != "0:N" && new_cardinality_name != "1:1" && new_cardinality_name != "1:N") {
+        //         new_cardinality_name = window.prompt("This ratio is not supperted! Please choose between 0:1, 1:1, 0:N, 1:N.", "");
+        //     }
+
+            
+        //     if (new_cardinality_name == "0:1") {
+        //         cardinality = 1;
+        //     } else if (new_cardinality_name == "0:N") {
+        //         cardinality = 2;
+        //     } else if (new_cardinality_name == "1:1") {
+        //         cardinality = 3;
+        //     } else if (new_cardinality_name == "1:N") {
+        //         cardinality = 4;
+        //     } else {
+        //         cardinality = 0; // not a valid cardinality or didn't give a cardinality
+        //     } 
+        // }
         
 
         // need to wrapper the api invoking function later!
@@ -2417,6 +2437,16 @@ paper.on('link:pointerup', (cell, evt) => {
 
             entity = getElement(entitiesArray, source);
             relation = getElement(relationshipsArray, target);
+
+            console.log("entity: " + entity);
+            console.log("relationship: " + relation);
+
+            var offset;
+            if (relation.layoutInfo.layoutX > entity.layoutInfo.layoutX) {
+                offset = 20;
+            } else {
+                offset = 40;
+            }
 
             cell.model.attributes.labels = [];
             cell.model.attributes.labels[0] = {
@@ -2433,7 +2463,7 @@ paper.on('link:pointerup', (cell, evt) => {
                 markup: util.svg`<text @selector="text" fill="#000000"/>`,
                 position: {
                     // offset: -15,
-                    distance: 0.2
+                    distance: offset
                 }
             }
 
@@ -2477,9 +2507,10 @@ paper.on('link:pointerup', (cell, evt) => {
                 markup: util.svg`<text @selector="text" fill="#000000"/>`,
                 position: {
                     offset: 0,
-                    distance: 0.2
+                    distance: -40
                 }
             }
+            // cell.model.attributes.labels[0].position.distance -= 30;
 
             cell.render();
 
@@ -2514,7 +2545,8 @@ paper.on('link:pointerup', (cell, evt) => {
                 // markup: util.svg`<text @selector="text" fill="#FFFFFF"/> <rect @selector="outer" fill="#f6f6f6"/>`,
                 markup: util.svg`<text @selector="text" fill="#000000"/>`,
                 position: {
-                    offset: 0
+                    offset: 0,
+                    distance: 20
                 }
             }
 
@@ -2842,7 +2874,7 @@ function getElement(arr, cell) {
     console.log("cellName: ", cellName);
     let result;
     for (idx in arr) {
-        // console.log("arr[idx]: ", arr[idx]);
+        console.log("arr[idx]: ", arr[idx]);
         if (arr[idx].name == cellName || arr[idx].weakEntityName == cellName || arr[idx].subsetName == cellName) {
             result = arr[idx];
         }
