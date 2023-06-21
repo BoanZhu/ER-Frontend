@@ -42,7 +42,7 @@ let relationshipsArray = [];
 
 // const ip_address = "146.169.162.32";
 // const ip_address = "10.187.204.209";
-const ip_address = "10.187.204.209";
+const ip_address = "146.169.174.69";
 // const ip_address = "146.169.162.217";
 // const ip_address = "10.29.10.219";
 
@@ -55,6 +55,122 @@ let is_validated = false;
 
 let backendJson;
 let is_transfered = false;
+let schemaList;
+
+let saved = true;
+
+// let query_all_schemas_request = {
+
+// }
+
+const options = {
+    arrowheadSize: [
+        { value: 'M 0 0 0 0', content: 'None' },
+        { value: 'M 0 -3 -6 0 0 3 z', content: 'Small' },
+        { value: 'M 0 -5 -10 0 0 5 z', content: 'Medium' },
+        { value: 'M 0 -10 -15 0 0 10 z', content: 'Large' },
+        { value: 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0', content: 'Attribute' },
+        // { value: util.svg` <rect @selector="body" />`, content: 'Attribute' },
+        
+    ],
+    colorPaletteReset: [
+        { content: 'string', icon: '../assets/no-color-icon.svg' },
+        { content: '#f6f6f6' },
+        { content: '#dcd7d7' },
+        { content: '#8f8f8f' },
+        { content: '#c6c7e2' },
+        { content: '#feb663' },
+        { content: '#fe854f' },
+        { content: '#b75d32' },
+        { content: '#31d0c6' },
+        { content: '#7c68fc' },
+        { content: '#61549c' },
+        { content: '#6a6c8a' },
+        { content: '#4b4a67' },
+        { content: '#3c4260' },
+        { content: '#33334e' },
+        { content: '#222138' }
+    ],
+    labelPosition: [
+        { value: 1, content: 'attribute' },
+        // { value: 0.5, content: 'Cardinality' },
+        { offset: 300, content: 'left' }
+    ],
+    // whetherOptional: [
+    //     { text: "Yes", content: 'Yes' },
+    //     { text: "No", content: 'No' }
+    // ],
+    attributeType: [
+        { text: 'Mandatory', content: 'Mandatory' },
+        { text: 'Optional', content: 'Optional' },
+        { text: 'Multivalued', content: 'Multivalued' },
+        { text: 'Both', content: 'Both' },
+    ],
+    whetherPrimaryKey: [
+        { text: "Yes", content: 'Yes' },
+        { text: "No", content: 'No' }
+    ],
+    dataType: [
+        { text: "UNKNOWN", content: 'UNKNOWN' },
+        { text: "CHAR", content: 'CHAR' },
+        { text: "VARCHAR", content: 'VARCHAR' },
+        { text: "TEXT", content: 'TEXT' },
+        { text: "TINYINT", content: 'TINYINT' },
+        { text: "SMALLINT", content: 'SMALLINT' },
+        { text: "INT", content: 'INT' },
+        { text: "BIGINT", content: 'BIGINT' },
+        { text: "FLOAT", content: 'FLOAT' },
+        { text: "DOUBLE", content: 'DOUBLE' },
+        { text: "DATETIME", content: 'DATETIME' },
+    ],
+    schemas: [],
+}
+
+$.ajax({
+    async: false,
+    type: "GET",
+    url: "http://" + ip_address + ":8080/er/schema/query_all_schemas",
+    headers: { "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+    traditional : true,
+    data: null,
+    dataType: "json",
+    contentType: "application/json",
+    success: function(result) {
+        // alert("success!");
+        console.log(result);
+        console.log(result.data.schemaList);
+        schemaList = result.data.schemaList;
+        for (idx in schemaList) {
+            if (idx > 10) {
+                return;
+            }
+            var schema = schemaList[idx];
+            var new_name = schema.name;
+            var new_id = schema.id;
+            var new_content = {
+                // icon: 'https://icons8.com/icon/474/online',
+                value: new_id, 
+                content: new_name,
+                events: { 
+                    pointerdown: () => {
+                        console.log("123");
+                    },
+                }
+            }
+            options.schemas.push(new_content);
+            
+        }
+        // options.schemas[9].selected = true;
+        console.log(options.schemas);
+    },
+    error: function(result) {
+        is_success = false;
+        alert(JSON.parse(result.responseText).data);
+    },
+})
+
+
 
 // --------------------- Paper & PaperScroller ---------------------
 
@@ -90,6 +206,9 @@ const paper = new dia.Paper({
     magnet: false,
     defaultConnectionPoint: { name: 'boundary' }
 });
+
+paper.schemas = options.schemas;
+console.log("paper.schemas: ", paper.schemas);
 
 const paperScroller = new ui.PaperScroller({
     paper,
@@ -434,7 +553,9 @@ const generalization = dia.Element.define('myApp.Generalization', {
 
 // ------------ Custom Shape End ------------
 
-
+paper.on("change", (cell) => {
+    console.log("111");
+})
 
 // ------- Stencil -------
 
@@ -444,7 +565,8 @@ const stencil = new ui.Stencil({
     width: 240,
     groups: {
         // myShapesGroup1: { index: 1, label: ' My Shapes 1' },
-        myShapesGroup2: { index: 2, label: ' Entity - Relationship' }
+        myShapesGroup2: { index: 2, label: ' Entity - Relationship' },
+        schemas: { type: 'select-box', index: 1, label: 'schemas', options: options.schemas || [], },
     },
     dropAnimation: true,
     groupsToggleButtons: true,
@@ -462,7 +584,13 @@ stencil.render().load({
     // }, {
     //     type: 'standard.Ellipse'
     // }],
-    
+    schemas: [
+        {
+            type: 'button',
+            attrs: {label: {text: '123'}},
+            markup: util.svg`<text @selector="text"/>`,
+        }
+    ],
     myShapesGroup2: [
     {
         type: 'myApp.StrongEntity',
@@ -494,69 +622,10 @@ stencil.render().load({
 
 // -------- Inspector --------
 
-const options = {
-    arrowheadSize: [
-        { value: 'M 0 0 0 0', content: 'None' },
-        { value: 'M 0 -3 -6 0 0 3 z', content: 'Small' },
-        { value: 'M 0 -5 -10 0 0 5 z', content: 'Medium' },
-        { value: 'M 0 -10 -15 0 0 10 z', content: 'Large' },
-        { value: 'M 0, 0 m -7, 0 a 7,7 0 1,0 14,0 a 7,7 0 1,0 -14,0', content: 'Attribute' },
-        // { value: util.svg` <rect @selector="body" />`, content: 'Attribute' },
-        
-    ],
-    colorPaletteReset: [
-        { content: 'string', icon: '../assets/no-color-icon.svg' },
-        { content: '#f6f6f6' },
-        { content: '#dcd7d7' },
-        { content: '#8f8f8f' },
-        { content: '#c6c7e2' },
-        { content: '#feb663' },
-        { content: '#fe854f' },
-        { content: '#b75d32' },
-        { content: '#31d0c6' },
-        { content: '#7c68fc' },
-        { content: '#61549c' },
-        { content: '#6a6c8a' },
-        { content: '#4b4a67' },
-        { content: '#3c4260' },
-        { content: '#33334e' },
-        { content: '#222138' }
-    ],
-    labelPosition: [
-        { value: 1, content: 'attribute' },
-        // { value: 0.5, content: 'Cardinality' },
-        { offset: 300, content: 'left' }
-    ],
-    // whetherOptional: [
-    //     { text: "Yes", content: 'Yes' },
-    //     { text: "No", content: 'No' }
-    // ],
-    attributeType: [
-        { text: 'Mandatory', content: 'Mandatory' },
-        { text: 'Optional', content: 'Optional' },
-        { text: 'Multivalued', content: 'Multivalued' },
-        { text: 'Both', content: 'Both' },
-    ],
-    whetherPrimaryKey: [
-        { text: "Yes", content: 'Yes' },
-        { text: "No", content: 'No' }
-    ],
-    dataType: [
-        { text: "UNKNOWN", content: 'UNKNOWN' },
-        { text: "CHAR", content: 'CHAR' },
-        { text: "VARCHAR", content: 'VARCHAR' },
-        { text: "TEXT", content: 'TEXT' },
-        { text: "TINYINT", content: 'TINYINT' },
-        { text: "SMALLINT", content: 'SMALLINT' },
-        { text: "INT", content: 'INT' },
-        { text: "BIGINT", content: 'BIGINT' },
-        { text: "FLOAT", content: 'FLOAT' },
-        { text: "DOUBLE", content: 'DOUBLE' },
-        { text: "DATETIME", content: 'DATETIME' },
-    ]
-}
+
 
 paper.on('element:pointerclick link:pointerclick', (elementView, evt) => {
+    console.log("11111");
     if (elementView.model.attributes.type == "standard.Link") {
         if (elementView.model.attributes.target.id == undefined) {
             ui.Inspector.create('.inspector-container', {
@@ -840,11 +909,12 @@ paper.on('element:pointerclick', (elementView) => {
     }).render();
 
     halo.on('action:myCustomAction:pointerdown', (evt) => {
-        alert('Try to create generalisation!');
+        // alert('Try to create generalisation!');
+        alert('clicked!');
     });
 
     halo.on('action:remove:pointerdown', (evt, cellView, wtf) => {
-        if (elementView.model.attributes.type == "myApp.StrongEntity") {
+        if (elementView.model.attributes.type == "myApp.StrongEntity" || elementView.model.attributes.type == "myApp.WeakEntity") {
             const source = graph.getCell(elementView.model.id);
             const entity = getElement(entitiesArray, source);
             const entity_delete_request = {
@@ -960,7 +1030,58 @@ paper.on('link:pointerclick', (linkView) => {
 
 // ---------- Link Tools End ----------
 
+var selectBox = new joint.ui.SelectBox({
+    width: 300,
+    // position: "le",
+    options: options.schemas,
+});
+console.log(selectBox.render().el);
+document.body.appendChild(selectBox.render().el);
 
+console.log(selectBox);
+
+selectBox.on('option:select', (cell) => {
+    // console.log(cell);
+    // console.log("123");
+    if (saved == false) {
+        alert("Please save the schema before switching.");
+        return;
+    }
+    const request = {
+        "id": cell.value
+    }
+    $.ajax({
+        async: false,
+        type: "POST",
+        url: "http://" + ip_address + ":8080/er/schema/get_json_by_id",
+        headers: { "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+        traditional : true,
+        data: JSON.stringify(request),
+        dataType: "json",
+        contentType: "application/json",
+        success: function(result) {
+            alert("success to switch the schema");
+            // schemaID = result.data.id;
+            // console.log("create new schema with ", result.data.id);
+
+            schemaID =  cell.value;
+            console.log("result JSON: ", result.data);
+            backendJson = result.data.json;
+            var JSONObject = JSON.parse(backendJson);
+
+            graph.clear();
+            entitiesArray = [];
+            relationshipsArray = [];
+            transferJSONintoDiagram(JSONObject);
+            saved = true;
+        },
+        error: function(result) {
+            is_success = false;
+            alert(JSON.parse(result.responseText).data);
+        },
+    })
+})
 
 // ------- Toolbar -------
 
@@ -970,9 +1091,9 @@ const toolbar = new ui.Toolbar({
         zoom: { index: 2 },
         validate: { index: 2 },
         create: { index: 3 },
-        toJson: { index: 4 },
-        upload: { index: 5 },
-        loadFromJson: { index: 6 },
+        // toJson: { index: 4 },
+        // upload: { index: 5 },
+        // loadFromJson: { index: 6 },
         // currentSchema: { index: 4 },
         // undoredo: { index: 5 },
         map: { index: 7 },
@@ -989,22 +1110,46 @@ const toolbar = new ui.Toolbar({
         { type: 'zoom-in', name: 'zoom-in', group: 'zoom' },
         { type: 'button', name: 'create', group: 'create', text: 'Create new schema' },
         { type: 'button', name: 'execute', group: 'execute', text: 'Connect to database and execute' },
-        { type: 'button', name: 'validate', group: 'validate', text: 'Validate the schema' },
+        { type: 'button', name: 'validate', group: 'validate', text: 'Validate' },
         // { type: 'button', name: 'render', group: 'render', text: 'Render the schema' },
         { type: 'button', name: 'toJson', group: 'toJson', text: 'To Json' }, 
         { type: 'button', name: 'upload', group: 'upload', text: 'Upload Json' },
-        { type: 'button', name: 'loadFromJson', group: 'loadFromJson', text: 'Load from Json' },
+        { type: 'button', name: 'loadFromJson', group: 'loadFromJson', text: 'Load Json' },
         // { type: 'button', name: 'toBackendJson', group: 'toBackendJson', text: 'To backend Json' },
         { type: 'button', name: 'reverse', group: 'reverse', text: 'Reverse' },
+        { type: 'button', name: 'getJsonByID', group: 'getJsonByID', text: 'Load schema' },
+        { type: 'button', name: 'save', group: 'save', text: 'Save' },
+        { type: 'button', name: 'delete', group: 'delete', text: 'delete schema' },
+        // { type: }
+        // { type: 'select-box', name: 'schemas', group: 'schemas', options: options.schemas || [], label: 'schemas', event: 'element:button:pointerdown'},
+        // type: 'select-box',
+        //                                     defaultValue: 'Mandatory',
+        //                                     options: options.attributeType || [],
+        //                                     label: 'Attribute Type',
+        //                                     index: 3,
     ],
     references: {
         paperScroller // built in zoom-in/zoom-out control types require access to paperScroller instance
     }
 });
 
+// toolbar.on('change:schemas', () => {
+//     console.log("123");
+// });
+
+// paper.on('element:button:pointerdown', function(elementView, evt) {
+//     console.log("123");
+// });
+
+// toolbar.on('schemas:select', (cell) => {
+//     console.log("wtfff!");
+// });
+
 toolbar.on({
     'clear:pointerclick': () => {
         graph.clear();
+        entitiesArray = [];
+        relationshipsArray = [];
         // console.log("backendJson: ", backendJson);
         // var JSONObject = JSON.parse(backendJson);
         // transferJSONintoDiagram(JSONObject);
@@ -1107,6 +1252,7 @@ toolbar.on({
                     alert("success!");
                     schemaID = result.data.id;
                     console.log("create new schema with ", result.data.id);
+                    selectBox.options.options.push({ value: schemaID, content: schemaName });
                 },
                 error: function(result) {
                     is_success = false;
@@ -1388,14 +1534,35 @@ toolbar.on({
         //     "password": password,
         // }
 
+        let requirement = window.prompt("requirement", "");
+
+        // const reverse_engineer_request = {
+        //     "databaseType": "postgresql",
+        //     "hostname": "localhost",
+        //     "portNumber": 5433,
+        //     "databaseName": "boanzhu",
+        //     "username": "boanzhu",
+        //     "password": "",
+        //     "requirement": requirement,
+        // }
         const reverse_engineer_request = {
             "databaseType": "postgresql",
-            "hostname": "localhost",
-            "portNumber": 5433,
-            "databaseName": "boanzhu",
-            "username": "boanzhu",
-            "password": "",
+            "hostname": "db.doc.ic.ac.uk",
+            "portNumber": 5432,
+            "databaseName": "airroute",
+            "username": "lab",
+            "password": "lab",
+            "requirement": requirement,
         }
+        // const reverse_engineer_request = {
+        //     "databaseType": "postgresql",
+        //     "hostname": "db.doc.ic.ac.uk",
+        //     "portNumber": 5432,
+        //     "databaseName": "usgs",
+        //     "username": "lab",
+        //     "password": "lab",
+        //     "requirement": requirement,
+        // }
         // const reverse_engineer_request = {
         //     "databaseType": "postgresql",
         //     "hostname": "db.doc.ic.ac.uk",
@@ -1420,15 +1587,244 @@ toolbar.on({
                 console.log("result: ", result.data.json);
                 backendJson = result.data.json;
                 var JSONObject = JSON.parse(backendJson);
+
+                graph.clear();
+                entitiesArray = [];
+                relationshipsArray = [];
+
                 transferJSONintoDiagram(JSONObject);
+
+                selectBox.options.options.push({ value: JSONObject.id, content: JSONObject.name });
             },
             error: function(result) {
                 is_success = false;
                 alert(JSON.parse(result.responseText).data);
             },
         })
-    }
+    },
+    'getJsonByID:pointerclick': () => {
+        let schema_ID = window.prompt("Please enter the ID of previous schema:", "");
+        if (schema_ID) {
+            const request = {
+                "id": schema_ID
+            }
+            $.ajax({
+                async: false,
+                type: "POST",
+                url: "http://" + ip_address + ":8080/er/schema/get_json_by_id",
+                headers: { "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                traditional : true,
+                data: JSON.stringify(request),
+                dataType: "json",
+                contentType: "application/json",
+                success: function(result) {
+                    alert("success to load the previous JSON!");
+                    // schemaID = result.data.id;
+                    // console.log("create new schema with ", result.data.id);
+
+                    schemaID = schema_ID;
+                    console.log("result JSON: ", result.data);
+                    backendJson = result.data.json;
+                    var JSONObject = JSON.parse(backendJson);
+
+                    graph.clear();
+
+                    transferJSONintoDiagram(JSONObject);
+                },
+                error: function(result) {
+                    is_success = false;
+                    alert(JSON.parse(result.responseText).data);
+                },
+            })
+            
+        }
+    },
+    'save:pointerclick': () => {
+        console.log("try to save the current schema and store in the datbase");
+        jsonObj = {
+            "entityList": [],
+            "relationshipList": []
+        };
+        for (idx in entitiesArray) {
+            var entity = entitiesArray[idx];
+            var entityGraphId = entity.graphId;
+            var entityGraphObj = graph.getCell(entityGraphId);
+            console.log("entity: ", entity);
+            console.log("entityGraphObj: ", entityGraphObj);
+            var entityJson = {
+                "id": entity.id,
+                "layoutInfo": {
+                    "layoutX": entityGraphObj.attributes.position.x,
+                    "layoutY": entityGraphObj.attributes.position.y
+                },
+                "attributeList": []
+            }
+
+            var attributesArray = entity.attributesArray;
+            for (idx in attributesArray) {
+                var attribute = attributesArray[idx];
+                var attributeGraphId = attribute.graphId;
+                var attributeGraphObj = graph.getCell(attributeGraphId);
+                console.log("attribute: ", attribute);
+                console.log("attributeGraphId: ", attributeGraphObj);
+                var attributeJson = {
+                    "id": attribute.id,
+                    "layoutInfo": {
+                        "layoutX": attributeGraphObj.attributes.target.x,
+                        "layoutY": attributeGraphObj.attributes.target.y
+                    },
+                }
+                entityJson.attributeList.push(attributeJson);
+            }
+            jsonObj.entityList.push(entityJson);
+        }
+        console.log("entityList: ", jsonObj);
+        for (idx in relationshipsArray) {
+            var relationship = relationshipsArray[idx];
+            var relationshipGraphId = relationship.graphId;
+            var relationshipGraphObj = graph.getCell(relationshipGraphId);
+
+            var relationshipJson = {
+                "id": relationship.id,
+                "layoutInfo": {
+                    "layoutX": relationshipGraphObj.attributes.position.x,
+                    "layoutY": relationshipGraphObj.attributes.position.y
+                },
+                "attributeList": []
+            }
+
+            var attributesArray = relationship.attributesArray;
+            for (idx in attributesArray) {
+                var attribute = attributesArray[idx];
+                var attributeGraphId = attribute.graphId;
+                var attributeGraphObj = graph.getCell(attributeGraphId);
+                console.log("attribute: ", attribute);
+                console.log("attributeGraphId: ", attributeGraphObj);
+                var attributeJson = {
+                    "id": attribute.id,
+                    "layoutInfo": {
+                        "layoutX": attributeGraphObj.attributes.target.x,
+                        "layoutY": attributeGraphObj.attributes.target.y
+                    },
+                }
+                relationshipJson.attributeList.push(attributeJson);
+            }
+            jsonObj.relationshipList.push(relationshipJson);
+        }
+        console.log("jsonObj: ", jsonObj);
+
+        var jsonString = JSON.stringify(jsonObj);
+        console.log("jsonString: ", jsonString);
+
+        if (jsonString) {
+            var request = {
+                "schemaID": schemaID,
+                "json": jsonString
+            }
+            $.ajax({
+                async: false,
+                type: "POST",
+                url: "http://" + ip_address + ":8080/er/schema/save",
+                headers: { "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                traditional : true,
+                data: JSON.stringify(request),
+                dataType: "json",
+                contentType: "application/json",
+                success: function(result) {
+                    alert("success to save the schema!");
+                    // schemaID = result.data.id;
+                    // console.log("create new schema with ", result.data.id);
+                    // console.log("1111111111!");
+                    saved = true;
+                },
+                error: function(result) {
+                    is_success = false;
+                    alert(JSON.parse(result.responseText).data);
+                },
+            })
+            
+        }
+    },
+    'schemas:pointerclick': () => {
+        console.log("wtf!");
+    },
+    'delete:pointerclick': () => {
+        delete_schema_request = {
+            "id": schemaID
+        }
+        var previousID;
+        $.ajax({
+            async: false,
+            type: "POST",
+            url: "http://" + ip_address + ":8080/er/schema/delete",
+            headers: { "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+            traditional : true,
+            data: JSON.stringify(delete_schema_request),
+            dataType: "json",
+            contentType: "application/json",
+            success: function(result) {
+                alert("success to delete the schema!");
+                // schemaID = result.data.id;
+                // console.log("create new schema with ", result.data.id);
+                var new_options = selectBox.options.options;
+                for (idx in new_options) {
+                    var option = new_options[idx];
+                    if (option.value == schemaID) {
+                        previousID = new_options[idx - 1].value;
+                        new_options.splice(idx, idx + 1);
+                    }
+                }
+                console.log("123: " , selectBox.options.options.length);
+            },
+            error: function(result) {
+                is_success = false;
+                alert(JSON.parse(result.responseText).data);
+            },
+        })
+        graph.clear();
+        // var request = {
+        //     "id": previousID
+        // }
+        // $.ajax({
+        //     async: false,
+        //     type: "POST",
+        //     url: "http://" + ip_address + ":8080/er/schema/get_json_by_id",
+        //     headers: { "Access-Control-Allow-Origin": "*",
+        //         "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+        //     traditional : true,
+        //     data: JSON.stringify(request),
+        //     dataType: "json",
+        //     contentType: "application/json",
+        //     success: function(result) {
+        //         // alert("success to load the previous JSON!");
+        //         // schemaID = result.data.id;
+        //         // console.log("create new schema with ", result.data.id);
+    
+        //         schemaID =  previousID;
+        //         console.log("result JSON: ", result.data);
+        //         backendJson = result.data.json;
+        //         var JSONObject = JSON.parse(backendJson);
+    
+        //         graph.clear();
+        //         entitiesArray = [];
+        //         relationshipsArray = [];
+        //         transferJSONintoDiagram(JSONObject);
+        //     },
+        //     error: function(result) {
+        //         is_success = false;
+        //         alert(JSON.parse(result.responseText).data);
+        //     },
+        // })
+        // paper.render();
+    },
 });
+
+toolbar.on('pointerclick', (cell) => {
+    console.log("11111");
+})
 
 document.querySelector('.toolbar-container').appendChild(toolbar.el);
 toolbar.render();
@@ -1492,6 +1888,8 @@ graph.addCell(myLink);
 // graph.on('change add remove', (cell) => {
 graph.on('change add', (cell) => {
     console.log("123456789", cell);
+    saved = false;
+    
     // console.log("is_transfered: ", is_transfered);
     // if (is_transfered) {
     //     return;
@@ -2173,8 +2571,9 @@ graph.on('change', (cell) => {
             if (entity.attributesArray) {
                 for (idx in entity.attributesArray) {
                     var attribute = entity.attributesArray[idx];
+                    console.log("attribute: ", attribute);
                     var attributeInGraph = graph.getCell(attribute.graphId);
-                    // console.log("attributeInGraph: ", attributeInGraph);
+                    console.log("attributeInGraph: ", attributeInGraph);
                     // console.log("diffX: ", diffX);
                     // console.log("diffY: ", diffY);
                     attributeInGraph.attributes.target.x += diffX;
@@ -2244,6 +2643,7 @@ paper.on('blank:pointerdown', () => {
 });
 
 graph.on('add', function(cell) { 
+    saved = false;
     if (is_transfered) {
         return;
     }
@@ -2438,14 +2838,22 @@ paper.on('link:pointerup', (cell, evt) => {
             entity = getElement(entitiesArray, source);
             relation = getElement(relationshipsArray, target);
 
-            console.log("entity: " + entity);
-            console.log("relationship: " + relation);
+            console.log("entity: ", entity);
+            console.log("relationship: ", relation);
 
             var offset;
-            if (relation.layoutInfo.layoutX > entity.layoutInfo.layoutX) {
-                offset = 20;
+            if (entity.weakEntityLayoutInfo) {
+                if (relation.layoutInfo.layoutX > entity.weakEntityLayoutInfo.layoutX) {
+                    offset = 20;
+                } else {
+                    offset = 40;
+                }
             } else {
-                offset = 40;
+                if (relation.layoutInfo.layoutX > entity.layoutInfo.layoutX) {
+                    offset = 20;
+                } else {
+                    offset = 40;
+                }
             }
 
             cell.model.attributes.labels = [];
@@ -3564,10 +3972,13 @@ function transferJSONintoDiagram(JSONObject) {
     // From the backend we can get the backend JSON string and then we can parse it into this 'JSONObject'
 
     schemaName = JSONObject.name;
-    schemaID = JSONObject.id;
+    if (JSONObject.id) {
+        schemaID = JSONObject.id;
+    }
+
     // invoke api to create a new schema here
 
-    console.log(JSONObject);
+    console.log("JSONObject: ", JSONObject);
 
     var entityList = JSONObject.entityList;
     var relationshipList = JSONObject.relationshipList;
@@ -3580,19 +3991,19 @@ function transferJSONintoDiagram(JSONObject) {
     for (idx in entityList) {
         var entity = entityList[idx];
         // console.log("all entities: ", entity, ", type: ", entity.entityType);
-        if (entity.entityType == 1) {
+        if (entity.entityType == 1 || entity.entityType == "STRONG") {
             // console.log("new strong entity: ", entity, ", type: ", entity.entityType);
             strongEntityList.push(entity);
-        } else if (entity.entityType == 2) {
+        } else if (entity.entityType == 2 || entity.entityType == "WEAK") {
             // weakEntityList.push(entity);
 
             // weak entity may have the same situation as the strong entity
             // console.log("new weak entity: ", entity, ", type: ", entity.entityType);
             strongEntityList.push(entity);
-        } else if (entity.entityType == 3) {
+        } else if (entity.entityType == 3 || entity.entityType == "SUBSET") {
             // console.log("new subset: ", entity, ", type: ", entity.entityType);
             subsetEntityList.push(entity);
-        } else if (entity.entityType == 4) {
+        } else if (entity.entityType == 4 || entity.entityType == "GENERALISATION") {
             generalisationEntityList.push(entity);
         } 
     }
@@ -4276,7 +4687,7 @@ function transferJSONintoDiagram(JSONObject) {
 
             if (edge.belongObjType == 2) {
                 target = findEntity(edge.belongObjName);
-                console.log("11111111: ", target);
+                // console.log("11111111: ", target);
             } else if (edge.belongObjType == 3) {
                 target = findRelationship(edge.belongObjName);
             } else {
@@ -4314,7 +4725,8 @@ function transferJSONintoDiagram(JSONObject) {
                     },
                     markup: util.svg`<text @selector="text" fill="#000000"/>`,
                     position: {
-                        offset: -15
+                        offset: 0,
+                        distance: -20
                     }
                 }
 
