@@ -40,13 +40,8 @@ let entitiesArray = [];
 // let attributesArray = [];
 let relationshipsArray = [];
 
-// const ip_address = "146.169.162.32";
-// const ip_address = "10.187.204.209";
-const ip_address = "146.169.174.69";
-// const ip_address = "146.169.162.217";
-// const ip_address = "10.29.10.219";
+const ip_address = "10.187.204.209";
 
-// let schemaID = "";
 let schemaID = "1133";
 let schemaName = "Test schema";
 let sql;
@@ -1534,7 +1529,7 @@ toolbar.on({
         //     "password": password,
         // }
 
-        let requirement = window.prompt("requirement", "");
+        // let requirement = window.prompt("requirement", "");
 
         // const reverse_engineer_request = {
         //     "databaseType": "postgresql",
@@ -1545,24 +1540,24 @@ toolbar.on({
         //     "password": "",
         //     "requirement": requirement,
         // }
-        const reverse_engineer_request = {
-            "databaseType": "postgresql",
-            "hostname": "db.doc.ic.ac.uk",
-            "portNumber": 5432,
-            "databaseName": "airroute",
-            "username": "lab",
-            "password": "lab",
-            "requirement": requirement,
-        }
         // const reverse_engineer_request = {
         //     "databaseType": "postgresql",
         //     "hostname": "db.doc.ic.ac.uk",
         //     "portNumber": 5432,
-        //     "databaseName": "usgs",
+        //     "databaseName": "airroute",
         //     "username": "lab",
         //     "password": "lab",
         //     "requirement": requirement,
         // }
+        const reverse_engineer_request = {
+            "databaseType": "postgresql",
+            "hostname": "db.doc.ic.ac.uk",
+            "portNumber": 5432,
+            "databaseName": "usgs",
+            "username": "lab",
+            "password": "lab",
+            // "requirement": requirement,
+        }
         // const reverse_engineer_request = {
         //     "databaseType": "postgresql",
         //     "hostname": "db.doc.ic.ac.uk",
@@ -1572,36 +1567,118 @@ toolbar.on({
         //     "password": "lab",
         // }
 
-        $.ajax({
-            async: false,
-            type: "POST",
-            url: "http://" + ip_address + ":8080/er/schema/reverse_engineer",
-            headers: { "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
-            traditional : true,
-            data: JSON.stringify(reverse_engineer_request),
-            dataType: "json",
-            contentType: "application/json",
-            success: function(result) {
-                alert("success to reverse engineer!");
-                console.log("result: ", result.data.json);
-                backendJson = result.data.json;
-                var JSONObject = JSON.parse(backendJson);
+        let parent = $("#dialog-reverse").parent();
 
-                graph.clear();
-                entitiesArray = [];
-                relationshipsArray = [];
+        parent.css("top", "15%");
+        parent.css("left", "40%");
 
-                transferJSONintoDiagram(JSONObject);
+        $("#dialog-reverse").dialog({
+            // console.log($("#connect"), 11111),
+            buttons: [
+                {
+                    text: "connect and execute",
+                    click: function() {
+                        if (!$("#database-type-reverse").val() || !$("#hostname-reverse").val() || !$("#port-number-reverse").val() || !$("#database-name-reverse").val() || !$("#username-reverse").val()) {
+                            alert("Please fill all the lines!");
+                            return;
+                        } else {
+                            const databaseType = $("#database-type-reverse").val();
+                            const hostname = $("#hostname-reverse").val();
+                            const portNumber = $("#port-number-reverse").val();
+                            const databaseName = $("#database-name-reverse").val();
+                            const username = $("#username-reverse").val();
+                            const password = $("#password-reverse").val();
+                            // const requirement1 = $("#subset-reverse").val();
+                            // const requirement2 = $("#without-subset-reverse").val();
+                            // const requirement = $("input[name='subset']:checked").val();
+                            // console.log(document.getElementsByName("subset"));
+                            const requirements = document.getElementsByName("subset");
+                            const requirement1 = requirements[0];
+                            const requirement2 = requirements[1];
+                            var requirement;
+                            if (requirement1.checked == true) {
+                                requirement = "subset";
+                            } else {
+                                requirement = "";
+                            }
 
-                selectBox.options.options.push({ value: JSONObject.id, content: JSONObject.name });
-            },
-            error: function(result) {
-                is_success = false;
-                alert(JSON.parse(result.responseText).data);
-            },
-        })
-    },
+                            // 除了以上所有东西先传给后端，还需要把ddl传过去，也就是要在ddl成功生成后才能做该操作
+                            // ddl是个string，然后后端需要连接数据库之后再尝试execute生成的ddl
+                            
+                            const reverse_engineer_request = {
+                                "databaseType": databaseType,
+                                "hostname": hostname,
+                                "portNumber": portNumber,
+                                "databaseName": databaseName,
+                                "username": username,
+                                "password": password,
+                                "requirement": requirement,
+                            }
+
+                            // console.log("request: ", reverse_engineer_request);
+                            // console.log("requirement1: ", requirement1);
+                            // console.log("requirement2: ", requirement2);
+                            // console.log("requirement: ", requirement);
+
+                            // const connect_database_and_execute_ddl_requset = {
+                            //     "databaseType": databaseType,
+                            //     "hostname": hostname,
+                            //     "portNumber": portNumber,
+                            //     "databaseName": databaseName,
+                            //     "username": username,
+                            //     "password": password,
+                            //     "ddl": previousSql,
+                            // }
+
+                            $.ajax({
+                                async: false,
+                                type: "POST",
+                                url: "http://" + ip_address + ":8080/er/schema/reverse_engineer",
+                                headers: { "Access-Control-Allow-Origin": "*",
+                                    "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"},
+                                traditional : true,
+                                data: JSON.stringify(reverse_engineer_request),
+                                dataType: "json",
+                                contentType: "application/json",
+                                success: function(result) {
+                                    alert("success to reverse engineer!");
+                                    console.log("result: ", result.data.json);
+                                    backendJson = result.data.json;
+                                    var JSONObject = JSON.parse(backendJson);
+                    
+                                    graph.clear();
+                                    entitiesArray = [];
+                                    relationshipsArray = [];
+                    
+                                    transferJSONintoDiagram(JSONObject);
+                    
+                                    selectBox.options.options.push({ value: JSONObject.id, content: JSONObject.name });
+                                    $("#dialog-reverse").dialog( "close" );
+                                },
+                                error: function(result) {
+                                    is_success = false;
+                                    $("#dialog-reverse").dialog( "close" );
+                                    alert(JSON.parse(result.responseText).data);
+                                },
+                            })
+                    
+                        }
+                    },
+                },
+                {
+                    text: "Cancel",
+                    click: function() {
+                        // $("#dialog").css("width", "350px");
+                        console.log("dddddd: ", $("#dialog-reverse").css("width"));
+                        $("#dialog-reverse").dialog( "close" );
+                        $("dialog-reverse").css("display", "none");
+                    }
+                }
+            ]
+        });
+
+
+},
     'getJsonByID:pointerclick': () => {
         let schema_ID = window.prompt("Please enter the ID of previous schema:", "");
         if (schema_ID) {
