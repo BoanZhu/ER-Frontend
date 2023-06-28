@@ -7,7 +7,7 @@ html-javascript application
 
 Download this sub-project using the following command line:
 ```
-git clone https://gitlab.doc.ic.ac.uk/bz2818/er-frontend.git
+git clone https://github.com/BoanZhu/ER-Frontend.git
 ```
 
 After opening this project in the editor such as Vscode, you need to
